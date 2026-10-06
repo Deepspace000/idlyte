@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.78</title>
+<title>Idlyte v0.79</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -423,8 +423,8 @@ for(let i=0;i<14;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP)
 for(let i=0;i<60;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:1,c:'#6c6c6c'});
 for(let i=0;i<24;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:2,c:'#bbbbbb'});
 const STAR_V=[6,16,38,64,130,24,230];
-for(let i=0;i<12;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:5,c:'#352879'});
-for(let i=0;i<4;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:6,c:'#6c6c6c'});
+for(let i=0;i<8;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:5,c:'#1c1840'});
+for(let i=0;i<2;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:6,c:'#444444'});
 
 /* ===== save / stats ===== */
 function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,paint:{color:'chrome',pattern:'none',accent:'orange',canopy:'cyan',own:{}},extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
@@ -857,7 +857,7 @@ function drawBackground(){
   }
   // planet drifts across the level
   const px=400-G.t*3.4;if(px>-60&&px<W+60)ctx.drawImage(TH.planet,(px-44)|0,(70)|0);
-  for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:s.l===5?9:s.l===6?14:(s.l===3?2:1),s.l===3?2:1)}
+  for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:s.l===5?5:s.l===6?7:(s.l===3?2:1),s.l===3?2:1)}
 }
 function drawBoss(e){
   const f=e.flash>0,spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss),bx=(e.x-70)|0,by=(e.y-46)|0;
@@ -941,7 +941,7 @@ function draw(){
   // enemy bullets
   for(const b of EB){
     const a=Math.floor(b.t*14)%2;
-    ctx.fillStyle=['#b8c76f','#ff7777','#ffffff'][Math.floor(b.t*12)%3];ctx.fillRect((b.x-1)|0,(b.y-2)|0,2,4);ctx.fillRect((b.x-2)|0,(b.y-1)|0,4,2);
+    ctx.fillStyle='#9a3a3a';ctx.fillRect((b.x-2)|0,(b.y-3)|0,4,6);ctx.fillRect((b.x-3)|0,(b.y-2)|0,6,4);ctx.fillStyle=['#ff7777','#ffffff','#ff7777'][Math.floor(b.t*12)%3];ctx.fillRect((b.x-1)|0,(b.y-2)|0,2,4);ctx.fillRect((b.x-2)|0,(b.y-1)|0,4,2);
     ctx.fillStyle='#000000';ctx.fillRect((b.x-1)|0,(b.y-1)|0,1,1);ctx.fillStyle=a?'#ffffff':'#9a3a3a';ctx.fillRect(b.x|0,b.y|0,1,1);
   }
   for(const f of FX){
@@ -1019,7 +1019,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.78';
+const VERSION='0.79';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1223,8 +1223,12 @@ function mkEarth(R){
 }
 SPR.earth=mkEarth(50);SPR.bigEarth=mkEarth(100);
 SPR.opt=shaded(7,7,(x,y)=>Math.hypot(x-3,y-3)<=3.2,CHROME.blue,(i,j,col,f)=>(i===2&&j===2)?'#ffffff':null);
-SPR.crate=ITEMS.map(it=>{const c=mk(7,7),x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,7,7);x.fillStyle=it.c;x.fillRect(1,1,5,5);
-  x.fillStyle='#ffffff';x.fillRect(1,1,5,1);x.fillRect(1,1,1,5);x.fillStyle='#00000066';x.fillRect(5,2,1,4);x.fillRect(2,5,4,1);return c});
+SPR.crate=ITEMS.map(it=>{const c=mk(7,7),x=c.getContext('2d');
+  for(let j=0;j<7;j++)for(let i=0;i<7;i++){const d=Math.hypot(i-3,j-3);if(d>3.4)continue;
+    if(d>2.5){x.fillStyle='#000000'}else{const l=(-(i-3)*.7-(j-3)*.7)/3;x.fillStyle=l>.55?'#ffffff':l>.1?it.c:l>-.5?'#00000066':'#000000aa';if(l>.1&&l<=.55)x.fillStyle=it.c;else if(l<=.1){x.fillStyle=it.c;}}
+    x.fillRect(i,j,1,1)}
+  x.fillStyle='#00000077';x.fillRect(4,4,2,2);x.fillRect(3,5,1,1);x.fillRect(5,3,1,1);
+  x.fillStyle='#ffffff';x.fillRect(2,2,2,1);x.fillRect(2,3,1,1);return c});
 const HSTARS=[];for(let i=0;i<170;i++)HSTARS.push({x:Math.random()*900,y:14+Math.random()*136,c:['#6c6c6c','#bbbbbb','#ffffff','#70a4b2'][i%4]});
 
 function drawIcon(b,id,cx,cy){
