@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.59</title>
+<title>Idlyte v0.60</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -988,7 +988,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.59';
+const VERSION='0.60';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1613,9 +1613,11 @@ function tapFire(){
   const iv=G.t-(G.tapLast==null?-9:G.tapLast);
   if(iv<.12)return;
   G.tapLast=G.t;SAVE.taps=(SAVE.taps||0)+1;
-  const even=!!G.tapIv&&iv<1.4&&Math.abs(iv-G.tapIv)<=Math.max(.07,G.tapIv*.25);
-  G.tapIv=iv<1.4?iv:0;G.tapStreak=even?(G.tapStreak||0)+1:0;
-  const was=G.tap||0;G.tap=Math.min(1,was+(even?.06+Math.min(.04,G.tapStreak*.01):.01));
+  const tp=G.tapIv||0,dev=tp&&iv<2.2?Math.abs(iv-tp)/tp:9;let add;
+  if(dev<=.4){G.tapStreak=(G.tapStreak||0)+1;G.tapIv=tp*.6+iv*.4;add=.07+Math.min(.04,G.tapStreak*.01)}
+  else if(dev<=.75){G.tapStreak=Math.max(0,(G.tapStreak||0)-1);G.tapIv=tp*.8+iv*.2;add=.03}
+  else{G.tapStreak=0;G.tapIv=iv<2.2?iv:0;add=.01}
+  const was=G.tap||0;G.tap=Math.min(1,was+add);
   if(was<1&&G.tap>=1&&G.tapArm&&!G.slot){G.tapArm=false;startSlot()}
 }
 const SLOT_SYMS=['P','S','M','H','O','R','B','C','X1','X2'],SLOT_PW=['P','S','M','H','O','R','B'];
