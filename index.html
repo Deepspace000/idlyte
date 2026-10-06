@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.32</title>
+<title>Idlyte v0.33</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -846,7 +846,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.32';
+const VERSION='0.33';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1635,7 +1635,7 @@ function interactWith(t){if(t)t.fn()}
 function enterHub(first){
   MODE='hub';UI.focus=0;HUB.screen=null;syncBuilt();
   const r=roomById('hangar');HUB.sp.x=r.x0+96;HUB.sp.y=FYd(0)-4;HUB.sp.path=null;HUB.sp.pend=null;HUB.sp.face=1;
-  HUB.cam.x=Math.max(0,Math.min(WWID-W,HUB.sp.x-W/2));HUB.cam.y=Math.max(0,Math.min(WH-H+4,HUB.sp.y-130));
+  HUB.cam.x=Math.max(0,Math.min(WWID-W,HUB.sp.x-W/2));HUB.cam.y=Math.max(0,Math.min(WH-H+70,HUB.sp.y-130));
   if(!HULL)HULL=buildHull();
   checkUnlocks();
 }
@@ -1709,7 +1709,7 @@ function hubUpdate(dt){
   if(sp.x!==ox||sp.y!==oy)sp.t+=dt;else sp.t=0;
   sp.climb=deckOf(sp.y)<0;
   if(SHX[300]&&Math.abs(sp.x-300)<=5)EL.y=deckOf(sp.y)>=0?FYd(deckOf(sp.y)):sp.y+3;
-  const cx=Math.max(0,Math.min(WWID-W,sp.x-W/2)),cy=Math.max(0,Math.min(WH-H+4,sp.y-125));
+  const cx=Math.max(0,Math.min(WWID-W,sp.x-W/2)),cy=Math.max(0,Math.min(WH-H+70,sp.y-125));
   HUB.cam.x+=(cx-HUB.cam.x)*Math.min(1,dt*5);HUB.cam.y+=(cy-HUB.cam.y)*Math.min(1,dt*5);
   musVol(roomById('lounge').p>0||roomById('cafe').p>0||cd===1?.85:.45);
 }
@@ -1768,7 +1768,12 @@ function drawHub(){
   const cx=Math.round(HUB.cam.x),cy=Math.round(HUB.cam.y),sp=HUB.sp,t=HUB.t;
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
   ctx.save();ctx.translate(-cx,-cy);
-  for(const s of HSTARS){const sx=(s.x*1.4)%(WWID+60)-30,sy=(s.y*2.6)%(WH+40)-20;ctx.fillStyle=s.c;ctx.fillRect(sx|0,sy|0,1,1)}
+  for(const s of HSTARS){const sx=(s.x*1.4)%(WWID+60)-30,sy=(s.y*2.6)%(WH+170)-20;ctx.fillStyle=s.c;ctx.fillRect(sx|0,sy|0,1,1)}
+  // a planet far below the station, and its glow
+    ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.earth,70,WH+22,200,200);ctx.restore();
+  for(let i=0;i<6;i++){ctx.fillStyle='rgba(112,164,178,'+(.12-i*.018)+')';ctx.fillRect(100+i*12,WH+24-i,220-i*24,1)}
+  // engine pods under the lowest deck
+  if(EXT[0]){for(const ex of [EXT[0].l+14,EXT[0].r-22]){R_(ctx,ex,FYd(0)+6,8,5,'#444');R_(ctx,ex+1,FYd(0)+9,6,3,'#222');const fl=3+Math.floor(Math.random()*5);R_(ctx,ex+1,FYd(0)+12,6,fl,'#68372b');R_(ctx,ex+2,FYd(0)+12,4,(fl>>1)+1,'#9a6759');R_(ctx,ex+3,FYd(0)+12,2,(fl>>2)+1,'#ffffff')}}
   if(!HULL)HULL=buildHull();ctx.drawImage(HULL,0,0);
   for(const r of ROOMS)if(r.built)drawRoom(r,t);
   for(const o of buildOptions()){const r=o.room,bx=r.x0,by=yTop(r.d);ctx.fillStyle=Math.floor(t*2)%2?'#70a4b2':'#3c6a78';
