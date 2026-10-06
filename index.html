@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.12</title>
+<title>Idlyte v0.13</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -317,7 +317,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1},SAVE.set||{});
@@ -784,7 +784,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.12';
+const VERSION='0.13';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1375,7 +1375,7 @@ const THINGS=[];
   add('cafe',24,()=>'BUY A COFFEE',scr('cafe'));
   add('library',60,()=>'READ A BOOK',()=>toast(TIPS[Math.floor(Math.random()*TIPS.length)]));
   add('lounge',40,()=>'SIT ON THE SOFA',()=>{toast('YOU WATCH THE EARTH GO BY.')});
-  add('arcade',60,()=>'USE THE ARCADE',()=>toast('THE CABINETS ARE SWITCHED OFF.'));
+  add('arcade',60,()=>'PLAY THE ARCADE',scr('arcade'));
   add('sleep',20,()=>'SLEEP IN A BUNK',scr('sleep'));
   add('dining',80,()=>'SIT AT THE TABLE',scr('dining'));
   add('garden',60,()=>'WATER THE PLANTS',()=>toast('YOU WATER THE PLANTS.'));
@@ -1605,6 +1605,16 @@ function extraScreen(id,rows,info){
     if(!any)L('* ALL SHOPS ARE OPEN',G_);
     return 'GOALS';
   }
+  if(id==='arcade'){
+    L('CREDITS '+(SAVE.credits||0)+'     HIGH SCORE '+(SAVE.arcadeHi||0),Y_);
+    L('SPACE INVADERS. ONE CREDIT PER GAME.');L('WHEN YOU LOSE, A CONTINUE COSTS ONE MORE CREDIT.');
+    L('PRIZE: 1 GOLD FOR EVERY 250 POINTS.',G_);
+    rows.push({n:'PLAY  (1 CREDIT)',d:(SAVE.credits||0)>=1?'MOVE LEFT AND RIGHT, FIRE WITH SPACE OR TAP':'YOU HAVE NO CREDITS',r:'',ok:(SAVE.credits||0)>=1,
+      fn:()=>{if((SAVE.credits||0)<1){toast('INSERT A CREDIT FIRST.');return}SAVE.credits--;HUB.screen=null;MODE='arcade';UI.focus=0;arcadeStart();save()}});
+    rows.push({n:'BUY 1 CREDIT',d:'5 GOLD',r:'5',ok:SAVE.coins>=5,fn:()=>{if(SAVE.coins<5){toast('NOT ENOUGH GOLD');return}SAVE.coins-=5;SAVE.credits=(SAVE.credits||0)+1;save()}});
+    rows.push({n:'BUY 5 CREDITS',d:'20 GOLD',r:'20',ok:SAVE.coins>=20,fn:()=>{if(SAVE.coins<20){toast('NOT ENOUGH GOLD');return}SAVE.coins-=20;SAVE.credits=(SAVE.credits||0)+5;save()}});
+    return 'ARCADE';
+  }
   if(id==='starmap'){
     const pw=shipPower();
     L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('EACH SYSTEM HAS 3 LEVELS. CLEAR 1, THEN 2, THEN 3.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
@@ -1745,6 +1755,7 @@ function handleKey(k){
   if(MODE==='title')return;
   if(AC&&AC.state==='suspended')AC.resume();
   if(MODE==='game'){if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
+  if(MODE==='arcade'){arcadeKey(k);return}
   if(k==='m'){mus.on=!mus.on;toast(mus.on?'MUSIC ON':'MUSIC OFF');return}
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
@@ -1801,8 +1812,168 @@ cv.addEventListener('pointerdown',e=>{
   if(MODE==='title')return;
   const [x,y]=toCanvas(e),i=uiAt(x,y);
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
+  if(MODE==='arcade'){arcadeFire();return}
   if(MODE==='hub'&&!HUB.screen)hubClick(x,y);
 });
+
+/* ===== arcade: space invaders clone ===== */
+const IVA={
+ sq:[['...##...','..####..','.######.','##.##.##','########','..#..#..','.#.##.#.','#.#..#.#'],['...##...','..####..','.######.','##.##.##','########','.#.##.#.','#......#','.#....#.']],
+ cr:[['..#.....#..','...#...#...','..#######..','.##.###.##.','###########','#.#######.#','#.#.....#.#','...##.##...'],['..#.....#..','#..#...#..#','#.#######.#','###.###.###','###########','.#########.','..#.....#..','.#.......#.']],
+ oc:[['....####....','.##########.','############','###..##..###','############','...##..##...','..##.##.##..','##........##'],['....####....','.##########.','############','###..##..###','############','..###..###..','.##..##..##.','..##....##..']]};
+const IVCOL={sq:'#70a4b2',cr:'#9ad284',oc:'#ffffff'},IVROW=['sq','cr','cr','oc','oc'],IVPTS={sq:30,cr:20,oc:10};
+const AS={iv:{},cannon:fromRows(['......#......','.....###.....','.###########.','#############','#############','#############'],()=>'#9ad284'),
+  ufo:fromRows(['.....######.....','...##########...','..############..','.##.##.##.##.##.','################','..###..##..###..','...#........#...'],()=>'#ff7777')};
+for(const k in IVA)AS.iv[k]=IVA[k].map(r=>fromRows(r,()=>IVCOL[k]));
+let AR=null;
+function beep(f,d,type,v){
+  if(!AC||AC.state!=='running'||!mus.on)return;
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=v||.035;
+  g.gain.setTargetAtTime(0,AC.currentTime+d*.5,d*.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d+.15);
+}
+function mkBunker(x){
+  const w=22,h=16,d=new Uint8Array(w*h),c=mk(w,h),g=c.getContext('2d');g.fillStyle='#9ad284';
+  for(let y=0;y<h;y++)for(let i=0;i<w;i++){let ok=true;if(y<3)ok=i>=3-y&&i<w-3+y;if(y>=11&&i>=7&&i<15)ok=false;d[y*w+i]=ok?1:0;if(ok)g.fillRect(i,y,1,1)}
+  return {x,y:146,w,h,d,c,g};
+}
+function bunkerHit(b,px,py){
+  const lx=Math.floor(px-b.x),ly=Math.floor(py-b.y);
+  if(lx<0||ly<0||lx>=b.w||ly>=b.h||!b.d[ly*b.w+lx])return false;
+  for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+    if(dx*dx+dy*dy>9||(Math.abs(dx)+Math.abs(dy)>=4&&Math.random()<.5))continue;
+    const x=lx+dx,y=ly+dy;if(x<0||y<0||x>=b.w||y>=b.h)continue;
+    if(b.d[y*b.w+x]){b.d[y*b.w+x]=0;b.g.clearRect(x,y,1,1)}
+  }
+  return true;
+}
+function arcadeStart(){
+  AR={score:0,lives:3,wave:1,state:'play',t:0,conts:0,cd:0,x:160,bul:null,ib:[],ufo:null,ufoT:14,fireT:1.2,stepT:0,dir:1,frame:0,note:0,dead:0,clr:0,invT:0,extra:false,fx:[],pops:[],wt:1.4};
+  arcadeWave();
+}
+function arcadeWave(){
+  AR.inv=[];for(let r=0;r<5;r++)for(let c=0;c<11;c++)AR.inv.push({r,c,a:true});
+  AR.fx0=40;AR.fxp=40;AR.fy=28+Math.min(5,AR.wave-1)*8;AR.dir=1;AR.ib=[];AR.bul=null;AR.stepT=0;AR.wt=1.4;
+  AR.bk=[];for(let i=0;i<4;i++)AR.bk.push(mkBunker(34+i*64));
+}
+const ivx=i=>AR.fxp+i.c*18+((18-AS.iv[IVROW[i.r]][0].width)>>1),ivy=i=>AR.fy+i.r*14;
+function arcadeFire(){
+  if(!AR)return;
+  if(AR.state==='over'){if(AR.cd<8.8)arcadeContinue();return}
+  if(AR.state!=='play'||AR.bul||AR.wt>0)return;
+  AR.bul={x:AR.x,y:172};beep(900,.08,'square',.03);
+}
+function arcadeContinue(){
+  if(AR.state!=='over')return;
+  if((SAVE.credits||0)>=1)SAVE.credits--;
+  else if(SAVE.coins>=5)SAVE.coins-=5;
+  else{toast('NO CREDITS LEFT.');return}
+  AR.conts++;AR.lives=3;AR.state='play';AR.bul=null;AR.ib=[];AR.invT=2;
+  AR.fy=Math.max(28,AR.fy-40);AR.fx0=AR.fx0;save();
+}
+function arcadeExit(){
+  const prize=Math.floor(AR.score/250);
+  if(AR.score>(SAVE.arcadeHi||0))SAVE.arcadeHi=AR.score;
+  if(prize>0){SAVE.coins+=prize;SAVE.earned+=prize}
+  toast('ARCADE SCORE '+AR.score+(prize?'  PRIZE +'+prize+' GOLD':''));
+  save();AR=null;MODE='hub';UI.focus=0;
+}
+function arcadeKey(k){
+  if(!AR)return;
+  if(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'||k==='arrowup'||k==='w'){if(!INP.repeat||AR.state!=='over')arcadeFire()}
+  else if(k==='escape'||k==='q'||k==='backspace'){if(AR.state==='over')arcadeExit();else{AR.state='over';AR.cd=10}}
+}
+function arcadeTick(dt){
+  const A=AR;if(!A)return;A.t+=dt;
+  if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}
+  for(const f of A.fx){f.t-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt}A.fx=A.fx.filter(f=>f.t>0);
+  for(const p of A.pops)p.t-=dt;A.pops=A.pops.filter(p=>p.t>0);
+  if(A.state==='over'){A.cd-=dt;if(A.cd<=0)arcadeExit();return}
+  if(A.state==='dying'){A.dead-=dt;if(A.dead<=0){A.state=A.lives>0?'play':'over';A.cd=10;A.x=160;A.invT=1.5;A.ib=[]}return}
+  if(A.state==='clear'){A.clr-=dt;if(A.clr<=0){A.wave++;arcadeWave();A.state='play'}return}
+  if(A.wt>0){A.wt-=dt;return}
+  if(A.invT>0)A.invT-=dt;
+  let dx=0;if(UI.keys.arrowleft||UI.keys.a||PAD.x<0)dx=-1;else if(UI.keys.arrowright||UI.keys.d||PAD.x>0)dx=1;
+  A.x=Math.max(12,Math.min(308,A.x+dx*110*dt));
+  const alive=A.inv.filter(i=>i.a);
+  // player bullet
+  if(A.bul){
+    A.bul.y-=190*dt;let gone=A.bul.y<18;
+    if(!gone)for(const b of A.bk)if(bunkerHit(b,A.bul.x,A.bul.y)||bunkerHit(b,A.bul.x,A.bul.y+4)){gone=true;break}
+    if(!gone)for(const i of alive){const w=AS.iv[IVROW[i.r]][0].width,x=ivx(i),y=ivy(i);
+      if(A.bul.x>=x&&A.bul.x<=x+w&&A.bul.y>=y&&A.bul.y<=y+8){i.a=false;A.score+=IVPTS[IVROW[i.r]];gone=true;boomA(x+w/2,y+4,IVCOL[IVROW[i.r]]);beep(220,.12,'sawtooth',.04);break}}
+    if(!gone&&A.ufo&&A.bul.x>=A.ufo.x&&A.bul.x<=A.ufo.x+16&&A.bul.y>=20&&A.bul.y<=30){
+      const pts=[50,100,150,300][Math.floor(Math.random()*4)];A.score+=pts;A.pops.push({x:A.ufo.x,y:22,t:1.2,s:pts});boomA(A.ufo.x+8,25,'#ff7777');beep(140,.3,'sawtooth',.05);A.ufo=null;gone=true}
+    if(gone)A.bul=null;
+  }
+  // formation steps
+  const n=alive.length;
+  if(!n){A.state='clear';A.clr=1.6;return}
+  A.stepT+=dt;
+  const iv=(0.03+n*.0065)/(1+.1*(A.wave-1));
+  if(A.stepT>=iv){
+    A.stepT=0;A.frame^=1;beep([110,98,87,82][A.note++%4],.07,'square',.03);
+    let mn=99,mx=-1;for(const i of alive){if(i.c<mn)mn=i.c;if(i.c>mx)mx=i.c}
+    A.fxp+=A.dir*4;
+    if(A.fxp+mx*18+16>312||A.fxp+mn*18<8){A.fxp-=A.dir*4;A.dir*=-1;A.fy+=8}
+    for(const i of alive){const x=ivx(i),w=AS.iv[IVROW[i.r]][0].width,y=ivy(i);
+      for(const b of A.bk)if(y+8>b.y&&y<b.y+b.h&&x+w>b.x&&x<b.x+b.w){for(let yy=0;yy<b.h;yy++)for(let xx=0;xx<b.w;xx++){const wx=b.x+xx,wy=b.y+yy;if(wx>=x&&wx<x+w&&wy>=y&&wy<y+8&&b.d[yy*b.w+xx]){b.d[yy*b.w+xx]=0;b.g.clearRect(xx,yy,1,1)}}}
+      if(y+8>=170){A.lives=0;A.state='dying';A.dead=1.2;boomA(A.x,176,'#9ad284');return}}
+  }
+  // invader fire
+  A.fireT-=dt;
+  if(A.fireT<=0&&A.ib.length<(A.wave>=3?4:3)){
+    A.fireT=(.4+Math.random()*.8)*Math.max(.4,1-.07*A.wave);
+    const cols=[...new Set(alive.map(i=>i.c))],c=cols[Math.floor(Math.random()*cols.length)];
+    let low=null;for(const i of alive)if(i.c===c&&(!low||i.r>low.r))low=i;
+    if(low)A.ib.push({x:ivx(low)+AS.iv[IVROW[low.r]][0].width/2,y:ivy(low)+8,t:0});
+  }
+  for(const b of A.ib){
+    b.t+=dt;b.y+=(70+A.wave*6)*dt;let gone=b.y>184;
+    if(!gone)for(const k of A.bk)if(bunkerHit(k,b.x,b.y+5)){gone=true;break}
+    if(!gone&&A.invT<=0&&Math.abs(b.x-A.x)<7&&b.y+6>=172&&b.y<=182){A.lives--;A.state='dying';A.dead=1.3;A.ib=[];boomA(A.x,176,'#9ad284');beep(90,.5,'sawtooth',.06);return}
+    if(gone)b.dead=1;
+  }
+  A.ib=A.ib.filter(b=>!b.dead);
+  // ufo
+  if(A.ufo){A.ufo.x+=A.ufo.d*50*dt;if(A.ufo.x<-20||A.ufo.x>340)A.ufo=null}
+  else{A.ufoT-=dt;if(A.ufoT<=0&&n>7){A.ufoT=16+Math.random()*12;const d=Math.random()<.5?1:-1;A.ufo={x:d>0?-16:336,d}}}
+  if(!A.extra&&A.score>=1500){A.extra=true;A.lives++;A.pops.push({x:A.x-20,y:166,t:1.5,s:'EXTRA LIFE'})}
+}
+function boomA(x,y,col){for(let i=0;i<14;i++){const a=Math.random()*6.28,s=20+Math.random()*50;AR.fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:.35+Math.random()*.3,c:i&1?col:'#ffffff'})}}
+function drawArcade(){
+  const A=AR;if(!A)return;
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  for(const s of STARS){if(s.l===2)continue;ctx.fillStyle=s.c;ctx.fillRect(s.x|0,s.y|0,1,1)}
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
+  text('SCORE',4,4,'#70a4b2',1);text(String(A.score).padStart(5,'0'),26,4,'#fff',1);
+  text('HI',84,4,'#b8c76f',1);text(String(Math.max(SAVE.arcadeHi||0,A.score)).padStart(5,'0'),96,4,'#fff',1);
+  text('CREDITS',150,4,'#ff7777',1);text(SAVE.credits||0,184,4,'#fff',1);text('WAVE '+A.wave,214,4,'#9ad284',1);
+  uiBtn(280,1,36,12,()=>{if(A.state==='over')arcadeExit();else{A.state='over';A.cd=10}},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(280,1,36,12);textC2('QUIT',298,4,'#fff')});
+  // ground and lives
+  ctx.fillStyle='#9ad284';ctx.fillRect(4,186,W-8,1);
+  for(let i=0;i<Math.max(0,A.lives-(A.state==='play'?1:0));i++)ctx.drawImage(AS.cannon,6+i*16,191);
+  for(const b of A.bk)ctx.drawImage(b.c,b.x,b.y);
+  for(const i of A.inv){if(!i.a)continue;ctx.drawImage(AS.iv[IVROW[i.r]][A.frame],ivx(i)|0,ivy(i)|0)}
+  if(A.ufo)ctx.drawImage(AS.ufo,A.ufo.x|0,20);
+  if(A.state!=='dying'&&(A.invT<=0||Math.floor(A.t*14)%2))ctx.drawImage(AS.cannon,(A.x-6)|0,174);
+  if(A.bul){ctx.fillStyle='#ffffff';ctx.fillRect(A.bul.x|0,A.bul.y|0,1,5)}
+  for(const b of A.ib){ctx.fillStyle='#b8c76f';const o=Math.floor(b.t*12)%2;ctx.fillRect((b.x-1+o)|0,b.y|0,1,2);ctx.fillRect((b.x-o)|0,(b.y+2)|0,1,2);ctx.fillRect((b.x-1+o)|0,(b.y+4)|0,1,2)}
+  for(const f of A.fx){ctx.fillStyle=f.c;ctx.fillRect(f.x|0,f.y|0,2,2)}
+  for(const p of A.pops)text(p.s,p.x|0,p.y|0,'#ffffff',1);
+  if(A.wt>0)textC('WAVE '+A.wave,100,'#ffffff',2);
+  if(A.state==='clear')textC('WAVE CLEARED',100,'#9ad284',2);
+  if(A.state==='over'){
+    ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(40,50,240,110);ctx.strokeStyle='#6c5eb5';ctx.strokeRect(40.5,50.5,239,109);
+    textC('GAME OVER',58,'#ff7777',2);
+    textC('SCORE '+A.score+'    PRIZE '+Math.floor(A.score/250)+' GOLD',78,'#b8c76f',1);
+    const can=(SAVE.credits||0)>=1||SAVE.coins>=5;
+    textC(can?'CONTINUE IN '+Math.ceil(A.cd):'NO CREDITS. EXITING IN '+Math.ceil(A.cd),92,'#bbbbbb',1);
+    uiBtn(54,108,100,20,arcadeContinue,(f)=>{ctx.fillStyle=can?(f?'#6c5eb5':'#352879'):'#222';ctx.fillRect(54,108,100,20);textC2('CONTINUE',104,112,can?'#fff':'#666');textC2((SAVE.credits||0)>=1?'1 CREDIT':'5 GOLD',104,120,can?'#b8c76f':'#666')});
+    uiBtn(166,108,100,20,arcadeExit,(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(166,108,100,20);textC2('COLLECT AND EXIT',216,115,'#fff')});
+    textC('CREDITS '+(SAVE.credits||0)+'   GOLD '+SAVE.coins,138,'#6c6c6c',1);
+  }
+  drawToast(176);
+}
 
 /* ===== main loop ===== */
 let last=performance.now(),acc=0,barShown=null;
@@ -1817,7 +1988,8 @@ function frame(now){
     musVol(0);draw();
   }else if(MODE==='loot'){lootTick(dt);musVol(.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
-  const show=MODE==='game',tshow=isTouch&&MODE==='hub',mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display=show?'flex':'none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display=mshow?'flex':'none';fit()}
+  else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
+  const show=MODE==='game',tshow=isTouch&&(MODE==='hub'||MODE==='arcade'),mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display=show?'flex':'none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display=mshow?'flex':'none';fit()}
   requestAnimationFrame(frame);
 }
 
@@ -1830,7 +2002,7 @@ document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   const sp=+b.dataset.sp,need=SPEED_NEED[sp];if(systemsDone()<need){if(MODE==='game'&&G){G.msg='X'+sp+' LOCKED. CLEAR '+need+(need>1?' SYSTEMS':' SYSTEM')+' FIRST';G.msgT=2.5}return}
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
 });
-window.__g={handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
+window.__g={arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
 </script>
 </body>
 </html>
