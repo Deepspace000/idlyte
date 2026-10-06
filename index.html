@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.25</title>
+<title>Idlyte v0.26</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -788,7 +788,7 @@ function drawHud(){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,TOP-1);ctx.fillRect(0,BOT+1,W,H-BOT);
   ctx.fillStyle='#352879';ctx.fillRect(0,TOP-1,W,1);ctx.fillRect(0,BOT,W,1);
   text('SCORE',4,4,'#70a4b2');text(String(G.score).padStart(7,'0'),28,4,'#fff');
-  text('COINS',86,4,'#b8c76f');text(String(SAVE.coins).padStart(5,'0'),110,4,'#fff');
+  text('COINS',62,4,'#b8c76f');text(String(SAVE.coins),86,4,'#fff');text('+'+(G.coinsRun||0),86+String(SAVE.coins).length*4+3,4,'#9ad284');
   // hp pips
   text('HULL',152,4,'#9a6759');
   for(let i=0;i<G.stats.hp;i++){ctx.fillStyle=i<P.hp?'#ff7777':'#444';ctx.fillRect(172+i*6,4,5,5);
@@ -820,7 +820,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.25';
+const VERSION='0.26';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
