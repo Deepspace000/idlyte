@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.11</title>
+<title>Idlyte v0.12</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -18,7 +18,7 @@
   button.on{background:#000;color:#fff}
   button:hover{color:#fff}
   button.locked{opacity:.45;cursor:not-allowed}
-  #touch{display:none;margin-top:10px;gap:8px;line-height:1;justify-content:center;width:100%;box-sizing:border-box;padding:0 6px;flex-wrap:wrap}
+  #touch{display:none;margin-top:10px;gap:8px;line-height:1;justify-content:flex-start;width:100%;box-sizing:border-box;padding:0 14px;flex-wrap:wrap}
   #touch .grp{display:flex;gap:8px;flex:1 1 auto}
   #touch button{flex:1;min-width:0;height:56px;font-size:16px;padding:0 4px;touch-action:none}
   #touch button{font-size:22px}
@@ -317,7 +317,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{}};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1},SAVE.set||{});
@@ -399,7 +399,7 @@ const CREWNAMES={nav:['JAN VOSS','IRIS KANE','ORLA FINCH'],weap:['TOM BRIGGS','N
 function baseStats(){
   const u=SAVE.up||{},cr=SAVE.crew||{},sh=SHIPS[SAVE.ship]||SHIPS[0],ms=MISSIONS[SAVE.mission]||MISSIONS[0],pl=PLANETS[SAVE.planet||0]||PLANETS[0];
   const nav=cr.nav||0,wp=cr.weap||0,tc=cr.tech||0,fit=Math.min(8,Math.floor((SAVE.fitXP||0)/3));
-  return {hp:Math.max(1,3+(u.hull||0)+sh.hp+(fit>=4?1:0)+(fit>=8?1:0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav)*(1+.015*fit),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
+  return {hp:Math.max(1,3+(u.hull||0)+sh.hp+(fit>=4?1:0)+(fit>=8?1:0)+(SAVE.tapHull||0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav)*(1+.015*fit),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
     magnet:(22+(u.magnet||0)*8)*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*ms.gold*pl.gold*(1+.25*((SAVE.level||1)-1)),lootBonus:(u.cargo||0)*.08+ms.diff*.01+pl.loot+(u.salv?.1:0),
     startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3,shieldDur:9+tc*3,damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
     repair:u.repair||0,missile:u.missile||0,skill:Math.min(.97,.75+.06*nav+.01*fit)};
@@ -544,7 +544,7 @@ function killEnemy(e){
   if(e.carry)PK.push({k:'pw',p:e.carry,x:e.x,y:e.y,vx:-18,vy:0,t:0});
 }
 function fireShots(){
-  const w=P.wpn,rate=G.stats.fire*(w===3?1.25:1),d=G.stats.dmg;
+  const w=P.wpn,rate=G.stats.fire*(w===3?1.25:1)*(1+.35*(G.tap||0)),d=G.stats.dmg;
   const sh=(dy,vy)=>PB.push({x:P.x+14,y:P.y+dy,vx:230,vy:vy||0,dmg:d});
   sh(0);
   for(let i=0;i<G.stats.opts;i++){const o=optPos(i);PB.push({x:o[0]+4,y:o[1],vx:230,vy:0,dmg:d*.6})}
@@ -558,6 +558,7 @@ function update(dt){
   if(borderT>0){borderT-=dt;if(borderT<=0)BORDER=BORDER_DEF}
   G.warp=Math.max(0,G.warp-dt);
   if(G.msgT>0)G.msgT-=dt;
+  G.tap=Math.max(0,(G.tap||0)-.4*dt/Math.max(1,SPEED));
   G.salv=G.salv.filter(q=>(q.t-=dt)>0);if(G.flashT>0)G.flashT-=dt;
   // stars scroll in all states
   const sv=G.state==='clear'?4:1;
@@ -712,6 +713,7 @@ function drawShip(){
     ctx.fillStyle='#fff';ctx.fillRect(x-13-(len>>2),y+r[0],(len>>2)+1,1);
   }
   ctx.drawImage(SPR.shipSets[SAVE.ship][Math.floor(P.anim*6.5)%16],x-12,y-8);
+  if((G.tap||0)>.05){ctx.fillStyle=Math.floor(P.anim*20)%2?'#ffffff':'#b8c76f';ctx.fillRect(x+9,y-8,2,1);ctx.fillRect(x+9,y+7,2,1)}
   if(P.shield>0&&(P.shield>2||Math.floor(P.shield*8)%2)){
     ctx.strokeStyle=Math.floor(P.anim*12)%2?'#70a4b2':'#ffffff';ctx.lineWidth=1;
     ctx.beginPath();ctx.ellipse(x+1,y,20,11,0,0,6.28);ctx.stroke();
@@ -771,6 +773,8 @@ function drawHud(){
     if(blink)textC(G.msg,G.msg==='WARNING'?60:44,G.msg==='WARNING'?'#ff7777':'#fff',2);
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
+  text('TAP',4,BOT-9,'#bbbbbb',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
+  if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80)textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
   G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt='SALVAGE FOUND: '+q.name,w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
     if(q.t<.3&&Math.floor(q.t*20)%2)return;
     ctx.fillStyle=fl?'#ffffff':q.c;ctx.fillRect(x-1,y-1,w+2,13);ctx.fillStyle=fl?q.c:'#000';ctx.fillRect(x,y,w,11);
@@ -780,7 +784,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.11';
+const VERSION='0.12';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1244,6 +1248,16 @@ function screenDef(id){
   }else{title=extraScreen(id,rows,info)}
   return {title,info,rows};
 }
+function tapNeed(){return Math.round(40*Math.pow(1.3,SAVE.tapHull||0))}
+function gymTap(){
+  if((SAVE.tapHull||0)>=15){toast('YOU CANNOT TRAIN ANY MORE.');return}
+  SAVE.taps=(SAVE.taps||0)+1;SAVE.tapXP=(SAVE.tapXP||0)+(SAVE.fed>0?1:.5);
+  if(SAVE.tapXP>=tapNeed()){SAVE.tapXP-=tapNeed();SAVE.tapHull++;toast('GYM: +1 HULL POINT!');save()}
+}
+function tapFire(){
+  if(MODE!=='game'||!G||G.state!=='play')return;
+  G.tap=Math.min(1,(G.tap||0)+.07);SAVE.taps=(SAVE.taps||0)+1;
+}
 function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(SPEED_NEED[SPEED]>systemsDone()){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 function drawScreen(){
   const def=screenDef(HUB.screen);
@@ -1261,6 +1275,7 @@ function drawScreen(){
     const run=(f)=>()=>{if(f.ok===false){toast(f.n&&/NEEDS|LOCKED/.test(f.d||'')?'LOCKED. HIRE A BETTER ENGINEER':'CANNOT DO THAT NOW');return}f.fn()};
     ctx.fillStyle=fo?'#352879':'#111111';ctx.fillRect(20,ry,280,pitch-1);
     if(fo){ctx.fillStyle='#70a4b2';ctx.fillRect(20,ry,2,pitch-1)}
+    if(r.bar!==undefined){ctx.fillStyle=fo?'#3c7a3c':'#2c5a2c';ctx.fillRect(22,ry,Math.round(278*r.bar),pitch-1)}
     const tx=r.icon?34:25;if(r.icon){ctx.fillStyle='#000';ctx.fillRect(24,ry+4,8,8);ctx.fillStyle=r.icon;ctx.fillRect(25,ry+5,6,6)}
     const o1=pitch===16?2:3,o2=pitch===16?8:10;
     text(r.n,tx,ry+o1,r.ok===false&&!r.btns?'#6c6c6c':'#ffffff',1);text(r.d,tx,ry+o2,'#70a4b2',1);
@@ -1269,7 +1284,7 @@ function drawScreen(){
       r.btns.forEach((b,k)=>UI.list.push({x:bx[k],y:ry+2,w:bw[k],h:13,fn:run(b)}));
       r.btns.forEach((b,k)=>{ctx.fillStyle=b.ok?(UI.focus===i0+k?'#9a8fe0':'#6c5eb5'):'#333';ctx.fillRect(bx[k],ry+2,bw[k],13);text(b.l,bx[k]+((bw[k]-textW(b.l,1))>>1),ry+6,b.ok?'#fff':'#777',1)});
     }else{
-      UI.list.push({x:20,y:ry,w:280,h:pitch-1,fn:run(r)});
+      UI.list.push({x:20,y:ry,w:280,h:pitch-1,fn:run(r),noRepeat:!!r.tap});
       if(r.r!==undefined&&r.r!=='')textR(r.r,296,ry+o1,r.ok?'#b8c76f':'#6c6c6c',1);
     }
   });
@@ -1562,6 +1577,7 @@ function extraScreen(id,rows,info){
     L('DODGING SKILL '+Math.round(st.skill*100)+'%');
     L('REPAIR BOTS: '+(st.repair?'YES':'NO')+'   MISSILE POD: '+(st.missile?'LV '+st.missile:'NO'));
     L('FITNESS LEVEL '+fitLevel()+' OF 8. GIVES SPEED, DODGING AND HULL.',G_);
+    L('GYM TAP TRAINING: +'+(SAVE.tapHull||0)+' HULL',G_);
     L('SHIP POWER '+shipPower()+'   DESTINATION '+PLANETS[SAVE.planet||0].n,Y_);
     return 'SHIP STATS';
   }
@@ -1605,6 +1621,9 @@ function extraScreen(id,rows,info){
     return 'ENGINE CONSOLE';
   }
   if(id==='gym'){
+    const need=tapNeed(),n=SAVE.tapHull||0,mx=n>=15;
+    rows.push({n:'TAP TO TRAIN   +'+n+' HULL SO FAR',d:mx?'MAXIMUM TRAINING REACHED':'NEXT HULL POINT: '+Math.floor(SAVE.tapXP||0)+' OF '+need+' TAPS'+(SAVE.fed>0?'':'  (HUNGRY: HALF)'),r:'',ok:true,bar:mx?1:(SAVE.tapXP||0)/need,tap:1,fn:gymTap});
+    L('TAP THE TOP ROW AGAIN AND AGAIN TO BUILD HULL POINTS.','#9ad284');
     L('FITNESS LEVEL '+fitLevel()+' OF 8   PROGRESS '+((SAVE.fitXP||0)%3)+' OF 3','#fff');
     L('EACH LEVEL: +1.5% SHIP SPEED, +1% DODGING. LEVELS 4 AND 8: +1 HULL.');
     L(SAVE.fed>0?'YOU ARE WELL FED FOR '+SAVE.fed+' MORE DAYS.':'YOU NEED TO EAT BEFORE YOU WORK OUT.',SAVE.fed>0?G_:'#ff7777');
@@ -1725,6 +1744,7 @@ function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 function handleKey(k){
   if(MODE==='title')return;
   if(AC&&AC.state==='suspended')AC.resume();
+  if(MODE==='game'){if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
   if(k==='m'){mus.on=!mus.on;toast(mus.on?'MUSIC ON':'MUSIC OFF');return}
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
@@ -1732,7 +1752,7 @@ function handleKey(k){
     const n=Math.max(1,UI.list.length);
     if(k==='arrowup'||k==='arrowleft'||k==='w'||k==='a'){UI.focus=(UI.focus+n-1)%n}
     else if(k==='arrowdown'||k==='arrowright'||k==='s'||k==='d'||k==='tab'){UI.focus=(UI.focus+1)%n}
-    else if(k==='enter'||k===' '||k==='e'){const b=UI.list[UI.focus];if(b)b.fn()}
+    else if(k==='enter'||k===' '||k==='e'){const b=UI.list[UI.focus];if(b&&!(INP.repeat&&b.noRepeat))b.fn()}
     else if((k==='escape'||k==='backspace'||k==='q')&&MODE==='hub')HUB.screen=null;
     return;
   }
@@ -1743,7 +1763,7 @@ function handleKey(k){
 addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();
-  UI.keys[k]=1;INP.last='key';
+  UI.keys[k]=1;INP.last='key';INP.repeat=!!e.repeat;
   handleKey(k);
 });
 function padPoll(dt){
@@ -1755,7 +1775,7 @@ function padPoll(dt){
   PAD.x=(cur.L?-1:0)+(cur.R?1:0);PAD.y=(cur.U?-1:0)+(cur.D?1:0);
   const press=(k,key,repeat)=>{
     if(!cur[k])return;
-    if(!PAD.prev[k]){PAD.rep[k]=.45;INP.last='pad';handleKey(key)}
+    if(!PAD.prev[k]){PAD.rep[k]=.45;INP.last='pad';INP.repeat=false;handleKey(key)}
     else if(repeat){PAD.rep[k]-=dt;if(PAD.rep[k]<=0){PAD.rep[k]=.16;handleKey(key)}}
   };
   const menu=MODE==='loot'||(MODE==='hub'&&HUB.screen);
@@ -1777,7 +1797,8 @@ function padPoll(dt){
 cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);if(i>=0)UI.focus=i});
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
-  if(MODE==='title'||MODE==='game')return;
+  if(MODE==='game'){tapFire();return}
+  if(MODE==='title')return;
   const [x,y]=toCanvas(e),i=uiAt(x,y);
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
   if(MODE==='hub'&&!HUB.screen)hubClick(x,y);
