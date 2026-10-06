@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.53</title>
+<title>Idlyte v0.54</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -459,7 +459,7 @@ const THC={};
 function mkCloud(seed,cols){
   let s=seed;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
   const w=150,h=64,blobs=[];for(let i=0;i<8;i++){const r=9+rnd()*13;blobs.push([r+rnd()*(w-2*r),r+rnd()*(h-2*r),r])}
-  return dithered(w,h,(x,y)=>{let v=0;for(const b of blobs){const d=Math.hypot((x-b[0])/1.8,y-b[1]);v=Math.max(v,1-d/b[2])}return v<=0.05?-1:Math.min(1,v)*0.8},cols);
+  return dithered(w,h,(x,y)=>{let v=0;for(const b of blobs){const d=Math.hypot((x-b[0])/1.8,y-b[1]);v=Math.max(v,1-d/b[2])}return v<=0.08?-1:Math.pow(Math.min(1,v),1.35)*0.85},cols);
 }
 function mkPlanet(cols){const R=44,S=R*2+1;
   return dithered(S,S,(x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
@@ -890,7 +890,8 @@ function draw(){
     if(k.k==='coin')ctx.drawImage(SPR.coin[Math.floor(k.t*8)%4],(k.x-3)|0,(k.y-3)|0);
     else if(k.k==='token'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.token,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='chance'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.chance,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
-    else if(k.k==='item')ctx.drawImage(SPR.crate[ITEMS.findIndex(q=>q.id===k.id)],(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1)|0);
+    else if(k.k==='item'){const iy=(k.y-3+Math.sin(k.t*5)*1)|0,ix=(k.x-3)|0;ctx.fillStyle='#000000';ctx.fillRect(ix-1,iy-1,8,8);ctx.drawImage(SPR.crate[ITEMS.findIndex(q=>q.id===k.id)],ix,iy);
+      const sp=Math.floor(k.t*6)%4;if(sp<2){ctx.fillStyle=sp?'#ffffff':'#b8c76f';const sx=ix+(sp?5:0),sy=iy+(sp?0:5);ctx.fillRect(sx-1,sy,3,1);ctx.fillRect(sx,sy-1,1,3)}}
     else ctx.drawImage(SPR.pw[k.p],(k.x-5)|0,(k.y-4+Math.sin(k.t*4)*1.5)|0);
   }
   for(const e of E)drawEnemy(e);
@@ -986,7 +987,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.53';
+const VERSION='0.54';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
