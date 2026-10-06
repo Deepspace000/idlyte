@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.49</title>
+<title>Idlyte v0.50</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -525,8 +525,8 @@ function buildScript(pl,level){
 }
 function newRun(){
   const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,loop=MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6;
-  const st=baseStats();
-  G={t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],fg:[],fgT:5,flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl,msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
+  const st=baseStats(),fedB=SAVE.fed>0;if(fedB)st.speed*=1.15;
+  G={fedB,t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],fg:[],fgT:5,flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl,msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
   P={x:40,y:100,hp:st.hp,inv:1.5,fireT:0,wpn:st.startGun,wpnT:0,shield:st.startShield,mag:0,anim:0,trail:[]};
   E=[];PB=[];EB=[];PK=[];FX=[];
 }
@@ -950,7 +950,7 @@ function drawHud(){
   for(let i=0;i<G.stats.hp;i++){ctx.fillStyle=i<P.hp?'#ff7777':'#444';ctx.fillRect(172+i*6,4,5,5);
     if(i<P.hp){ctx.fillStyle='#fff';ctx.fillRect(172+i*6,4,5,1)}}
   text('GUN '+P.wpn,232,4,'#9ad284');
-  text('P'+((G.planet||0)+1)+'-'+(G.level||1),270,4,'#bbb');
+  text('P'+((G.planet||0)+1)+'-'+(G.level||1),270,4,'#bbb');if(G.fedB)text('FED',300,4,'#ff7777',1);
   // overall level completion
   const pc=runPct();text(Math.floor(pc)+'%',4,BOT+2,'#ffffff',1);
   const bx=28,bw=W-bx-12;
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.49';
+const VERSION='0.50';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2111,6 +2111,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='shipstats'){
     L(sh.n+'   NEXT MISSION: '+MISSIONS[SAVE.mission].n,'#fff');
+    L(SAVE.fed>0?'WELL FED: SHIP SPEED +15% ON MISSIONS':'HUNGRY: EAT FOR +15% SHIP SPEED ON MISSIONS',SAVE.fed>0?G_:'#ff7777');
     L('HULL '+st.hp+'      SPEED '+Math.round(st.speed));
     L('FIRE RATE '+st.fire.toFixed(2)+' PER SECOND      DAMAGE '+st.dmg.toFixed(2));
     L('START GUN LEVEL '+st.startGun+'      DRONES '+st.opts);
