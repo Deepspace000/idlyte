@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.27</title>
+<title>Idlyte v0.28</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -527,7 +527,18 @@ function bombBlast(){
   EB=[];G.flashT=.3;shake=.4;
   for(let i=0;i<5;i++)FX.push({ring:1,x:P.x+i*34,y:P.y+(i%2?-18:18),r:2,life:.45,max:34});
 }
+function powerFx(k){
+  const c={P:'#ff7777',S:'#70a4b2',M:'#b8c76f',H:'#9ad284',O:'#cc99ff',R:'#ff9966',B:'#ffffff'}[k]||'#ffffff';
+  for(let i=0;i<2;i++)FX.push({ring:1,x:P.x,y:P.y,r:2+i*4,life:.45+i*.1,max:26+i*10,col:c});
+  for(let i=0;i<16;i++){const a=Math.random()*6.28,sp=40+Math.random()*30;FX.push({x:P.x,y:P.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(k==='H'?30:0),life:.55,c,s:2})}
+}
+function drawMagnetField(){
+  const R=95,t=P.anim,blink=P.mag<2&&Math.floor(P.mag*8)%2;if(blink)return;
+  ctx.strokeStyle='#b8c76f66';ctx.lineWidth=1;ctx.beginPath();ctx.arc(P.x|0,P.y|0,R,0,6.28);ctx.stroke();
+  for(let i=0;i<20;i++){const a=i/20*6.28+t*.3,ph=(t*.9+i*.37)%1,r=R*(1-ph);ctx.fillStyle=ph>.5?'#b8c76f':'#6f6f2f';ctx.fillRect((P.x+Math.cos(a)*r)|0,(P.y+Math.sin(a)*r)|0,2,2)}
+}
 function powerup(k){
+  powerFx(k);
   if(k==='P'){P.wpn=Math.min(4,P.wpn+1);P.wpnT=24}
   else if(k==='S')P.shield=G.stats.shieldDur;
   else if(k==='M')P.mag=12;
@@ -561,7 +572,7 @@ function killEnemy(e){
 }
 function fireShots(){
   const w=P.wpn,rate=G.stats.fire*(w===3?1.25:1)*(1+.35*(G.tap||0)),d=G.stats.dmg;
-  const sh=(dy,vy)=>PB.push({x:P.x+14,y:P.y+dy,vx:230,vy:vy||0,dmg:d});
+  const sh=(dy,vy)=>PB.push({x:P.x+14,y:P.y+dy,vx:230,vy:vy||0,dmg:d,lv:w});
   sh(0);
   for(let i=0;i<G.stats.opts;i++){const o=optPos(i);PB.push({x:o[0]+4,y:o[1],vx:230,vy:0,dmg:d*.6})}
   if(w>=2){sh(-4,-6);sh(4,6)}
@@ -601,7 +612,7 @@ function update(dt){
   if(dl>1){const m=Math.min(dl,st.speed*dt*(dl>6?1:dl/6+.2));P.x+=dx/dl*m;P.y+=dy/dl*m}
   P.x=Math.max(14,Math.min(140,P.x));P.y=Math.max(TOP+8,Math.min(BOT-8,P.y));
   P.anim+=dt;P.trail.push(P.x,P.y);if(P.trail.length>160)P.trail.splice(0,2);
-  if(G.stats.repair){P.rep=(P.rep||0)+dt;if(P.rep>=25){P.rep=0;if(P.hp<G.stats.hp){P.hp++;G.msg='REPAIRED';G.msgT=1}}}if(P.inv>0)P.inv-=dt;
+  if(G.stats.repair){P.rep=(P.rep||0)+dt;if(P.rep>=25){P.rep=0;if(P.hp<G.stats.hp){P.hp++;G.msg='REPAIRED';G.msgT=1;powerFx('H')}}}if(P.inv>0)P.inv-=dt;
   if(P.wpnT>0){P.wpnT-=dt;if(P.wpnT<=0&&P.wpn>G.stats.startGun){P.wpn--;P.wpnT=P.wpn>G.stats.startGun?12:0}}
   if(P.shield>0)P.shield-=dt;if(P.mag>0)P.mag-=dt;
   P.fireT-=dt;if(P.fireT<=0&&E.length)fireShots();
@@ -747,6 +758,7 @@ function drawShip(){
     ctx.fillStyle='#fff';ctx.fillRect(x-13-(len>>2),y+r[0],(len>>2)+1,1);
   }
   ctx.drawImage(SPR.shipSets[SAVE.ship][Math.floor(P.anim*6.5)%16],x-12,y-8);
+  if(P.wpn>1&&(P.wpnT>3||Math.floor(P.anim*8)%2)){ctx.fillStyle=P.wpn>=4?'#ff9966':P.wpn===3?'#b8c76f':'#9ad284';for(let k=0;k<P.wpn-1;k++){ctx.fillRect(x+6-k*3,y-9,2,2);ctx.fillRect(x+6-k*3,y+8,2,2)}}
   if((G.tap||0)>.05){ctx.fillStyle=Math.floor(P.anim*20)%2?'#ffffff':'#b8c76f';ctx.fillRect(x+9,y-8,2,1);ctx.fillRect(x+9,y+7,2,1)}
   if(P.shield>0&&(P.shield>2||Math.floor(P.shield*8)%2)){
     ctx.strokeStyle=Math.floor(P.anim*12)%2?'#70a4b2':'#ffffff';ctx.lineWidth=1;
@@ -765,13 +777,14 @@ function draw(){
   }
   for(const e of E)drawEnemy(e);
   drawShip();
+  if(G.state==='play'&&P.mag>0)drawMagnetField();
   if(G.state==='play'&&P.twinT>0&&(P.twinT>2||Math.floor(P.twinT*8)%2))for(const sg of [-1,1]){const ox=(P.x+4)|0,oy=(P.y+sg*14+Math.sin(P.anim*5+sg)*1.5)|0;glowDot(ox,oy);ctx.drawImage(SPR.opt,ox-3,oy-3)}
   if(G.state==='play'&&P.guardT>0&&(P.guardT>2||Math.floor(P.guardT*8)%2)){for(let k=1;k<=4;k++){const a=(P.gAng||0)-k*.28;ctx.fillStyle=k<3?'#ff7777':'#9a6759';ctx.fillRect((P.x+Math.cos(a)*19)|0,(P.y+Math.sin(a)*19)|0,2,2)}ctx.drawImage(SPR.guard,((P.gx||P.x)-4)|0,((P.gy||P.y)-4)|0)}
   if(G.state==='play')for(let i=0;i<G.stats.opts;i++){const o=optPos(i);ctx.drawImage(SPR.opt,(o[0]-3)|0,(o[1]-3)|0)}
   // shots
   for(const b of PB){
     if(b.hm){ctx.fillStyle='#9a6759';ctx.fillRect((b.x-5)|0,(b.y-1)|0,6,2);ctx.fillStyle='#ffffff';ctx.fillRect((b.x+1)|0,(b.y-1)|0,3,2);continue}
-    ctx.fillStyle='#70a4b2';ctx.fillRect((b.x-3)|0,(b.y-1)|0,7,2);
+    ctx.fillStyle=((b.lv||1)>=4?'#ff9966':(b.lv||1)===3?'#b8c76f':(b.lv||1)===2?'#9ad284':'#70a4b2');ctx.fillRect((b.x-3)|0,(b.y-1)|0,7,(b.lv||1)>=3?3:2);
     ctx.fillStyle='#fff';ctx.fillRect((b.x-1)|0,(b.y-1)|0,4,1);
   }
   // enemy bullets
@@ -781,7 +794,7 @@ function draw(){
     ctx.fillStyle='#fff';ctx.fillRect(b.x|0,b.y|0,1,1);
   }
   for(const f of FX){
-    if(f.ring){ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.beginPath();ctx.arc(f.x|0,f.y|0,f.r,0,6.28);ctx.stroke()}
+    if(f.ring){ctx.strokeStyle=f.col||'#fff';ctx.lineWidth=1;ctx.beginPath();ctx.arc(f.x|0,f.y|0,f.r,0,6.28);ctx.stroke()}
     else{ctx.fillStyle=f.c;ctx.fillRect(f.x|0,f.y|0,f.s,f.s)}
   }
   ctx.restore();
@@ -812,7 +825,12 @@ function drawHud(){
     if(blink)textC(G.msg,G.msg==='WARNING'?60:44,G.msg==='WARNING'?'#ff7777':'#fff',2);
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
-  {let ty=17;if(P.twinT>0){text('ORBS '+Math.ceil(P.twinT),4,ty,'#70a4b2',1);ty+=7}if(P.guardT>0){text('GUARD '+Math.ceil(P.guardT),4,ty,'#ff9966',1)}}
+  {let ty=17;const row=(t,c)=>{text(t,4,ty,c,1);ty+=7};
+    if(P.shield>0)row('SHIELD '+Math.ceil(P.shield),'#70a4b2');
+    if(P.mag>0)row('MAGNET '+Math.ceil(P.mag),'#b8c76f');
+    if(P.wpnT>0&&P.wpn>G.stats.startGun)row('GUN '+P.wpn+'  '+Math.ceil(P.wpnT),'#ff7777');
+    if(P.twinT>0)row('ORBS '+Math.ceil(P.twinT),'#cc99ff');
+    if(P.guardT>0)row('GUARD '+Math.ceil(P.guardT),'#ff9966')}
   drawChanceMeter();if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80)textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
   G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt=q.txt||('SALVAGE FOUND: '+q.name),w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
@@ -824,7 +842,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.27';
+const VERSION='0.28';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
