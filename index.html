@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.70</title>
+<title>Idlyte v0.71</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -988,7 +988,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.70';
+const VERSION='0.71';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1185,7 +1185,7 @@ function mkEarth(R){
     else col=ramp(['#000000','#352879','#6c5eb5','#70a4b2'],lit,i,j);
     if(!cl&&land&&lit<.3&&((i*7+j*13)%9===0))col='#b8c76f';
     if(d>R-2&&lit>.35)col=d>R-1?'#70a4b2':(((i+j)&1)?'#9ad2e0':'#70a4b2');
-    else if(lit<.16)col=((i+j)&1)?'#000000':'#1c1840';
+    else if(lit<.16){col=((i+j)&1)?'#000000':'#1c1840';if(land&&((i*5+j*11)%13===0))col='#b8c76f'}
     x.fillStyle=col;x.fillRect(i,j,1,1);
   }
   return c;
@@ -1377,7 +1377,7 @@ function mkInterior(r){
     for(let x=2;x<w-4;x+=24){R_(g,x,4,22,FL-5,'#2a2a2a');R_(g,x,4,22,1,'#444444');R_(g,x,4,1,FL-5,'#444444');R_(g,x+22,4,2,FL-4,'#000');R_(g,x+3,FL-12,16,1,'#333333')}
     R_(g,2,FL-3,w-4,3,'#444444');R_(g,2,FL-3,w-4,1,'#6c6c6c');
     spaceWin(g,92,8,52,30,true);
-    for(let x=0;x<w;x+=12){R_(g,x,FL,6,3,'#b8c76f');R_(g,x+6,FL,6,3,'#000')}
+    for(let x=0;x<w;x+=12){R_(g,x,FL,6,4,'#b8c76f');R_(g,x+6,FL,6,4,'#000');R_(g,x+2,FL+5,1,1,'#ffffff')}
     R_(g,110,42,34,2,'#444');R_(g,6,6,3,40,'#959595');R_(g,6,6,30,3,'#959595');R_(g,34,6,2,10,'#6c6c6c');
     R_(g,118,40,26,9,'#222');R_(g,119,41,24,8,'#444');R_(g,122,44,3,2,'#b8c76f');R_(g,128,44,3,2,'#ff7777');R_(g,134,44,3,2,'#70a4b2');R_(g,116,22,30,19,'#222');R_(g,117,23,28,17,'#000');R_(g,121,27,6,6,'#9a6759');R_(g,131,29,4,4,'#70a4b2');R_(g,137,26,5,5,'#6f3d86');R_(g,121,36,22,1,'#352879');R_(g,128,25,1,12,'#352879');
     R_(g,76,40,12,3,'#222');R_(g,78,36,8,4,'#959595');
@@ -2021,6 +2021,7 @@ function dynRoom(r,x,y,t){
   const ty=r.t;
   if(ty==='shop'){R_(ctx,x+r.w-12,y+7,7,2,Math.sin(t*5+r.x0)>-.8?'#70a4b2':'#444');}
   else if(ty==='hangar'){
+    {const fl=.5+.25*Math.sin(t*3);for(let r=0;r<5;r++){ctx.fillStyle='#b8c76f';for(let px=x+18+r*3;px<x+80-r*3;px+=2){if(((px>>1)+r)&1)continue;ctx.globalAlpha=(.34-r*.05)*fl*1.6;ctx.fillRect(px,y+44+r,2,1)}}ctx.globalAlpha=1}
     R_(ctx,x+26,y+46,42,2,'#000000aa');R_(ctx,x+31,y+48,32,1,'#000000aa');
     const fr=SPR.shipSets[SAVE.ship][0];ctx.drawImage(fr,x+22,y+13,48,34);
     R_(ctx,x+17,y+30+((t*3)|0)%2,5,2,Math.sin(t*9)>0?'#9a6759':'#68372b');R_(ctx,x+17,y+38,5,2,'#68372b');
