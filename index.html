@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.89</title>
+<title>Idlyte v0.90</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -613,8 +613,10 @@ function spawn(o){
   if(o.type==='pod'){const CAR=['P','P','S','M','H','O','R','B'];e.carry=CAR[Math.floor(Math.random()*CAR.length)]}
   E.push(e);return e;
 }
+/* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
+function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
 function spawnBoss(){
-  const b={type:'boss',x:W+90,y:100,vx:-60,vy:0,w:128,h:78,hp:90*loopScale()*(G.level>=3?1.3:1),mhp:90*loopScale()*(G.level>=3?1.3:1),pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true};
+  const b={type:'boss',x:W+90,y:100,vx:-60,vy:0,w:128,h:78,hp:90*loopScale()*bossMul(),mhp:90*loopScale()*bossMul(),pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true};
   E.push(b);G.boss=b;G.msg='WARNING';G.msgT=3;
 }
 function dropCoins(x,y,n){for(let i=0;i<n;i++)PK.push({k:'coin',x:x+rnd(-4,4),y:y+rnd(-4,4),vx:rnd(-30,10),vy:rnd(-25,25),t:Math.random()*4})}
@@ -1058,7 +1060,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.89';
+const VERSION='0.90';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
