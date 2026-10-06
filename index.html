@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Idlyte v0.05</title>
+<title>Idlyte v0.06</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -350,7 +350,7 @@ const CREWNAMES={nav:['JAN VOSS','IRIS KANE','ORLA FINCH'],weap:['TOM BRIGGS','N
 function baseStats(){
   const u=SAVE.up||{},cr=SAVE.crew||{},sh=SHIPS[SAVE.ship]||SHIPS[0],ms=MISSIONS[SAVE.mission]||MISSIONS[0];
   const nav=cr.nav||0,wp=cr.weap||0,tc=cr.tech||0;
-  return {hp:Math.max(1,4+(u.hull||0)+sh.hp),speed:(62+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(2.2+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
+  return {hp:Math.max(1,3+(u.hull||0)+sh.hp),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
     magnet:(22+(u.magnet||0)*8)*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*ms.gold,lootBonus:(u.cargo||0)*.08+ms.diff*.01+(u.salv?.1:0),
     startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3,shieldDur:9+tc*3,damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
     repair:u.repair||0,missile:u.missile||0,skill:Math.min(.95,.75+.06*nav)};
@@ -722,7 +722,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.05';
+const VERSION='0.06';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
