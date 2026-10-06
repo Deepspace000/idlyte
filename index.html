@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.54</title>
+<title>Idlyte v0.55</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -472,7 +472,7 @@ function powerFrac(){const r=shipPowerRaw();return Math.max(0,Math.min(.999,r-Ma
 function powerBarText(n){const k=Math.round(powerFrac()*n);return '['+'='.repeat(k)+'-'.repeat(n-k)+']'}
 function drawPowerMeter(x,y){
   const p=shipPower(),f=powerFrac();
-  ctx.fillStyle='#000';ctx.fillRect(x-2,y-2,86,11);ctx.fillStyle='#352879';ctx.fillRect(x-2,y-2,86,1);
+  ctx.fillStyle='#000';ctx.fillRect(x-2,y-2,86,11);ctx.fillStyle='#6c5eb5';ctx.fillRect(x-2,y-2,86,1);ctx.fillRect(x-2,y-2,1,11);ctx.fillStyle='#1c1840';ctx.fillRect(x-2,y+8,86,1);ctx.fillRect(x+83,y-2,1,11);
   text('POWER '+p,x,y,'#ffffff',1);
   const bx=x+textW('POWER '+p,1)+4,bw=80-(bx-x)-2;
   ctx.fillStyle='#444444';ctx.fillRect(bx,y,bw,5);ctx.fillStyle='#000';ctx.fillRect(bx+1,y+1,bw-2,3);
@@ -987,7 +987,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.54';
+const VERSION='0.55';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1329,6 +1329,8 @@ function base(g,w,c1,c2,f1,f2,trim){
   R_(g,0,FL-3,w,3,trim||'#6f4f25');R_(g,0,FL-3,w,1,'#9a6759');
   R_(g,0,FL,w,RH-FL,f1);for(let x=0;x<w;x+=8)R_(g,x,FL,1,RH-FL,f2);R_(g,0,FL,w,1,f2);
   R_(g,0,0,2,RH,'#222222');R_(g,w-2,0,2,RH,'#222222');
+  for(let x=14;x<w-6;x+=28){R_(g,x,4,1,FL-8,'#00000055');R_(g,x+1,4,1,FL-8,'#ffffff1a');for(const [rx,ry] of [[x-1,6],[x+2,6],[x-1,FL-8],[x+2,FL-8]])R_(g,rx,ry,1,1,'#959595')}
+  R_(g,2,3,w-4,1,'#ffffff22');R_(g,2,FL-4,w-4,1,'#00000066');
 }
 function counter(g,x,w,wood){R_(g,x,40,w,9,'#222');R_(g,x+1,41,w-2,8,wood||'#9a6759');R_(g,x,40,w,2,'#bbbbbb');R_(g,x+1,44,w-2,1,'#6f4f25');R_(g,x+1,47,w-2,1,'#6f4f25')}
 function till(g,x,y){R_(g,x,y-5,7,5,'#444');R_(g,x+1,y-4,5,2,'#70a4b2');R_(g,x+5,y-1,1,1,'#b8c76f')}
@@ -1971,6 +1973,7 @@ function dynRoom(r,x,y,t){
   const ty=r.t;
   if(ty==='shop'){R_(ctx,x+r.w-12,y+7,7,2,Math.sin(t*5+r.x0)>-.8?'#70a4b2':'#444');}
   else if(ty==='hangar'){
+    R_(ctx,x+26,y+46,42,2,'#000000aa');R_(ctx,x+31,y+48,32,1,'#000000aa');
     const fr=SPR.shipSets[SAVE.ship][0];ctx.drawImage(fr,x+22,y+13,48,34);
     R_(ctx,x+17,y+30+((t*3)|0)%2,5,2,Math.sin(t*9)>0?'#9a6759':'#68372b');R_(ctx,x+17,y+38,5,2,'#68372b');
     R_(ctx,x+8,y+8,3,3,Math.sin(t*4)>0?'#ff7777':'#68372b');R_(ctx,x+118+((t*8)%26|0),y+23,1,17,'#70a4b255');
