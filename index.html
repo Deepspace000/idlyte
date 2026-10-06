@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.58</title>
+<title>Idlyte v0.59</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -988,7 +988,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.58';
+const VERSION='0.59';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2482,6 +2482,11 @@ cv.addEventListener('pointerdown',e=>{
   if(MODE==='hub'&&!HUB.screen)hubClick(x,y);
 });
 
+document.addEventListener('pointerdown',e=>{
+  if(MODE!=='game'||!G||e.target===cv||(e.target.closest&&e.target.closest('button')))return;
+  if(e.pointerType==='touch')INP.last='touch';
+  tapFire();
+});
 /* ===== arcade: space invaders clone ===== */
 const IVA={
  sq:[['...##...','..####..','.######.','##.##.##','########','..#..#..','.#.##.#.','#.#..#.#'],['...##...','..####..','.######.','##.##.##','########','.#.##.#.','#......#','.#....#.']],
