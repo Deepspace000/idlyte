@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.47</title>
+<title>Idlyte v0.48</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.47';
+const VERSION='0.48';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1062,13 +1062,18 @@ function dayTick(){
   const m=monthIdx(SAVE.day);
   while(SAVE.monthsPaid<m){
     SAVE.monthsPaid++;
-    const i=Math.floor(SAVE.bank*.07);
-    if(i>0){SAVE.bank+=i;SAVE.bankMax=Math.max(SAVE.bankMax,SAVE.bank);toast('BANK INTEREST +'+i+' GOLD')}
     const dv=expectedDiv();
     if(dv>0){SAVE.coins+=dv;SAVE.earned+=dv;toast('SHARE DIVIDENDS +'+dv+' GOLD')}
   }
 }
-function advanceDays(n){for(let i=0;i<n;i++){SAVE.day++;dayTick()}}
+function bankRate(){return .07/30.4}
+function bankAccrue(days,quiet){
+  if(SAVE.bank<=0){SAVE.bankFrac=0;return}
+  SAVE.bankFrac=(SAVE.bankFrac||0)+SAVE.bank*bankRate()*days;
+  const w=Math.floor(SAVE.bankFrac);
+  if(w>0){SAVE.bankFrac-=w;SAVE.bank+=w;SAVE.bankMax=Math.max(SAVE.bankMax,SAVE.bank);SAVE.bankEarned=(SAVE.bankEarned||0)+w;if(!quiet)HUB.bankFlash=.5}
+}
+function advanceDays(n){for(let i=0;i<n;i++){SAVE.day++;dayTick();bankAccrue(1,true)}}
 function nextPayout(){const d=dateOf(SAVE.day);const nd=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1));
   return {date:nd.getUTCDate()+' '+MONTHS[nd.getUTCMonth()]+' '+nd.getUTCFullYear(),amt:Math.floor(SAVE.bank*.07)}}
 
@@ -1494,8 +1499,9 @@ function screenDef(id){
   }else if(id==='bank'){
     title='STATION BANK';const np=nextPayout();
     info.push('BALANCE '+SAVE.bank+'   WALLET '+SAVE.coins);
-    info.push('INTEREST: 7% EVERY MONTH');
-    info.push('NEXT PAYOUT '+np.date+'  +'+np.amt+' GOLD');
+    info.push('INTEREST: 7% EVERY MONTH, PAID A COIN AT A TIME');
+    {const f=SAVE.bankFrac||0,k=Math.round(f*24);info.push({t:'NEXT COIN '+'['+'='.repeat(k)+'-'.repeat(24-k)+'] '+Math.floor(f*100)+'%',c:'#b8c76f'});
+     info.push({t:'EARNED FROM INTEREST: '+(SAVE.bankEarned||0)+' GOLD'+(HUB.bankFlash>0?'   +1':''),c:HUB.bankFlash>0?'#ffffff':'#9ad284'})}
     const dep=a=>({n:'DEPOSIT '+(a<0?'ALL':a),d:'MOVE GOLD INTO THE BANK',ok:SAVE.coins>0&&(a<0||SAVE.coins>=a),fn:()=>{const v=a<0?SAVE.coins:a;SAVE.coins-=v;SAVE.bank+=v;SAVE.bankMax=Math.max(SAVE.bankMax,SAVE.bank);save()}});
     const wd=a=>({n:'WITHDRAW '+(a<0?'ALL':a),d:'TAKE GOLD OUT OF THE BANK',ok:SAVE.bank>0&&(a<0||SAVE.bank>=a),fn:()=>{const v=a<0?SAVE.bank:a;SAVE.bank-=v;SAVE.coins+=v;save()}});
     rows.push(dep(100),dep(1000),dep(-1),wd(100),wd(1000),wd(-1));
@@ -1901,6 +1907,7 @@ function hubClick(x,y){
 function hubUpdate(dt){
   const sp=HUB.sp;HUB.t+=dt;
   HUB.acc+=dt/6;while(HUB.acc>=1){HUB.acc--;SAVE.day++;dayTick()}
+  bankAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;
   if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}
   if(HUB.fade>0)HUB.fade-=dt;
   checkUnlocks();
@@ -2057,7 +2064,9 @@ function drawHub(){
   // top bar
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
   text(dateStr(SAVE.day),4,4,'#fff',1);text(clockStr(),52,4,'#b8c76f',1);text('GOLD',84,4,'#b8c76f',1);text(SAVE.coins,104,4,'#fff',1);
-  text('BANK',160,4,'#70a4b2',1);text(SAVE.bank,180,4,'#fff',1);
+  text('BANK',160,4,'#70a4b2',1);text(SAVE.bank,180,4,HUB.bankFlash>0?'#9ad284':'#fff',1);
+  if(SAVE.bank>0){const gx=160,gw=50,f=SAVE.bankFrac||0;ctx.fillStyle='#444444';ctx.fillRect(gx,10,gw,3);ctx.fillStyle='#000';ctx.fillRect(gx+1,11,gw-2,1);ctx.fillStyle=HUB.bankFlash>0?'#ffffff':'#b8c76f';ctx.fillRect(gx+1,11,Math.round((gw-2)*f),1);
+    if(HUB.bankFlash>0){text('+1',180+String(SAVE.bank).length*4+3,4,'#9ad284',1)}}
   text('TOK '+(SAVE.tokens||0),214,4,'#70a4b2',1);text('FIT '+fitLevel(),260,4,'#9ad284',1);if(SAVE.fed>0)text('FED',286,4,'#ff7777',1);
   drawPowerMeter(4,17);drawHubMenu();
   // prompt (tap it too)
