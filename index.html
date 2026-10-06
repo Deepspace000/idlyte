@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.22</title>
+<title>Idlyte v0.23</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.22';
+const VERSION='0.23';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1307,7 +1307,7 @@ function gymTap(){
 function tapFire(){
   if(MODE!=='game'||!G||G.state!=='play')return;
   const was=G.tap||0;G.tap=Math.min(1,was+.07);SAVE.taps=(SAVE.taps||0)+1;
-  if(was<1&&G.tap>=1&&G.tapArm&&!(G.tapCd>0)&&!G.slot){G.tapArm=false;G.tapCd=6;startSlot()}
+  if(was<1&&G.tap>=1&&G.tapArm&&!G.slot){G.tapArm=false;startSlot()}
 }
 const SLOT_SYMS=['P','S','M','H','C','X1','X2'];
 function slotImg(k){if(k==='C')return SPR.coin[0];if(k[0]==='X')return SPR.crate[k==='X1'?0:3];return SPR.pw[k]}
