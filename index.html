@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.21</title>
+<title>Idlyte v0.22</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.21';
+const VERSION='0.22';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -895,9 +895,9 @@ const cleared1=()=>(SAVE.prog[0]||0)>=3;
 const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
 const SHOPS=[
  {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
- {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.weapons+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.weapons},
- {id:'armour',n:'ARMOUR',c:'#70a4b2',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.armour+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.armour},
- {id:'bank',n:'BANK',c:'#6c5eb5',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.bank+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.bank},
+ {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'EARN '+UNLOCK_GOLD.weapons+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.weapons},
+ {id:'armour',n:'ARMOUR',c:'#70a4b2',need:'EARN '+UNLOCK_GOLD.armour+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.armour},
+ {id:'bank',n:'BANK',c:'#6c5eb5',need:'EARN '+UNLOCK_GOLD.bank+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.bank},
  {id:'shares',n:'SHARES',c:'#6f4f25',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.shares+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.shares},
  {id:'design',n:'DESIGN',c:'#588d43',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.design+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.design},
  {id:'crew',n:'CREW',c:'#6f3d86',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.crew+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.crew},
@@ -1701,7 +1701,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='achv'){
     L('GOLD EARNED: '+SAVE.earned+'   OPEN SPACE LEVELS CLEARED: '+(SAVE.prog[0]||0)+' OF 3   SYSTEMS CLEARED: '+systemsDone(),Y_);
-    L('THE SALVAGE SHOP NEEDS GOLD ONLY. THE OTHER SHOPS NEED OPEN SPACE CLEARED.','#ff7777');
+    L('SALVAGE, WEAPONS, ARMOUR AND BANK NEED GOLD ONLY. FROM MISSIONS ON YOU ALSO NEED 2 SYSTEMS CLEARED.','#ff7777');
     L('SHOP UNLOCKS','#fff');
     for(const s2 of SHOPS){const o=s2.open();L((o?'* ':'- ')+s2.n+': '+(o?'OPEN':s2.need+(s2.now?'  (NOW '+s2.now()+')':'')),o?G_:'#6c6c6c')}
     L('');L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
