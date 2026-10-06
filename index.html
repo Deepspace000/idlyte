@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.44</title>
+<title>Idlyte v0.45</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.44';
+const VERSION='0.45';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1340,6 +1340,14 @@ function shopDeco(g,id,w){
   else if(id==='missions'){R_(g,4,5,48,24,'#222');R_(g,5,6,46,22,'#352879');for(let i=0;i<10;i++)R_(g,6+rn()*44,7+rn()*20,1,1,'#fff');R_(g,14,14,3,3,'#9a6759');R_(g,34,18,4,4,'#588d43');R_(g,17,15,17,1,'#b8c76f');R_(g,34,10,2,2,'#ff7777');R_(g,15,12,1,3,'#ff7777')}
   else if(id==='ships'){for(let i=0;i<3;i++){R_(g,5,14+i*0,0,0,'#000')}R_(g,4,22,48,2,'#6f4f25');g.drawImage(SPR.shipSets[0][0],6,10);g.drawImage(SPR.shipSets[1][0],30,6);R_(g,36,28,12,6,'#222');R_(g,37,29,10,4,'#959595')}
 }
+function foodMachine(g,x,y,w,h){
+  R_(g,x,y,w,h,'#222');R_(g,x+1,y+1,w-2,h-2,'#9a3a3a');R_(g,x+1,y+1,w-2,2,'#ff7777');
+  R_(g,x+2,y+4,w-6,h-12,'#000');
+  const cs=['#b8c76f','#70a4b2','#ff9966','#9ad284'];
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)R_(g,x+3+c*3,y+5+r*4,2,3,cs[(r+c)%4]);
+  R_(g,x+w-3,y+4,2,h-12,'#444');R_(g,x+w-3,y+6,2,2,'#9ad284');R_(g,x+w-3,y+10,2,2,'#ffffff');
+  R_(g,x+2,y+h-7,w-4,5,'#000');R_(g,x+4,y+h-6,w-8,1,'#444');
+}
 function mkInterior(r){
   const w=r.w,c=mk(w,RH),g=c.getContext('2d');g.imageSmoothingEnabled=false;_seed=w*7+r.d;
   const t=r.t;
@@ -1416,7 +1424,7 @@ function mkInterior(r){
     R_(g,4,10,2,38,'#959595');R_(g,34,10,2,38,'#959595');R_(g,4,10,32,2,'#222');R_(g,4,28,32,2,'#959595');
     R_(g,6,18,28,10,'#222');R_(g,7,19,26,9,'#70a4b2');R_(g,7,19,26,3,'#fff');
     R_(g,6,36,28,10,'#222');R_(g,7,37,26,9,'#9a3a3a');R_(g,7,37,26,3,'#ff7777');R_(g,8,34,8,3,'#fff');
-    R_(g,w-24,26,16,22,'#6f4f25');R_(g,w-23,27,14,9,'#9a6759');R_(g,w-23,37,14,9,'#9a6759');R_(g,w-11,38,1,2,'#fff');
+    foodMachine(g,w-24,26,16,22);
     lamp(g,w-30,6,'#b8c76f');frm(g,44,36,10,8,'#fff','#70a4b2');rug(g,40,FL+2,40,'#b8c76f','#9a6759');plant(g,w-4,FL-1,1);
   }else if(t==='sleep'){
     base(g,w,'#6c5eb5','#352879','#68372b','#444','#444444');
@@ -1424,7 +1432,7 @@ function mkInterior(r){
     R_(g,4,10,40,2,'#222');R_(g,4,10,2,38,'#959595');R_(g,42,10,2,38,'#959595');R_(g,4,28,40,2,'#959595');
     R_(g,6,18,36,10,'#222');R_(g,7,19,34,9,'#70a4b2');R_(g,7,19,34,3,'#fff');R_(g,6,36,36,10,'#222');R_(g,7,37,34,9,'#9a3a3a');R_(g,7,37,34,3,'#ff7777');R_(g,8,34,8,3,'#fff');
     R_(g,w-38,32,32,16,'#222');R_(g,w-37,33,30,15,'#70a4b2');R_(g,w-37,33,30,4,'#fff');R_(g,w-36,31,9,3,'#fff');R_(g,w-27,34,22,2,'#9ad284');
-    R_(g,86,30,12,18,'#6f4f25');R_(g,87,31,10,7,'#9a6759');R_(g,87,39,10,7,'#9a6759');R_(g,95,38,1,2,'#fff');lamp(g,90,6,'#b8c76f');
+    foodMachine(g,84,26,16,22);lamp(g,90,6,'#b8c76f');
     poster(g,w-56,8,14,12,'#9a3a3a');R_(g,w-52,12,6,4,'#fff');frm(g,w-38,10,10,8,'#fff','#70a4b2');frm(g,w-26,8,8,10,'#fff','#588d43');
     rug(g,50,FL+2,40,'#b8c76f','#9a6759');plant(g,w-8,FL-1,1);R_(g,12,44,4,4,'#ff7777');
   }else if(t==='dining'){
@@ -1823,7 +1831,7 @@ const CAT={x:330,d:1,vx:0,wait:2,t:0,f:0,tele:30};
 /* ===== things to use ===== */
 const THINGS=[];
 (function(){
-  const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({get d(){return r.d},get x(){return r.x0+dx},room:r,label,fn})};
+  const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({get d(){return r.d},get x(){return r.x0+(typeof dx==='function'?dx(r):dx)},room:r,label,fn})};
   const scr=s=>()=>{HUB.screen=s;UI.focus=0};
   for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>r.sh.open()?'ENTER '+r.n+' SHOP':'CLOSED: '+r.sh.need,()=>{if(r.sh.open()){HUB.screen=r.shop;UI.focus=0}else toast('CLOSED. '+r.sh.need)});
   add('hangar',44,()=>'BOARD YOUR SHIP',scr('hangar'));
@@ -1836,6 +1844,7 @@ const THINGS=[];
   add('lounge',40,()=>'SIT ON THE SOFA',()=>{toast('YOU WATCH THE EARTH GO BY.')});
   add('arcade',60,()=>'PLAY THE ARCADE',scr('arcade'));
   add('sleep',20,()=>'SLEEP IN A BUNK',scr('sleep'));
+  add('sleep',r=>r.w<110?r.w-16:92,()=>'USE THE FOOD MACHINE',scr('foodm'));
   add('dining',80,()=>'SIT AT THE TABLE',scr('dining'));
   add('garden',60,()=>'WATER THE PLANTS',()=>toast('YOU WATER THE PLANTS.'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
@@ -2237,6 +2246,11 @@ function extraScreen(id,rows,info){
     const eat=(n,cost,days,txt)=>({n:n+'  ('+cost+' GOLD)',d:'WELL FED FOR '+days+' DAYS',r:String(cost),ok:SAVE.coins>=cost,fn:()=>{if(SAVE.coins<cost){toast('NOT ENOUGH GOLD');return}SAVE.coins-=cost;SAVE.fed=Math.max(SAVE.fed||0,days);toast(txt);save()}});
     rows.push(eat('MEAL',5,10,'YOU EAT A HOT MEAL.'),eat('BIG DINNER',20,30,'YOU EAT A BIG DINNER.'));
     return 'DINING';
+  }
+  if(id==='foodm'){
+    L('A BASIC FOOD MACHINE. CHEAP AND FILLING ENOUGH.');L(SAVE.fed>0?'YOU ARE WELL FED FOR '+SAVE.fed+' MORE DAYS.':'YOU ARE HUNGRY.',SAVE.fed>0?G_:'#ff7777');
+    rows.push({n:'SNACK BAR  (1 GOLD)',d:'WELL FED FOR 2 DAYS',r:'1',ok:SAVE.coins>=1,fn:()=>{if(SAVE.coins<1){toast('NOT ENOUGH GOLD');return}SAVE.coins-=1;SAVE.fed=Math.max(SAVE.fed||0,2);toast('THE MACHINE DROPS A SNACK BAR.');save()}});
+    return 'FOOD MACHINE';
   }
   if(id==='cafe'){
     L('A SMALL CAFE ON THE MALL DECK.');
