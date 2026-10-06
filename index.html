@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.33</title>
+<title>Idlyte v0.34</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -60,7 +60,7 @@ const BORDER_DEF='#6c5eb5';
 
 /* ===== tiny font (3x5) ===== */
 const FONT={A:'25755',B:'65656',C:'34443',D:'65556',E:'74647',F:'74644',G:'34553',H:'55755',I:'72227',J:'11152',K:'55655',L:'44447',M:'57755',N:'75555',O:'25552',P:'65644',Q:'25531',R:'65655',S:'34216',T:'72222',U:'55557',V:'55552',W:'55577',X:'55255',Y:'55222',Z:'71247',
- 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245',',':'00024',"'":'22000','?':'61202','"':'55000','(':'12221',')':'42224',';':'02024'};
+ 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245',',':'00024',"'":'22000','?':'61202','"':'55000','(':'12221',')':'42224',';':'02024','[':'74447',']':'71117','=':'07070','#':'75757'};
 function text(s,x,y,col,sc){
   sc=sc||1;ctx.fillStyle=col;s=String(s).toUpperCase();
   for(let i=0;i<s.length;i++){
@@ -389,8 +389,19 @@ function mkPlanet(cols){const R=44,S=R*2+1;
   return dithered(S,S,(x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8);return Math.min(1,lit*.55+band*.45*lit+(d>R-1.5?-.3:0))*0.999},cols)}
 function themeAssets(i){return THC[i]||(THC[i]={clouds:[mkCloud(7,THEMES[i].cl),mkCloud(41,THEMES[i].cl),mkCloud(99,THEMES[i].cl)],planet:mkPlanet(THEMES[i].pl)})}
-function shipPower(){const st=baseStats();
-  return Math.max(0,Math.round((st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5))}
+function shipPowerRaw(){const st=baseStats();
+  return Math.max(0,(st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5)}
+function shipPower(){return Math.floor(shipPowerRaw()+1e-6)}
+function powerFrac(){const r=shipPowerRaw();return Math.max(0,Math.min(.999,r-Math.floor(r+1e-6)))}
+function powerBarText(n){const k=Math.round(powerFrac()*n);return '['+'='.repeat(k)+'-'.repeat(n-k)+']'}
+function drawPowerMeter(x,y){
+  const p=shipPower(),f=powerFrac();
+  ctx.fillStyle='#000';ctx.fillRect(x-2,y-2,86,11);ctx.fillStyle='#352879';ctx.fillRect(x-2,y-2,86,1);
+  text('POWER '+p,x,y,'#ffffff',1);
+  const bx=x+textW('POWER '+p,1)+4,bw=80-(bx-x)-2;
+  ctx.fillStyle='#444444';ctx.fillRect(bx,y,bw,5);ctx.fillStyle='#000';ctx.fillRect(bx+1,y+1,bw-2,3);
+  ctx.fillStyle='#70a4b2';ctx.fillRect(bx+1,y+1,Math.max(0,Math.round((bw-2)*f)),3);
+}
 function planetOpen(i){return i===0||((SAVE.prog[i-1]||0)>=3&&shipPower()>=PLANETS[i].pow)}
 function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return Math.round(u.base*Math.pow(u.mul,l)/5)*5}
 const CREW=[
@@ -846,7 +857,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.33';
+const VERSION='0.34';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1348,6 +1359,7 @@ function screenDef(id){
   }else if(id==='hangar'){
     title=(SAVE.shipName||'YOUR SHIP');const st=baseStats(),sh=SHIPS[SAVE.ship],ms=MISSIONS[SAVE.mission],pl=PLANETS[SAVE.planet||0];
     info.push(sh.n+'   HULL '+st.hp+'   SPEED '+Math.round(st.speed)+'   DRONES '+st.opts+'   POWER '+shipPower());
+    info.push({t:'POWER '+powerBarText(24)+' '+Math.round(powerFrac()*100)+'% TO '+(shipPower()+1),c:'#70a4b2'});
     info.push('FIRE RATE '+st.fire.toFixed(1)+'   DAMAGE '+st.dmg.toFixed(1)+'   START GUN '+st.startGun);
     info.push('DESTINATION: '+pl.n+' LEVEL '+(SAVE.level||1));info.push('CONTRACT: '+ms.n);
     info.push({t:'BEST: '+[1,2,3].map(l=>'L'+l+' '+((SAVE.prog[SAVE.planet||0]||0)>=l?100:Math.floor(SAVE.bestPct[(SAVE.planet||0)+'-'+l]||0))+'%').join('   '),c:'#9ad284'});
@@ -1795,6 +1807,7 @@ function drawHub(){
   text(dateStr(SAVE.day),4,4,'#fff',1);text(clockStr(),52,4,'#b8c76f',1);text('GOLD',84,4,'#b8c76f',1);text(SAVE.coins,104,4,'#fff',1);
   text('BANK',160,4,'#70a4b2',1);text(SAVE.bank,180,4,'#fff',1);
   text('TOK '+(SAVE.tokens||0),214,4,'#70a4b2',1);text('FIT '+fitLevel(),260,4,'#9ad284',1);if(SAVE.fed>0)text('FED',286,4,'#ff7777',1);
+  drawPowerMeter(4,17);
   // prompt (tap it too)
   if(!HUB.screen){
     const nt=nearThing();
@@ -1846,6 +1859,7 @@ function extraScreen(id,rows,info){
     L('DODGING SKILL '+Math.round(st.skill*100)+'%');
     L('REPAIR BOTS: '+(st.repair?'YES':'NO')+'   MISSILE POD: '+(st.missile?'LV '+st.missile:'NO'));
     L('SHIP POWER '+shipPower()+'   DESTINATION '+PLANETS[SAVE.planet||0].n,Y_);
+    L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(shipPower()+1),'#70a4b2');
     return 'SHIP STATS';
   }
   if(id==='personnel'){
@@ -1916,7 +1930,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='starmap'){
     const pw=shipPower();
-    L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
+    L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(pw+1),'#70a4b2');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
     PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=i===0||(SAVE.prog[i-1]||0)>=3;
       rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3':(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
         fn:()=>{setPlanet(i);toast('DESTINATION SET: '+p.n+' LEVEL '+SAVE.level);save()}})});
