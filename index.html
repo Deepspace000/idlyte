@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.55</title>
+<title>Idlyte v0.57</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -378,7 +378,7 @@ SPR.planet=(function(){
 })();
 SPR.cloud=function(seed){
   let s=seed;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
-  const w=150,h=64,blobs=[];for(let i=0;i<8;i++){const r=9+rnd()*13;blobs.push([r+rnd()*(w-2*r),r+rnd()*(h-2*r),r])}
+  const w=150,h=64,blobs=[];for(let i=0;i<8;i++){const r=9+rnd()*13;blobs.push([1.8*r+2+rnd()*(w-3.6*r-4),r+1+rnd()*(h-2*r-2),r])}
   return dithered(w,h,(x,y)=>{
     let v=0;for(const b of blobs){const d=Math.hypot((x-b[0])/1.8,y-b[1]);v=Math.max(v,1-d/b[2])}
     return v<=0.05?-1:Math.min(1,v)*0.8;
@@ -458,7 +458,7 @@ const THEMES=[
 const THC={};
 function mkCloud(seed,cols){
   let s=seed;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
-  const w=150,h=64,blobs=[];for(let i=0;i<8;i++){const r=9+rnd()*13;blobs.push([r+rnd()*(w-2*r),r+rnd()*(h-2*r),r])}
+  const w=150,h=64,blobs=[];for(let i=0;i<8;i++){const r=9+rnd()*13;blobs.push([1.8*r+2+rnd()*(w-3.6*r-4),r+1+rnd()*(h-2*r-2),r])}
   return dithered(w,h,(x,y)=>{let v=0;for(const b of blobs){const d=Math.hypot((x-b[0])/1.8,y-b[1]);v=Math.max(v,1-d/b[2])}return v<=0.08?-1:Math.pow(Math.min(1,v),1.35)*0.85},cols);
 }
 function mkPlanet(cols){const R=44,S=R*2+1;
@@ -858,6 +858,7 @@ function pat(col){return PAT[col]||(PAT[col]=(()=>{const c=mk(2,2),g=c.getContex
 function pixEllipse(cx,cy,rx,ry,col,phase){ctx.fillStyle=col;const n=Math.max(16,Math.round((rx+ry)*3));for(let i=0;i<n;i++){if(phase!=null&&((i+phase)&1))continue;const a=i/n*6.2832;ctx.fillRect(Math.round(cx+Math.cos(a)*rx),Math.round(cy+Math.sin(a)*ry),1,1)}}
 function pixCircle(cx,cy,r,col,phase){pixEllipse(cx,cy,r,r,col,phase)}
 function glowDot(x,y){ctx.fillStyle=pat('#70a4b2');ctx.fillRect(x-5,y-1,10,2);ctx.fillRect(x-1,y-5,2,10)}
+const ROLLF=[0,1,2,6,7,8,9,10,14,15];
 function drawShip(){
   if(G.state==='dead')return;
   if(P.inv>0&&P.inv<9&&Math.floor(P.inv*16)%2&&G.state==='play')return;
@@ -873,7 +874,7 @@ function drawShip(){
       ctx.fillRect(x-17-k,y+r[0]-((th-1)>>1),1,th);
     }
   }
-  ctx.drawImage(SPR.shipSets[SAVE.ship][Math.floor(P.anim*6.5)%16],x-16,y-11,32,23);
+  ctx.drawImage(SPR.shipSets[SAVE.ship][ROLLF[Math.floor(P.anim*6.5)%ROLLF.length]],x-16,y-11,32,23);
   if(P.wpn>1&&(P.wpnT>3||Math.floor(P.anim*8)%2)){ctx.fillStyle=P.wpn>=4?'#ff9966':P.wpn===3?'#b8c76f':'#9ad284';for(let k=0;k<P.wpn-1;k++){ctx.fillRect(x+8-k*4,y-12,3,2);ctx.fillRect(x+8-k*4,y+11,3,2)}}
   if((G.tap||0)>.05){ctx.fillStyle=Math.floor(P.anim*20)%2?'#ffffff':'#b8c76f';ctx.fillRect(x+13,y-11,3,1);ctx.fillRect(x+13,y+10,3,1)}
   if(P.shield>0&&(P.shield>2||Math.floor(P.shield*8)%2)){
@@ -987,7 +988,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.55';
+const VERSION='0.57';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
