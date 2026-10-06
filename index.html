@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.31</title>
+<title>Idlyte v0.32</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -846,7 +846,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.31';
+const VERSION='0.32';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1428,8 +1428,10 @@ function slotIsTriple(q){return q.fin[0]===q.fin[1]&&q.fin[1]===q.fin[2]&&SLOT_P
 function slotEval(q){
   if(slotIsTriple(q)){
     q.phase='win';q.win=true;q.end=q.t+1.3;
-    PK.push({k:'pw',p:q.fin[0],x:Math.min(W-16,P.x+38),y:P.y+rnd(-14,14),vx:-18,vy:0,t:0});
-    FX.push({ring:1,x:P.x+38,y:P.y,r:2,life:.4,max:14});beep(880,.15,'square',.04);setTimeout(()=>beep(1320,.2,'square',.04),140);
+    let rk=q.fin[0];if(rk==='H'&&P.hp>=G.stats.hp)rk='S';
+    q.rname={P:'WEAPON UP',S:'SHIELD',M:'COIN MAGNET',H:'REPAIR',O:'TWIN ORBS',R:'GUARD ORB',B:'SMART BOMB'}[rk];
+    powerup(rk);
+    beep(880,.15,'square',.04);setTimeout(()=>beep(1320,.2,'square',.04),140);
   }else if((SAVE.chance||0)>0){q.phase='respin';q.wait=5}
   else{q.phase='lose';q.end=q.t+1.3}
 }
@@ -1475,7 +1477,7 @@ function drawSlot(){
     ctx.restore();
   }
   ctx.fillStyle='#ff777777';ctx.fillRect(x0+2,y0+11,62,1);
-  if(q.phase==='win')textC2('POWER UP!',W>>1,y0+21,fl?'#ffffff':'#b8c76f');
+  if(q.phase==='win')textC2(q.rname||'POWER UP!',W>>1,y0+21,fl?'#ffffff':'#b8c76f');
   else if(q.phase==='lose')textC2('NO LUCK',W>>1,y0+21,'#6c6c6c');
   else if(q.phase==='respin'){textC2('TAP A REEL',W>>1,y0+21,Math.floor(q.t*5)%2?'#ffffff':'#cc99ff');textC2('USE A CHANCE ORB ('+(SAVE.chance||0)+' LEFT)',W>>1,y0-7,'#cc99ff')}
 }
