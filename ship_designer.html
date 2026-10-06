@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Idlyte Ship Designer</title>
+<style>
+:root{--bg:#0d0a22;--panel:#171236;--panel2:#221b52;--line:#3b3278;--ink:#e8e6ff;--dim:#9a94cc;--acc:#70a4b2;--hot:#ff9966;--ok:#9ad284;--bad:#ff7777;--sel:#b8c76f}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:12px/1.4 ui-monospace,Consolas,Menlo,monospace}
+button,select,input,textarea{font:inherit;color:var(--ink)}
+button{background:var(--panel2);border:1px solid var(--line);padding:5px 9px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em}
+button:hover{border-color:var(--acc);background:#2b2368}
+button:active{background:#38308a}
+button.on{border-color:var(--sel);color:var(--sel)}
+button.go{border-color:var(--ok);color:var(--ok)}
+button.warn{border-color:var(--bad);color:var(--bad)}
+button:disabled{opacity:.4;cursor:default}
+select,input[type=number],input[type=text],textarea{background:#0b0820;border:1px solid var(--line);padding:4px 6px;min-width:0}
+input[type=range]{width:100%;accent-color:var(--acc);margin:0}
+input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--line);background:none}
+input[type=checkbox]{accent-color:var(--acc)}
+h1{font-size:15px;margin:0;letter-spacing:.12em;color:var(--hot)}
+h3{margin:0 0 8px;font-size:12px;letter-spacing:.1em;color:var(--acc);display:flex;justify-content:space-between;gap:8px}
+.dim{color:var(--dim)}
+.app{display:grid;grid-template-columns:236px minmax(0,1fr) 312px;gap:8px;padding:8px;align-items:start}
+.top{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:8px 10px}
+.grp{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.lbl{color:var(--dim);margin-right:2px}
+.box{background:var(--panel);border:1px solid var(--line);padding:8px 10px;margin-bottom:8px}
+.lib{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tabs button{padding:3px 6px;font-size:11px}
+.shapes{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.shp{padding:3px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;line-height:1.1;text-align:center;min-height:54px;letter-spacing:0}
+.shp img{width:46px;height:30px}
+.center{min-width:0;position:sticky;top:8px}
+#cvwrap{background:#05040f;border:1px solid var(--line);overflow:auto;padding:8px;display:flex;justify-content:center;max-height:70vh}
+#cv{display:block;image-rendering:pixelated;touch-action:none;background:#000;cursor:default}
+.help{margin:6px 0;color:var(--dim);font-size:11px}
+.prev{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.prev canvas{image-rendering:pixelated;background:#000;border:1px solid var(--line)}
+.row{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:5px}
+.row.n{grid-template-columns:62px minmax(0,1fr) 62px}
+.row label{color:var(--dim)}
+.row select{width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.layers{max-height:240px;overflow:auto;border:1px solid var(--line);background:#0b0820}
+.layer{display:flex;align-items:center;gap:5px;padding:3px 5px;border-bottom:1px solid #1d1745;cursor:pointer}
+.layer.sel{background:#2d2570;outline:1px solid var(--sel)}
+.layer .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layer .sw{width:10px;height:10px;border:1px solid #000;flex:none}
+.layer button{padding:0 5px;font-size:10px;line-height:18px}
+.opts label{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#000;border:1px solid var(--sel);color:var(--sel);padding:7px 12px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.show{opacity:1}
+.export{grid-column:1/-1}
+.export textarea{width:100%;height:96px;resize:vertical}
+.small{font-size:11px}
+@media (max-width:1050px){.app{grid-template-columns:minmax(0,1fr)}.lib,.center{position:static;max-height:none}.shapes{grid-template-columns:repeat(6,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="top">
+  <h1>IDLYTE SHIP DESIGNER</h1>
+  <div class="grp"><button id="undo">UNDO</button><button id="redo">REDO</button></div>
+  <div class="grp"><span class="lbl">START FROM</span><span class="grp" id="tpls"></span></div>
+  <div class="grp"><span class="lbl">SHIP SIZE</span>
+   <input id="szW" type="number" min="8" max="96" style="width:56px"> <span class="dim">WIDE</span>
+   <input id="szN" type="number" min="4" max="32" style="width:52px"> <span class="dim">HALF HIGH</span>
+   <span class="dim" id="szTxt"></span>
+   <button id="szGame" title="the size the game uses now">GAME 24x17</button><button id="sz32">32x21</button><button id="sz40">40x25</button><button id="sz48">48x33</button>
+   <label class="small"><input type="checkbox" id="szScale" checked> SCALE PARTS WITH SIZE</label>
+  </div>
+ </header>
+
+ <aside class="lib box">
+  <h3>PARTS <span class="dim" id="libCount"></span></h3>
+  <div class="tabs" id="tabs"></div>
+  <div class="shapes" id="shapes"></div>
+ </aside>
+
+ <section class="center">
+  <div id="cvwrap"><canvas id="cv"></canvas></div>
+  <div class="help">CLICK A PART TO SELECT IT. DRAG TO MOVE. SQUARE HANDLES STRETCH (SHIFT KEEPS THE SHAPE, ALT STRETCHES FROM THE CENTRE). THE ROUND HANDLE ROTATES. ARROWS NUDGE. DELETE REMOVES. CTRL+Z UNDO, CTRL+D DUPLICATE. THE LOWER HALF IS ALWAYS A DARKER MIRROR OF THE UPPER HALF, JUST LIKE IN THE GAME.</div>
+  <div class="box">
+   <h3>HOW IT LOOKS IN THE GAME <span class="dim" id="prevInfo"></span></h3>
+   <div class="prev">
+    <div><div class="dim small">ROLLING</div><canvas id="pvRoll"></canvas></div>
+    <div><div class="dim small">ACTUAL SIZE</div><canvas id="pv1"></canvas></div>
+    <div><div class="dim small">X3</div><canvas id="pv3"></canvas></div>
+   </div>
+  </div>
+ </section>
+
+ <aside class="right">
+  <div class="box opts">
+   <h3>SHIP LOOK</h3>
+   <label><input type="checkbox" id="oOutline"> BLACK OUTLINE AROUND THE SHIP</label>
+   <label><input type="checkbox" id="oDark"> LOWER HALF DARKER</label>
+   <label><input type="checkbox" id="oSnap64"> C64 COLOURS ONLY</label>
+   <div class="row"><label>HULL</label><select id="oHull"></select></div>
+   <div class="row"><label>ACCENT</label><select id="oAcc"></select></div>
+   <div class="dim small">HULL AND ACCENT PARTS FOLLOW THE PAINT SHOP IN THE GAME. THE CHOICES HERE ARE ONLY A PREVIEW.</div>
+   <div style="margin-top:8px" class="grp">
+    <label class="small"><input type="checkbox" id="vGrid" checked> GRID</label>
+    <label class="small"><input type="checkbox" id="vGhost"> CURRENT SHIP</label>
+    <label class="small"><input type="checkbox" id="vSnap" checked> SNAP</label>
+    <label class="small">ZOOM <input type="range" id="vZoom" min="50" max="220" value="100" style="width:80px"></label>
+   </div>
+  </div>
+
+  <div class="box" id="inspBox">
+   <h3>SELECTED PART <span id="selName" class="dim"></span></h3>
+   <div id="noSel" class="dim">CLICK A PART ON THE SHIP, OR ADD ONE FROM THE LIBRARY.</div>
+   <div id="selUI" hidden>
+    <div class="row"><label>SHAPE</label><select id="fType"></select></div>
+    <div class="row"><label>MODE</label><select id="fOp"><option value="add">ADD (DRAW)</option><option value="cut">CUT (ERASE)</option></select></div>
+    <div id="nums"></div>
+    <div class="row"><label>COLOUR</label><select id="fRamp"></select><input type="color" id="fCol" title="custom colour"></div>
+    <div class="row"><label>SHADING</label><select id="fShade"></select></div>
+    <div class="row"><label>EDGE</label><select id="fEdge"><option value="none">NONE</option><option value="dark">DARK EDGE</option><option value="black">BLACK EDGE</option></select></div>
+    <div class="btns">
+     <button id="bFlipX">FLIP H</button><button id="bFlipY">FLIP V</button><button id="bDup">DUPLICATE</button>
+     <button id="bFront">TO FRONT</button><button id="bBack">TO BACK</button><button id="bDel" class="warn">DELETE</button>
+    </div>
+   </div>
+  </div>
+
+  <div class="box">
+   <h3>LAYERS <span class="grp"><button id="bUp" title="move up a layer">UP</button><button id="bDown" title="move down a layer">DOWN</button></span></h3>
+   <div class="layers" id="layers"></div>
+   <div class="dim small" style="margin-top:4px">TOP OF THE LIST IS DRAWN ON TOP.</div>
+  </div>
+ </aside>
+
+ <section class="export box">
+  <h3>SEND IT TO CLAUDE</h3>
+  <div class="grp" style="margin-bottom:8px">
+   <button id="xCopy" class="go">COPY SHIP CODE</button>
+   <button id="xSave">SAVE FILE</button>
+   <button id="xLoadFile">LOAD FILE</button><input type="file" id="xFile" accept=".json,.txt,application/json" hidden>
+   <button id="xLoadBox">LOAD FROM BOX</button>
+   <button id="xPng1">PNG 1X</button><button id="xPng8">PNG 8X</button><button id="xStrip">ROLL STRIP PNG</button>
+  </div>
+  <textarea id="codeBox" spellcheck="false" placeholder="YOUR SHIP CODE SHOWS HERE AFTER COPY. TO LOAD A SHIP, PASTE A CODE HERE AND PRESS LOAD FROM BOX."></textarea>
+  <div class="dim small" style="margin-top:4px">PRESS COPY SHIP CODE, THEN PASTE IT INTO THE CHAT. YOUR WORK IS ALSO SAVED IN THIS BROWSER AUTOMATICALLY.</div>
+ </section>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const PI=Math.PI,TAU=PI*2;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* small DOM builder, so no markup strings are ever parsed */
+const el=(tag,props,...kids)=>{const e=document.createElement(tag);if(props)Object.assign(e,props);for(const k of kids)e.append(k);return e};
+
+/* ===================== colours ===================== */
+/* every ramp runs bright to dark: w L l g d (the same names the game uses) */
+const SCH={
+ chrome:['#ffffff','#bbbbbb','#959595','#6c6c6c','#444444'],
+ gold:['#ffffff','#b8c76f','#9a6759','#6f4f25','#433900'],
+ red:['#ffffff','#ff7777','#9a3a3a','#68372b','#3a1c18'],
+ blue:['#ffffff','#70a4b2','#6c5eb5','#352879','#1c1840'],
+ green:['#ffffff','#9ad284','#588d43','#2c5a2c','#1a3a1a'],
+ purple:['#ffffff','#cc99ff','#8a5aa6','#6f3d86','#2a1a40'],
+ ice:['#ffffff','#ffffff','#70a4b2','#6c8aa0','#444444'],
+ shadow:['#bbbbbb','#6c6c6c','#444444','#222222','#000000'],
+ lava:['#ffffff','#b8c76f','#ff7777','#9a3a3a','#68372b'],
+ copper:['#ffffff','#d8a878','#9a6759','#6f4f25','#3a2a10'],
+ orange:['#ffffff','#ff9966','#9a6759','#68372b','#3a2018'],
+ cyan:['#ffffff','#9ad2e0','#70a4b2','#3c6a78','#1b3036'],
+ magenta:['#ffffff','#ff77ff','#cc44cc','#6f3d86','#2a1a40'],
+ lime:['#ffffff','#ccff99','#9ad284','#588d43','#1a3a1a'],
+ white:['#ffffff','#ffffff','#ffffff','#bbbbbb','#959595'],
+ black:['#444444','#333333','#222222','#111111','#000000'],
+ glass:['#ffffff','#9ad2e0','#70a4b2','#6c5eb5','#352879'],
+ glasspink:['#ffffff','#ffaaaa','#ff7777','#9a6759','#68372b'],
+ glassamber:['#ffffff','#ffffaa','#b8c76f','#9a6759','#6f4f25'],
+ glasslime:['#ffffff','#ccff99','#9ad284','#588d43','#2c5a2c'],
+ flame:['#ffffff','#ffffaa','#ff9966','#ff7777','#9a3a3a']
+};
+const RAMP_LIST=[['hull','HULL (FOLLOWS PAINT)'],['accent','ACCENT (FOLLOWS PAINT)'],['custom','CUSTOM COLOUR'],['chrome','CHROME'],['gold','GOLD'],['red','RED'],['blue','BLUE'],['green','GREEN'],['purple','PURPLE'],['ice','ICE'],['shadow','SHADOW'],['lava','LAVA'],['copper','COPPER'],['orange','ORANGE'],['cyan','CYAN'],['magenta','MAGENTA'],['lime','LIME'],['white','WHITE'],['black','BLACK'],['glass','GLASS BLUE'],['glasspink','GLASS PINK'],['glassamber','GLASS AMBER'],['glasslime','GLASS LIME'],['flame','FLAME']];
+const HULL_CHOICES=['chrome','gold','red','blue','green','purple','ice','shadow','lava','copper'];
+const ACC_CHOICES=['orange','cyan','magenta','lime','white','black'];
+const SHADES=[['axis','LIT FROM THE CENTRE LINE'],['tube','ROUND TUBE'],['top','LIT FROM ABOVE'],['flat','FLAT'],['glow','GLOW FROM THE MIDDLE'],['bands','RIBBED'],['dither','DITHERED CENTRE LIGHT']];
+const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const HEXRE=/^#[0-9a-fA-F]{6}$/;
+const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const rgb2hex=(r,g,b)=>'#'+[r,g,b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
+const mix=(a,b,t)=>{const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t)};
+const C64=['#000000','#ffffff','#68372b','#70a4b2','#6f3d86','#588d43','#352879','#b8c76f','#6f4f25','#433900','#9a6759','#444444','#6c6c6c','#9ad284','#6c5eb5','#959595','#bbbbbb','#ff7777','#9a3a3a','#2c5a2c'].map(h=>[hex2rgb(h),h]);
+function snap64(r,g,b){let best=C64[0],bd=1e9;for(const c of C64){const q=c[0],d=(q[0]-r)*(q[0]-r)*.3+(q[1]-g)*(q[1]-g)*.6+(q[2]-b)*(q[2]-b)*.1;if(d<bd){bd=d;best=c}}return best}
+function snapHex(h){const c=hex2rgb(h);return snap64(c[0],c[1],c[2])[1]}
+function colsOf(p,o){
+ const k=p.ramp;
+ if(k==='hull')return SCH[o.hull]||SCH.chrome;
+ if(k==='accent')return SCH[o.accent]||SCH.orange;
+ if(k==='custom'){const b=HEXRE.test(p.col)?p.col:'#6c5eb5';return [mix(b,'#ffffff',.75),mix(b,'#ffffff',.38),b,mix(b,'#000000',.38),mix(b,'#000000',.7)]}
+ return SCH[k]||SCH.chrome;
+}
+
+/* ===================== shape library ===================== */
+/* every shape lives in a unit box (-0.5..0.5 both ways), nose to the right (+u), up is +v.
+   wings and fins have their root on the bottom edge so they grow away from the centre line. */
+const ELL=(cx,cy,rx,ry,n=28,a0=0,a1=TAU)=>{const p=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;p.push([cx+Math.cos(a)*rx,cy+Math.sin(a)*ry])}if(a1-a0>=TAU-1e-6)p.pop();return p};
+const RC=(u0,v0,u1,v1)=>[[u0,v0],[u1,v0],[u1,v1],[u0,v1]];
+const PROF=(f,n=30)=>{const a=[],b=[];for(let i=0;i<=n;i++){const t=i/n,w=f(t);a.push([-.5+t,w]);b.push([-.5+t,-w])}return a.concat(b.reverse())};
+const FIT=poly=>{let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const [u,v] of poly){u0=Math.min(u0,u);u1=Math.max(u1,u);v0=Math.min(v0,v);v1=Math.max(v1,v)}return poly.map(([u,v])=>[(u-u0)/(u1-u0)-.5,(v-v0)/(v1-v0)-.5])};
+const STAR=(n,k)=>{const p=[];for(let i=0;i<n*2;i++){const a=i*PI/n,r=i%2?.5*k:.5;p.push([Math.cos(a)*r,Math.sin(a)*r])}return FIT(p)};
+const MISSILE=(vc,sc)=>[[.5,0],[.2,.2],[-.2,.2],[-.5,.5],[-.5,.2],[-.5,-.2],[-.5,-.5],[-.2,-.2],[.2,-.2]].map(([u,v])=>[u,vc+v*sc]);
+const N_=a=>Math.max(1,Math.round(a));
+const SH=[],SHB={};
+const CATS=['BASIC','HULLS','WINGS','COCKPITS','ENGINES','WEAPONS','DETAILS'];
+const CATDEF={BASIC:{ramp:'hull',shade:'axis'},HULLS:{ramp:'hull',shade:'axis'},WINGS:{ramp:'hull',shade:'axis'},COCKPITS:{ramp:'glass',shade:'tube'},ENGINES:{ramp:'shadow',shade:'tube'},WEAPONS:{ramp:'shadow',shade:'tube'},DETAILS:{ramp:'accent',shade:'flat'}};
+function def(cat,id,name,d,b,o){const s=Object.assign({id,name,cat,d,b},CATDEF[cat],o||{});SH.push(s);SHB[id]=s}
+const CNT=(def_,min=2,max=8)=>({par:{n:'COUNT',min,max,step:1,def:def_}});
+
+/* BASIC SHAPES */
+def('BASIC','ball','BALL OR OVAL',[.4,.5],()=>[ELL(0,0,.5,.5,32)]);
+def('BASIC','block','BLOCK',[.4,.5],()=>[RC(-.5,-.5,.5,.5)]);
+def('BASIC','rblock','ROUNDED BLOCK',[.45,.5],a=>{const r=clamp(a,.02,.5);return [[...ELL(.5-r,.5-r,r,r,6,0,PI/2),...ELL(-.5+r,.5-r,r,r,6,PI/2,PI),...ELL(-.5+r,-.5+r,r,r,6,PI,1.5*PI),...ELL(.5-r,-.5+r,r,r,6,1.5*PI,TAU)]]},{par:{n:'ROUNDNESS',min:.02,max:.5,step:.01,def:.22}});
+def('BASIC','tri','TRIANGLE',[.4,.55],()=>[[[.5,0],[-.5,.5],[-.5,-.5]]]);
+def('BASIC','diamond','DIAMOND',[.4,.55],()=>[[[.5,0],[0,.5],[-.5,0],[0,-.5]]]);
+def('BASIC','kite','KITE',[.45,.55],()=>[[[.5,0],[-.1,.5],[-.5,0],[-.1,-.5]]]);
+def('BASIC','hex','HEXAGON',[.4,.55],()=>[FIT(ELL(0,0,.5,.5,6))]);
+def('BASIC','oct','OCTAGON',[.4,.55],()=>[FIT(ELL(0,0,.5,.5,8,PI/8))]);
+def('BASIC','pent','PENTAGON',[.4,.55],()=>[FIT(ELL(0,0,.5,.5,5))]);
+def('BASIC','trap','TRAPEZOID',[.4,.55],()=>[[[-.5,.5],[.5,.25],[.5,-.25],[-.5,-.5]]]);
+def('BASIC','plate','CUT CORNER BLOCK',[.4,.5],()=>[[[.5,.25],[.25,.5],[-.5,.5],[-.5,-.5],[.25,-.5],[.5,-.25]]]);
+def('BASIC','para','PARALLELOGRAM',[.4,.5],()=>[[[.5,.5],[-.3,.5],[-.5,-.5],[.3,-.5]]]);
+def('BASIC','chev','CHEVRON',[.3,.55],()=>[[[.5,0],[-.1,.5],[-.5,.5],[.1,0],[-.5,-.5],[-.1,-.5]]]);
+def('BASIC','arrow','ARROW',[.3,.5],()=>[[[.5,0],[0,.5],[0,.2],[-.5,.2],[-.5,-.2],[0,-.2],[0,-.5]]]);
+def('BASIC','star4','STAR 4 POINT',[.3,.5],()=>[STAR(4,.38)]);
+def('BASIC','star5','STAR 5 POINT',[.3,.5],()=>[STAR(5,.42)]);
+def('BASIC','cross','CROSS',[.3,.5],()=>[[[-.15,.5],[.15,.5],[.15,.15],[.5,.15],[.5,-.15],[.15,-.15],[.15,-.5],[-.15,-.5],[-.15,-.15],[-.5,-.15],[-.5,.15],[-.15,.15]]]);
+def('BASIC','ring','RING',[.4,.5],a=>[ELL(0,0,.5,.5,32),ELL(0,0,.5*clamp(a,.05,.95),.5*clamp(a,.05,.95),28)],{par:{n:'HOLE SIZE',min:.1,max:.92,step:.01,def:.6}});
+def('BASIC','half','HALF DISC',[.3,.5],()=>[ELL(-.5,0,1,.5,28,-PI/2,PI/2)]);
+def('BASIC','cres','CRESCENT',[.35,.55],()=>{const out=ELL(0,0,.5,.5,26,-2.094,2.094),inn=ELL(-.2,0,.436,.436,26,1.686,-1.686);return [out.concat(inn)]});
+def('BASIC','bolt','LIGHTNING BOLT',[.3,.5],()=>[[[0,.5],[.35,.5],[.12,.1],[.4,.1],[-.2,-.5],[-.05,-.05],[-.35,-.05]]]);
+
+/* HULLS */
+def('HULLS','cigar','CIGAR',[.7,.45],a=>{const e=clamp(a,.05,.5);return [PROF(t=>t<e?.5*Math.sqrt(1-((e-t)/e)**2):t>1-e?.5*Math.sqrt(1-((t-1+e)/e)**2):.5,34)]},{par:{n:'END ROUNDNESS',min:.05,max:.5,step:.01,def:.25}});
+def('HULLS','fish','FISH BODY',[.75,.7],()=>[PROF(t=>t>=.55?.5*Math.sqrt(1-((t-.55)/.45)**2):.5*Math.pow(t/.55,.9))]);
+def('HULLS','tear','TEARDROP',[.7,.6],()=>[PROF(t=>t<.4?.5*Math.sqrt(1-((.4-t)/.4)**2):.5*Math.pow(1-(t-.4)/.6,1.3))]);
+def('HULLS','leaf','LEAF',[.5,.5],()=>[PROF(t=>.5*Math.sin(PI*t))]);
+def('HULLS','rocket','ROCKET BODY',[.8,.55],a=>{const nl=clamp(a,.15,.85),b=1-nl;return [PROF(t=>t<b?.5:.5*Math.sqrt(Math.max(0,1-((t-b)/nl)**2)),34)]},{par:{n:'NOSE LENGTH',min:.15,max:.85,step:.01,def:.45}});
+def('HULLS','disc','DISC',[.85,.45],()=>[PROF(t=>.5*Math.pow(Math.sin(PI*t),.45))]);
+def('HULLS','arrowhead','ARROWHEAD',[.8,.7],()=>[[[.5,0],[-.5,.5],[-.25,0],[-.5,-.5]]]);
+def('HULLS','spear','SPEAR',[.9,.4],()=>[[[.5,0],[.1,.18],[-.5,.12],[-.5,-.12],[.1,-.18]].map(([u,v])=>[u,v*2.78])]);
+def('HULLS','shuttle','SHUTTLE',[.8,.6],()=>[[[.5,0],[.3,.25],[-.1,.5],[-.5,.5],[-.5,-.5],[-.1,-.5],[.3,-.25]]]);
+def('HULLS','manta','MANTA',[.7,.8],()=>[[[.5,0],[.1,.5],[-.5,.3],[-.3,0],[-.5,-.3],[.1,-.5]]]);
+
+/* WINGS AND FINS */
+def('WINGS','swept','SWEPT WING',[.35,.55],()=>[[[.35,-.5],[-.5,-.5],[-.5,.5],[-.2,.5]]]);
+def('WINGS','delta','DELTA WING',[.35,.55],()=>[[[.5,-.5],[-.5,-.5],[-.5,.5]]]);
+def('WINGS','fwd','FORWARD SWEPT',[.3,.5],()=>[[[.2,-.5],[-.5,-.5],[.05,.5],[.5,.5]]]);
+def('WINGS','stub','STUB WING',[.3,.45],()=>[[[.5,-.5],[-.5,-.5],[-.5,.25],[-.25,.5],[.25,.5],[.5,.25]]]);
+def('WINGS','taper','TAPERED WING',[.3,.5],()=>[[[.5,-.5],[-.5,-.5],[-.2,.5],[.15,.5]]]);
+def('WINGS','bent','BENT WING',[.35,.55],()=>[[[.45,-.5],[-.5,-.5],[-.5,-.1],[-.1,.5],[.2,.5],[.05,-.05]]]);
+def('WINGS','fin','FIN',[.3,.45],()=>[[[.5,-.5],[.3,-.2],[.05,.2],[-.3,.5],[-.5,-.5]]]);
+def('WINGS','blade','FORWARD BLADE',[.35,.4],()=>[[[.5,-.5],[-.5,-.5],[-.5,0],[.5,.5]]]);
+def('WINGS','ftail','FORKED TAIL',[.25,.9],()=>[[[.5,.12],[-.5,.5],[-.2,0],[-.5,-.5],[.5,-.12]]]);
+def('WINGS','foot','FOOT',[.2,.3],()=>[[[.2,-.5],[-.2,-.5],[-.5,.5],[.5,.5]]]);
+
+/* COCKPITS */
+def('COCKPITS','canopy','CANOPY',[.3,.4],()=>[PROF(t=>.5*Math.sin(PI*Math.pow(t,1.5)))]);
+def('COCKPITS','bubble','BUBBLE',[.2,.3],()=>[ELL(0,0,.5,.5,28)]);
+def('COCKPITS','dome','DOME',[.25,.4],()=>[ELL(-.5,0,1,.5,28,-PI/2,PI/2)],{shade:'glow'});
+def('COCKPITS','visor','SLIT VISOR',[.3,.14],()=>[PROF(t=>.5*Math.pow(Math.sin(PI*t),.45))]);
+def('COCKPITS','windows','WINDOW ROW',[.4,.2],a=>{const n=N_(a),dw=1/(2*n-1),p=[];for(let i=0;i<n;i++)p.push(ELL(-.5+dw*(2*i+.5),0,dw/2,.5,14));return p},CNT(3));
+
+/* ENGINES */
+def('ENGINES','nozzle','NOZZLE',[.14,.4],()=>[[[.5,.3],[.5,-.3],[-.5,-.5],[-.5,.5]]]);
+def('ENGINES','bell','BELL NOZZLE',[.16,.4],()=>[PROF(t=>.3+.2*(1-t)**2)]);
+def('ENGINES','cluster','NOZZLE CLUSTER',[.14,.55],a=>{const n=N_(a),p=[];for(let i=0;i<n;i++){const vc=-.5+(i+.5)/n,hq=.45/n;p.push([[.5,vc+hq*.55],[.5,vc-hq*.55],[-.5,vc-hq],[-.5,vc+hq]])}return p.flat(0).length?p.map(q=>q):p},CNT(2,2,5));
+def('ENGINES','pod','ENGINE POD',[.4,.3],()=>[[[.5,0],[.45,.2],[.3,.3],[-.1,.3],[-.5,.5],[-.5,-.5],[-.1,-.3],[.3,-.3],[.45,-.2]]]);
+def('ENGINES','turbine','TURBINE',[.2,.4],()=>[ELL(0,0,.5,.5,28),ELL(0,0,.36,.36,24),ELL(0,0,.13,.13,12)]);
+def('ENGINES','flame','FLAME',[.28,.3],()=>[PROF(t=>.5*Math.pow(t,.75))],{ramp:'flame',shade:'tube'});
+def('ENGINES','flames','FLAME CLUSTER',[.28,.5],a=>{const n=N_(a),p=[];for(let i=0;i<n;i++){const vc=-.5+(i+.5)/n,hq=.42/n;p.push([[.5,vc+hq],[.5,vc-hq],[-.5,vc]])}return p},{...CNT(2,2,5),ramp:'flame',shade:'tube'});
+def('ENGINES','plasma','PLASMA CORE',[.16,.3],()=>[ELL(0,0,.5,.5,24)],{ramp:'flame',shade:'glow'});
+
+/* WEAPONS */
+def('WEAPONS','cannon','CANNON',[.35,.12],()=>[[[.5,.25],[.5,-.25],[.3,-.25],[.3,-.4],[-.5,-.4],[-.5,.4],[.3,.4],[.3,.25]].map(([u,v])=>[u,v*1.25])]);
+def('WEAPONS','barrels','BARREL ARRAY',[.3,.3],a=>{const n=N_(a),p=[];for(let i=0;i<n;i++){const vc=-.5+(i+.5)/n,hq=.32/n;p.push(RC(-.5,vc-hq,.5,vc+hq))}return p},CNT(3,2,6));
+def('WEAPONS','gunpod','GUN POD',[.35,.25],()=>[[[.5,.15],[.5,-.15],[.2,-.15],[.2,-.5],[-.5,-.5],[-.5,.5],[.2,.5],[.2,.15]]]);
+def('WEAPONS','missile','MISSILE',[.28,.16],()=>[MISSILE(0,1)]);
+def('WEAPONS','missiles','MISSILE ARRAY',[.28,.35],a=>{const n=N_(a),p=[];for(let i=0;i<n;i++)p.push(MISSILE(-.5+(i+.5)/n,.92/n));return p},{...CNT(2,2,5),ramp:'hull'});
+def('WEAPONS','needle','LASER NEEDLE',[.4,.1],()=>[[[.5,0],[-.5,.5],[-.5,-.5]]],{ramp:'cyan',shade:'tube'});
+def('WEAPONS','spike','RAM SPIKE',[.3,.2],()=>[[[.5,0],[-.5,.45],[-.5,-.45]]]);
+
+/* DETAILS */
+def('DETAILS','stripe','STRIPE',[.5,.06],()=>[RC(-.5,-.5,.5,.5)]);
+def('DETAILS','dstripe','DOUBLE STRIPE',[.7,.5],()=>[RC(-.5,.2,.5,.5),RC(-.5,-.5,.5,-.2)]);
+def('DETAILS','tstripe','TRIPLE STRIPE',[.7,.5],()=>[RC(-.5,.34,.5,.5),RC(-.5,-.08,.5,.08),RC(-.5,-.5,.5,-.34)]);
+def('DETAILS','vent','VENT SLATS',[.2,.3],a=>{const n=N_(a),hh=1/(2*n-1),p=[];for(let i=0;i<n;i++){const v0=-.5+i*2*hh;p.push(RC(-.5,v0,.5,v0+hh))}return p},{...CNT(4,2,9),ramp:'shadow',shade:'flat'});
+def('DETAILS','rivets','RIVETS',[.5,.1],a=>{const n=N_(a),dw=1/(2*n-1),p=[];for(let i=0;i<n;i++)p.push(ELL(-.5+dw*(2*i+.5),0,dw/2,.5,12));return p},CNT(5,2,12));
+def('DETAILS','dashes','DASH LINE',[.5,.08],a=>{const n=N_(a),dw=1/(2*n-1),p=[];for(let i=0;i<n;i++)p.push(RC(-.5+dw*2*i,-.5,-.5+dw*(2*i+1),.5));return p},CNT(4,2,12));
+def('DETAILS','teeth','TEETH',[.4,.15],a=>{const n=N_(a),du=1/n,p=[[-.5,-.5]];for(let i=0;i<n;i++){p.push([-.5+du*(i+.5),.5]);p.push([-.5+du*(i+1),-.5])}return [p]},{...CNT(5,2,12),ramp:'white',shade:'flat'});
+def('DETAILS','gills','GILL SLITS',[.14,.5],a=>{const n=N_(a),dw=1/(2*n-1),p=[];for(let i=0;i<n;i++)p.push(ELL(-.5+dw*(2*i+.5),0,dw*.35,.5,12));return p},CNT(3,2,6));
+def('DETAILS','eye','EYE',[.12,.3],()=>[ELL(0,0,.5,.5,24)],{ramp:'white',shade:'glow'});
+def('DETAILS','pupil','PUPIL OR SPOT',[.06,.14],()=>[ELL(0,0,.5,.5,20)],{ramp:'black',shade:'flat'});
+
+/* ===================== geometry ===================== */
+const polyCache=new Map();
+function polysOf(type,param){const k=type+'|'+param;let v=polyCache.get(k);if(!v){const d=SHB[type]||SHB.block;v=d.b(param);polyCache.set(k,v)}return v}
+function inPolys(polys,u,v){let c=false;for(const p of polys){for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if((a[1]>v)!==(b[1]>v)&&u<(b[0]-a[0])*(v-a[1])/(b[1]-a[1])+a[0])c=!c}}return c}
+function xf(p){const a=p.rot*PI/180;return{p,c:Math.cos(a),s:Math.sin(a),polys:polysOf(p.type,p.param)}}
+function toUV(t,px,pd){const p=t.p,dx=px-p.x,dd=pd-p.y;let lx=dx*t.c+dd*t.s,ld=-dx*t.s+dd*t.c;if(p.fx)lx=-lx;if(p.fy)ld=-ld;return[lx/p.w,ld/p.h]}
+function unwarp(p,u,v){const s=1+p.taper*2*u;if(s<.02)return null;return (v-p.shear*u)/s}
+function insidePart(t,px,pd){const p=t.p,uv=toUV(t,px,pd),u=uv[0];if(u<-.5||u>.5)return false;const v0=unwarp(p,u,uv[1]);if(v0===null||v0<-.5||v0>.5)return false;return inPolys(t.polys,u,v0)}
+function shapeToWorld(t,u0,v0){const p=t.p,s=1+p.taper*2*u0,v=v0*s+p.shear*u0;let lx=u0*p.w,ld=v*p.h;if(p.fx)lx=-lx;if(p.fy)ld=-ld;return[p.x+lx*t.c-ld*t.s,p.y+lx*t.s+ld*t.c]}
+function bboxOf(t){const p=t.p,ex=.5*(1+Math.abs(p.taper))+.5*Math.abs(p.shear);let x0=1e9,x1=-1e9,d0=1e9,d1=-1e9;for(const u of[-.5,.5])for(const v of[-ex,ex]){const lx=u*p.w,ld=v*p.h,X=p.x+lx*t.c-ld*t.s,D=p.y+lx*t.s+ld*t.c;x0=Math.min(x0,X);x1=Math.max(x1,X);d0=Math.min(d0,D);d1=Math.max(d1,D)}return[x0,x1,d0,d1]}
+
+/* ===================== state ===================== */
+let uid=1;
+function mkPart(type,x,y,w,h,o){const d=SHB[type];return Object.assign({id:uid++,type,x,y,w,h,rot:0,fx:0,fy:0,taper:0,shear:0,param:d.par?d.par.def:0,ramp:d.ramp,col:'#6c5eb5',shade:d.shade,edge:'none',op:'add',vis:1,lock:0},o||{})}
+const defOpts=()=>({outline:true,dark:true,snap64:false,hull:'chrome',accent:'orange'});
+const S={w:24,n:8,opts:defOpts(),parts:[]};
+const view={grid:true,ghost:false,snap:true,zoom:1,sel:null};
+const num=(v,d,a,b)=>Number.isFinite(+v)?clamp(+v,a,b):d;
+/* anything coming from outside (a saved file, a pasted code) is checked field by field */
+function cleanPart(p){
+ if(!p||typeof p!=='object'||!SHB[p.type])return null;
+ const d=SHB[p.type],q=mkPart(p.type,num(p.x,S.w/2,-500,500),num(p.y,0,-500,500),num(p.w,4,.25,500),num(p.h,4,.25,500));
+ q.rot=num(p.rot,0,-360,360);q.fx=p.fx?1:0;q.fy=p.fy?1:0;q.taper=num(p.taper,0,-.95,.95);q.shear=num(p.shear,0,-3,3);
+ if(d.par)q.param=num(p.param,d.par.def,d.par.min,d.par.max);
+ if(RAMP_LIST.some(r=>r[0]===p.ramp))q.ramp=p.ramp;
+ if(HEXRE.test(p.col))q.col=p.col;
+ if(SHADES.some(s=>s[0]===p.shade))q.shade=p.shade;
+ if(p.edge==='dark'||p.edge==='black')q.edge=p.edge;
+ q.op=p.op==='cut'?'cut':'add';q.vis=p.vis===0?0:1;q.lock=p.lock?1:0;
+ return q;
+}
+function cleanOpts(o){const d=defOpts();if(!o||typeof o!=='object')return d;return{outline:o.outline!==false,dark:o.dark!==false,snap64:!!o.snap64,hull:HULL_CHOICES.includes(o.hull)?o.hull:d.hull,accent:ACC_CHOICES.includes(o.accent)?o.accent:d.accent}}
+
+/* ===================== templates ===================== */
+const TPL={
+ fish:(W,N)=>{const es=Math.max(1.6,.3*N);return[
+  mkPart('ftail',.12*W,0,.26*W,1.9*N,{ramp:'accent'}),
+  mkPart('fin',.5*W,.7*N,.28*W,.75*N,{ramp:'accent'}),
+  mkPart('fish',.55*W,0,.8*W,1.6*N),
+  mkPart('gills',.66*W,0,.1*W,1.0*N,{op:'cut',param:3}),
+  mkPart('eye',.84*W,.3*N,es,es),
+  mkPart('pupil',.86*W,.3*N,es*.5,es*.5)]},
+ rocket:(W,N)=>{const ws=Math.max(2.4,.5*N);return[
+  mkPart('delta',.2*W,.78*N,.32*W,.95*N,{ramp:'accent'}),
+  mkPart('rocket',.56*W,0,.84*W,1.15*N),
+  mkPart('nozzle',.07*W,0,.14*W,.62*N,{ramp:'shadow'}),
+  mkPart('bubble',.6*W,0,ws,ws),
+  mkPart('block',.34*W,0,Math.max(1,.05*W),1.15*N,{ramp:'accent',shade:'flat'})]},
+ table:(W,N)=>{const lw=Math.max(1.5,.07*W),L=[];
+  for(const x of[.2,.8]){L.push(mkPart('block',x*W,.78*N,lw,.5*N,{ramp:'shadow'}));L.push(mkPart('block',x*W,.97*N,lw*2,Math.max(1,.1*N),{ramp:'shadow'}))}
+  L.push(mkPart('rblock',.5*W,0,.88*W,1.2*N,{param:.2}));
+  L.push(mkPart('rblock',.46*W,0,.7*W,.7*N,{param:.2,ramp:'accent',shade:'top'}));
+  L.push(mkPart('canopy',.84*W,0,.16*W,.55*N));return L},
+ ball:(W,N)=>{const D=Math.min(.86*W,1.9*N),bx=.56*W;return[
+  mkPart('nozzle',bx-D/2+.02*W,0,.14*W,.45*N,{ramp:'shadow'}),
+  mkPart('ball',bx,0,D,D),
+  mkPart('ring',bx,0,D,D,{param:.8,ramp:'accent',shade:'flat'}),
+  mkPart('bubble',bx+.18*D,0,.34*D,.34*D)]},
+ triangle:(W,N)=>[
+  mkPart('nozzle',.07*W,0,.12*W,.6*N,{ramp:'shadow'}),
+  mkPart('tri',.52*W,0,.92*W,1.9*N),
+  mkPart('chev',.38*W,0,.2*W,1.0*N,{ramp:'accent',shade:'flat'}),
+  mkPart('canopy',.68*W,0,.24*W,.5*N)],
+ rectangle:(W,N)=>[
+  mkPart('cluster',.06*W,0,.12*W,1.1*N,{ramp:'shadow',param:2}),
+  mkPart('block',.53*W,0,.88*W,1.6*N),
+  mkPart('dstripe',.53*W,0,.88*W,1.0*N,{ramp:'accent',shade:'flat'}),
+  mkPart('windows',.7*W,0,.3*W,.36*N,{param:3})],
+ fighter:(W,N)=>[
+  mkPart('swept',.34*W,.62*N,.42*W,.95*N),
+  mkPart('cluster',.07*W,0,.12*W,.7*N,{ramp:'shadow',param:2}),
+  mkPart('spear',.54*W,0,.92*W,.62*N),
+  mkPart('canopy',.62*W,0,.26*W,.38*N),
+  mkPart('cannon',.7*W,.5*N,.3*W,.12*N)],
+ saucer:(W,N)=>[
+  mkPart('disc',.5*W,0,.92*W,1.8*N),
+  mkPart('bubble',.56*W,0,.36*W,.9*N),
+  mkPart('rivets',.5*W,.62*N,.62*W,.14*N,{param:6})],
+ dart:(W,N)=>[
+  mkPart('cluster',.08*W,0,.1*W,.55*N,{ramp:'shadow',param:2}),
+  mkPart('arrowhead',.5*W,0,.95*W,1.7*N),
+  mkPart('canopy',.62*W,0,.24*W,.42*N)],
+ blank:()=>[]
+};
+const TPL_NAMES=[['fish','FISH'],['rocket','ROCKET'],['table','TABLE'],['ball','BALL'],['triangle','TRIANGLE'],['rectangle','RECTANGLE'],['fighter','FIGHTER'],['saucer','SAUCER'],['dart','DART'],['blank','EMPTY']];
+
+/* ===================== undo ===================== */
+const undoS=[],redoS=[];
+const snapshot=()=>JSON.stringify({w:S.w,n:S.n,opts:S.opts,parts:S.parts,sel:view.sel});
+function pushUndo(){const s=snapshot();if(undoS.length&&undoS[undoS.length-1]===s)return false;undoS.push(s);if(undoS.length>120)undoS.shift();redoS.length=0;updUndoBtns();return true}
+function applySnap(s){const o=JSON.parse(s);S.w=o.w;S.n=o.n;S.opts=cleanOpts(o.opts);S.parts=o.parts;view.sel=o.sel;uid=Math.max(uid,...S.parts.map(p=>p.id+1),1);syncAll()}
+function doUndo(){if(!undoS.length)return;redoS.push(snapshot());applySnap(undoS.pop());updUndoBtns()}
+function doRedo(){if(!redoS.length)return;undoS.push(snapshot());applySnap(redoS.pop());updUndoBtns()}
+function updUndoBtns(){$('#undo').disabled=!undoS.length;$('#redo').disabled=!redoS.length}
+
+/* ===================== rendering the ship into pixels ===================== */
+function renderShip(){
+ const W=S.w,N=S.n,R=N+1,o=S.opts,parts=S.parts,len=W*R;
+ const owner=new Int16Array(len).fill(-1),masks=new Array(parts.length).fill(null),xfs=new Array(parts.length).fill(null);
+ for(let k=0;k<parts.length;k++){
+  const p=parts[k];if(!p.vis)continue;
+  const t=xf(p);xfs[k]=t;const bb=bboxOf(t);
+  const i0=Math.max(0,Math.floor(bb[0]-1)),i1=Math.min(W-1,Math.ceil(bb[1]+1));
+  const j0=Math.max(0,Math.floor(N-bb[3]-1)),j1=Math.min(N,Math.ceil(N-bb[2]+1));
+  const m=new Uint8Array(len);
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
+   let c=0;
+   for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)if(insidePart(t,i+.5+a/3,N-j+b/3))c++;
+   if(c>=5)m[j*W+i]=1;
+  }
+  masks[k]=m;
+  if(p.op==='cut'){for(let q=0;q<len;q++)if(m[q])owner[q]=-1}
+  else{for(let q=0;q<len;q++)if(m[q])owner[q]=k}
+ }
+ const colTop=new Float32Array(W);
+ for(let j=0;j<R;j++)for(let i=0;i<W;i++)if(owner[j*W+i]>=0)colTop[i]=Math.max(colTop[i],N-j+.5);
+ const ext=new Map();
+ const extOf=k=>{let e=ext.get(k);if(e)return e;const m=masks[k],mn=new Float32Array(W).fill(1e9),mx=new Float32Array(W).fill(-1);
+  for(let j=0;j<R;j++)for(let i=0;i<W;i++)if(m[j*W+i]){const d=N-j;if(d<mn[i])mn[i]=d;if(d>mx[i])mx[i]=d}
+  e={mn,mx};ext.set(k,e);return e};
+ const hex=new Array(len).fill(null),si=new Int8Array(len).fill(-1),rk=new Array(len).fill(null),cl=new Array(len).fill(null);
+ const fin=h=>o.snap64?snapHex(h):h;
+ for(let j=0;j<R;j++)for(let i=0;i<W;i++){
+  const q=j*W+i,k=owner[q];if(k<0)continue;
+  const p=parts[k],cols=colsOf(p,o),d=N-j;let b;
+  switch(p.shade){
+   case 'tube':case 'bands':{const e=extOf(k),cross=e.mn[i]<=.01,dc=cross?0:(e.mn[i]+e.mx[i])/2,half=cross?e.mx[i]+.5:(e.mx[i]-e.mn[i])/2+.5;b=1-Math.pow(Math.abs(d-dc)/half,1.1);if(p.shade==='bands'&&(i&3)<2)b-=.24;break}
+   case 'top':{const e=extOf(k);b=(d-e.mn[i]+.5)/(e.mx[i]-e.mn[i]+1);break}
+   case 'flat':b=.5;break;
+   case 'glow':{const uv=toUV(xfs[k],i+.5,d),v0=unwarp(p,uv[0],uv[1]),r=Math.hypot(uv[0],v0===null?uv[1]:v0)*2;b=clamp(1-Math.pow(r,1.4)*1.05,0,1);break}
+   default:b=1-Math.pow(d/Math.max(.5,colTop[i]),1.1);
+  }
+  let idx=(1-b)*5;
+  if(p.shade==='dither')idx+=(BAYER[j&3][i&3]/16-.5)*.95;
+  idx=clamp(Math.floor(idx),0,4);
+  si[q]=idx;rk[q]=p.ramp==='custom'?'custom:'+p.col:p.ramp;cl[q]=cols;hex[q]=fin(cols[idx]);
+ }
+ const inP=(k,i,j)=>{if(i<0||i>=W||j<0)return false;if(j>N)j=2*N-j;return !!masks[k][j*W+i]};
+ for(let j=0;j<R;j++)for(let i=0;i<W;i++){
+  const q=j*W+i,k=owner[q];if(k<0)continue;const p=parts[k];
+  if(p.edge!=='none'&&!(inP(k,i-1,j)&&inP(k,i+1,j)&&inP(k,i,j-1)&&inP(k,i,j+1))){si[q]=-2;hex[q]=p.edge==='black'?'#000000':fin(cl[q][4]);rk[q]=null}
+ }
+ if(o.outline){
+  const tmp=[];
+  const occ=(i,j)=>{if(i<0||i>=W||j<0)return false;if(j>N)j=2*N-j;return owner[j*W+i]>=0};
+  for(let j=0;j<R;j++)for(let i=0;i<W;i++){if(owner[j*W+i]<0)continue;if(!(occ(i-1,j)&&occ(i+1,j)&&occ(i,j-1)&&occ(i,j+1)))tmp.push(j*W+i)}
+  for(const q of tmp){si[q]=-2;hex[q]='#000000';rk[q]=null}
+ }
+ return{W,N,R,owner,hex,si,rk,cl,fin};
+}
+/* the full sprite: the upper half plus its mirror, darker */
+function darkIdx(s){return Math.min(4,s+(s===0?2:1))}
+function pixelAt(r,i,jf){
+ const N=r.N,W=r.W;let q,dark=false;
+ if(jf<=N)q=jf*W+i;else{q=(N-(jf-N))*W+i;dark=true}
+ if(r.owner[q]<0)return null;
+ if(dark&&S.opts.dark&&r.si[q]>=0)return r.fin(r.cl[q][darkIdx(r.si[q])]);
+ return r.hex[q];
+}
+function spriteData(r){
+ const W=r.W,H=2*r.N+1,d=new Uint8ClampedArray(W*H*4);
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const h=pixelAt(r,i,j);if(!h)continue;const c=hex2rgb(h),q=(j*W+i)*4;d[q]=c[0];d[q+1]=c[1];d[q+2]=c[2];d[q+3]=255}
+ return{W,H,d};
+}
+
+/* ===================== editor canvas ===================== */
+const cv=$('#cv'),cx=cv.getContext('2d');
+const sprCv=document.createElement('canvas'),sprX=sprCv.getContext('2d');
+let cell=16,R_=null;const PAD=44; /* room around the ship so handles that stick out stay clickable */
+const GAME_HALF=[".kkkkk..................",".kLwwkk.................",".kdLwwwkk...............","..kddLwwkkkkkkkk........","...kddgLwwwwwwwLLgkkk...",".kkddgLLwwwwwwwwlLLgkk..","kddgLLwwLLggLLwwlkBBclgk","krdgLLggggggggwwkBBcwlk.","kordgggLLwwwwwwwwwwwwLkk"];
+const toScr=(X,D)=>[X*cell,(S.n+.5-D)*cell];
+function layout(){
+ const H=2*S.n+1,wrap=$('#cvwrap'),aw=Math.max(200,wrap.clientWidth-18)-2*PAD,ah=Math.max(240,Math.min(560,innerHeight*.52))-2*PAD;
+ const base=clamp(Math.floor(Math.min(aw/S.w,ah/H)),4,40);
+ cell=clamp(Math.round(base*view.zoom),3,64);
+ const w=S.w*cell+2*PAD,h=H*cell+2*PAD;
+ if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
+ cv.style.width=w+'px';cv.style.height=h+'px';
+}
+function drawEditor(){
+ const H=2*S.n+1,SW=S.w*cell,SHT=H*cell;
+ cx.setTransform(1,0,0,1,0,0);cx.imageSmoothingEnabled=false;cx.clearRect(0,0,cv.width,cv.height);
+ cx.fillStyle='#05040f';cx.fillRect(0,0,cv.width,cv.height);
+ cx.save();cx.translate(PAD,PAD);
+ cx.fillStyle='#0a0720';cx.fillRect(0,0,SW,SHT);
+ cx.fillStyle='#120e2c';cx.fillRect(0,0,SW,S.n*cell);
+ cx.drawImage(sprCv,0,0,S.w*cell,H*cell);
+ if(view.ghost){
+  cx.fillStyle='rgba(255,255,255,.2)';
+  for(let r=0;r<GAME_HALF.length;r++){const row=GAME_HALF[r];for(let c=0;c<row.length;c++){if(row[c]==='.')continue;const j=S.n-(8-r);if(j>=0){cx.fillRect(c*cell,j*cell,cell,cell);if(r<8)cx.fillRect(c*cell,(2*S.n-j)*cell,cell,cell)}}}
+ }
+ if(view.grid&&cell>=7){
+  cx.strokeStyle='rgba(255,255,255,.07)';cx.lineWidth=1;cx.beginPath();
+  for(let i=0;i<=S.w;i++){cx.moveTo(i*cell+.5,0);cx.lineTo(i*cell+.5,H*cell)}
+  for(let j=0;j<=H;j++){cx.moveTo(0,j*cell+.5);cx.lineTo(S.w*cell,j*cell+.5)}
+  cx.stroke();
+ }
+ cx.fillStyle='rgba(0,0,0,.28)';cx.fillRect(0,(S.n+1)*cell,S.w*cell,S.n*cell);
+ cx.strokeStyle='rgba(112,164,178,.8)';cx.setLineDash([6,4]);cx.lineWidth=1;cx.beginPath();cx.moveTo(0,(S.n+.5)*cell);cx.lineTo(S.w*cell,(S.n+.5)*cell);cx.stroke();cx.setLineDash([]);
+ cx.fillStyle='rgba(255,255,255,.35)';cx.font='10px monospace';cx.fillText('MIRROR (DARKER COPY)',4,H*cell-5);cx.fillText('DESIGN THIS HALF',4,11);
+ cx.strokeStyle='rgba(112,164,178,.35)';cx.lineWidth=1;cx.strokeRect(-.5,-.5,SW+1,SHT+1);
+ const p=selPart();
+ if(p&&p.vis){
+  const t=xf(p);
+  cx.lineWidth=1.5;cx.strokeStyle='#b8c76f';
+  for(const poly of t.polys){cx.beginPath();poly.forEach(([u,v],i)=>{const w=shapeToWorld(t,u,v),s=toScr(w[0],w[1]);i?cx.lineTo(s[0],s[1]):cx.moveTo(s[0],s[1])});cx.closePath();cx.stroke()}
+  const hp=handlePts(p);
+  cx.setLineDash([4,3]);cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=1;cx.beginPath();
+  for(const k of['sw','se','ne','nw']){const s=hp[k];k==='sw'?cx.moveTo(s[0],s[1]):cx.lineTo(s[0],s[1])}cx.closePath();cx.stroke();cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(hp.n[0],hp.n[1]);cx.lineTo(hp.rot[0],hp.rot[1]);cx.stroke();
+  for(const k of['n','s','e','w','ne','nw','se','sw']){const s=hp[k];cx.fillStyle='#fff';cx.fillRect(s[0]-4,s[1]-4,8,8);cx.strokeStyle='#000';cx.strokeRect(s[0]-4.5,s[1]-4.5,9,9)}
+  cx.beginPath();cx.arc(hp.rot[0],hp.rot[1],5,0,TAU);cx.fillStyle='#ff9966';cx.fill();cx.strokeStyle='#000';cx.stroke();
+ }
+ cx.restore();
+}
+function handlePts(p){
+ const a=p.rot*PI/180,c=Math.cos(a),s=Math.sin(a);
+ const loc=(lx,ld)=>toScr(p.x+lx*c-ld*s,p.y+lx*s+ld*c);
+ return{e:loc(p.w/2,0),w:loc(-p.w/2,0),n:loc(0,p.h/2),s:loc(0,-p.h/2),ne:loc(p.w/2,p.h/2),nw:loc(-p.w/2,p.h/2),se:loc(p.w/2,-p.h/2),sw:loc(-p.w/2,-p.h/2),rot:loc(0,p.h/2+22/cell)};
+}
+
+/* ===================== game view preview ===================== */
+const pvRoll=$('#pvRoll'),pv1=$('#pv1'),pv3=$('#pv3');
+let frames=[],frameI=0;const stars=[];
+for(let i=0;i<60;i++)stars.push([Math.random(),Math.random(),Math.random()]);
+function polishData(d,w,h){
+ const out=new Uint8ClampedArray(d),op=(x,y)=>x>=0&&y>=0&&x<w&&y<h&&d[(y*w+x)*4+3]>128;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  if(!op(x,y))continue;const i=(y*w+x)*4;let r=d[i],g=d[i+1],b=d[i+2],ch=false;
+  if(!op(x,y-1)){r=r*.5+130;g=g*.5+130;b=b*.5+130;ch=true}
+  else if(!op(x,y+1)||!op(x+1,y)){r*=.55;g*=.55;b*=.55;ch=true}
+  if(ch){const n=snap64(r,g,b)[0];out[i]=n[0];out[i+1]=n[1];out[i+2]=n[2]}
+ }
+ return out;
+}
+function buildFrames(sp){
+ const W=sp.W,H=sp.H,N=(H-1)/2,list=[];
+ for(let f=0;f<16;f++){
+  const c=Math.cos(f/16*TAU),ac=Math.max(.36,Math.abs(c)),d=new Uint8ClampedArray(W*H*4);
+  for(let j=0;j<H;j++){
+   const dy=j-N;let sj=Math.round(N+(c<0?-dy:dy)/ac);if(ac<.5&&Math.abs(dy)<=1)sj=N;
+   if(sj<0||sj>=H)continue;
+   for(let i=0;i<W;i++){const k=(sj*W+i)*4,q=(j*W+i)*4;d[q]=sp.d[k];d[q+1]=sp.d[k+1];d[q+2]=sp.d[k+2];d[q+3]=sp.d[k+3]}
+  }
+  const c2=document.createElement('canvas');c2.width=W;c2.height=H;c2.getContext('2d').putImageData(new ImageData(polishData(d,W,H),W,H),0,0);list.push(c2);
+ }
+ return list;
+}
+function drawPreview(){
+ if(!frames.length)return;
+ const W=S.w,H=2*S.n+1,sc=Math.max(2,Math.min(6,Math.floor(300/W))),pw=W*sc+8*sc,ph=H*sc+8*sc;
+ if(pvRoll.width!==pw||pvRoll.height!==ph){pvRoll.width=pw;pvRoll.height=ph}
+ const x=pvRoll.getContext('2d');x.imageSmoothingEnabled=false;x.fillStyle='#000';x.fillRect(0,0,pw,ph);
+ for(const s of stars){x.fillStyle=s[2]>.7?'#959595':'#444';x.fillRect(Math.floor(s[0]*pw),Math.floor(s[1]*ph),Math.max(1,sc>>1),Math.max(1,sc>>1))}
+ x.drawImage(frames[frameI],4*sc,4*sc,W*sc,H*sc);
+}
+setInterval(()=>{frameI=(frameI+1)%16;drawPreview()},90);
+function paintPreviews(sp){
+ for(const [c2,m] of[[pv1,1],[pv3,3]]){c2.width=sp.W*m;c2.height=sp.H*m;const q=c2.getContext('2d');q.imageSmoothingEnabled=false;q.clearRect(0,0,c2.width,c2.height);q.drawImage(frames[0],0,0,sp.W*m,sp.H*m)}
+ $('#prevInfo').textContent=sp.W+' x '+sp.H+' PIXELS';
+}
+
+/* ===================== sync + redraw ===================== */
+let pending=false,saveT=0;
+function redraw(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;fullRedraw()})}
+function fullRedraw(){
+ layout();
+ R_=renderShip();
+ const sp=spriteData(R_);
+ sprCv.width=sp.W;sprCv.height=sp.H;sprX.putImageData(new ImageData(new Uint8ClampedArray(sp.d),sp.W,sp.H),0,0);
+ frames=buildFrames(sp);
+ drawEditor();paintPreviews(sp);drawPreview();
+ clearTimeout(saveT);saveT=setTimeout(persist,400);
+}
+function selPart(){return S.parts.find(p=>p.id===view.sel)||null}
+function syncAll(){
+ $('#szW').value=S.w;$('#szN').value=S.n;$('#szTxt').textContent='= '+S.w+' x '+(2*S.n+1)+' PIXELS';
+ $('#oOutline').checked=S.opts.outline;$('#oDark').checked=S.opts.dark;$('#oSnap64').checked=S.opts.snap64;$('#oHull').value=S.opts.hull;$('#oAcc').value=S.opts.accent;
+ buildLayers();syncInspector();updUndoBtns();redraw();
+}
+function persist(){try{localStorage.setItem('idlyteShipDesigner.v1',JSON.stringify({w:S.w,n:S.n,opts:S.opts,parts:S.parts}))}catch(e){}}
+let toastT=0;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+
+/* ===================== library UI ===================== */
+let curCat='BASIC';
+const iconCache={};
+function iconOf(id){
+ if(iconCache[id])return iconCache[id];
+ const c=document.createElement('canvas');c.width=92;c.height=60;const x=c.getContext('2d');
+ const polys=polysOf(id,SHB[id].par?SHB[id].par.def:0);x.fillStyle='#9a94cc';x.strokeStyle='#e8e6ff';
+ const d=SHB[id].d,asp=clamp(d[0]*24/Math.max(.1,d[1]*16),.25,4),bw=asp>=1.4?80:Math.min(80,60*asp),bh=asp>=1.4?Math.max(10,80/asp):60;
+ x.save();x.translate(46,30);x.scale(bw,-bh);x.lineWidth=1.5/Math.max(bw,bh);
+ x.beginPath();for(const p of polys){p.forEach(([u,v],i)=>i?x.lineTo(u,v):x.moveTo(u,v));x.closePath()}x.fill('evenodd');x.stroke();x.restore();
+ return iconCache[id]=c.toDataURL();
+}
+function buildLibrary(){
+ const tabs=$('#tabs');tabs.replaceChildren();
+ for(const c of CATS){const b=el('button',{textContent:c,className:c===curCat?'on':''});b.onclick=()=>{curCat=c;buildLibrary()};tabs.append(b)}
+ const g=$('#shapes');g.replaceChildren();
+ for(const s of SH.filter(s=>s.cat===curCat)){
+  const b=el('button',{className:'shp',title:'ADD '+s.name},el('img',{src:iconOf(s.id),alt:''}),el('span',{textContent:s.name}));
+  b.onclick=()=>addPart(s.id);g.append(b);
+ }
+ $('#libCount').textContent=SH.length+' SHAPES';
+}
+function addPart(type){
+ pushUndo();
+ const d=SHB[type],W=S.w,N=S.n,w=Math.max(.5,d.d[0]*W),h=Math.max(.5,d.d[1]*2*N);
+ const p=mkPart(type,.5*W,d.cat==='WINGS'?.5*N:0,w,h);
+ S.parts.push(p);view.sel=p.id;syncAll();
+}
+
+/* ===================== inspector ===================== */
+const FIELDS={};
+function addNum(host,key,label,min,max,step){
+ const lab=el('label',{textContent:label}),rg=el('input',{type:'range'}),nm=el('input',{type:'number'});
+ for(const e of[rg,nm]){e.min=min;e.max=max;e.step=step}
+ const row=el('div',{className:'row n'},lab,rg,nm);host.append(row);
+ rg.addEventListener('input',()=>{nm.value=rg.value;setProp(key,+rg.value)});
+ nm.addEventListener('input',()=>{if(nm.value===''||isNaN(+nm.value))return;rg.value=nm.value;setProp(key,+nm.value)});
+ FIELDS[key]={row,lab,rg,nm};
+}
+const roundv=v=>Math.round(v*100)/100;
+function setProp(key,v){
+ const p=selPart();if(!p)return;
+ const W=S.w,N=S.n;
+ if(key==='x')v=clamp(v,-W,2*W);else if(key==='y')v=clamp(v,-N,2*N);else if(key==='w')v=clamp(v,.25,3*W);else if(key==='h')v=clamp(v,.25,6*N);
+ else if(key==='rot')v=((v+180)%360+360)%360-180;
+ p[key]=v;
+ const f=FIELDS[key];if(f){if(document.activeElement!==f.nm)f.nm.value=roundv(v);if(document.activeElement!==f.rg)f.rg.value=v}
+ redraw();
+}
+function option(sel,value,text){sel.append(el('option',{value,textContent:text}))}
+function buildInspector(){
+ const host=$('#nums');
+ addNum(host,'x','X',0,48,.5);addNum(host,'y','HEIGHT',-8,16,.5);addNum(host,'w','WIDTH',.5,48,.5);addNum(host,'h','THICK',.5,32,.5);
+ addNum(host,'rot','ROTATE',-180,180,5);addNum(host,'taper','TAPER',-.95,.95,.05);addNum(host,'shear','SWEEP',-1.5,1.5,.05);
+ addNum(host,'param','PARAM',0,1,.01);
+ const ft=$('#fType');for(const c of CATS){const g=el('optgroup',{label:c});for(const s of SH.filter(s=>s.cat===c))option(g,s.id,s.name);ft.append(g)}
+ for(const [k,n] of RAMP_LIST)option($('#fRamp'),k,n);
+ for(const [k,n] of SHADES)option($('#fShade'),k,n);
+ for(const k of HULL_CHOICES)option($('#oHull'),k,k.toUpperCase());
+ for(const k of ACC_CHOICES)option($('#oAcc'),k,k.toUpperCase());
+}
+function syncInspector(){
+ const p=selPart();
+ $('#noSel').hidden=!!p;$('#selUI').hidden=!p;
+ if(!p){$('#selName').textContent='';return}
+ $('#selName').textContent=SHB[p.type].name;
+ $('#fType').value=p.type;$('#fOp').value=p.op;$('#fRamp').value=p.ramp;$('#fCol').value=HEXRE.test(p.col)?p.col:'#6c5eb5';$('#fCol').hidden=p.ramp!=='custom';$('#fShade').value=p.shade;$('#fEdge').value=p.edge;
+ const W=S.w,N=S.n,lim={x:[0,W],y:[-N,2*N],w:[.5,W*1.5],h:[.5,N*3]};
+ for(const k of['x','y','w','h','rot','taper','shear']){
+  const f=FIELDS[k];if(lim[k]){f.rg.min=f.nm.min=lim[k][0];f.rg.max=f.nm.max=lim[k][1]}
+  f.rg.value=p[k];f.nm.value=roundv(p[k]);
+ }
+ const d=SHB[p.type],pf=FIELDS.param;pf.row.hidden=!d.par;
+ if(d.par){pf.lab.textContent=d.par.n.length>8?d.par.n.slice(0,8):d.par.n;pf.row.title=d.par.n;for(const e of[pf.rg,pf.nm]){e.min=d.par.min;e.max=d.par.max;e.step=d.par.step}pf.rg.value=p.param;pf.nm.value=roundv(p.param)}
+}
+function bindSel(id,prop){
+ $(id).addEventListener('input',e=>{const p=selPart();if(!p)return;p[prop]=e.target.value;
+  if(prop==='type'){const d=SHB[p.type];if(d.par&&!(p.param>=d.par.min&&p.param<=d.par.max))p.param=d.par.def;buildLayers()}
+  if(prop==='ramp'||prop==='col'||prop==='op')buildLayers();
+  syncInspector();redraw()});
+}
+
+/* ===================== layers ===================== */
+function buildLayers(){
+ const host=$('#layers');host.replaceChildren();
+ if(!S.parts.length){host.append(el('div',{className:'dim',style:'padding:8px',textContent:'NO PARTS YET. PICK ONE FROM THE LEFT OR START FROM A TEMPLATE.'}));return}
+ for(let k=S.parts.length-1;k>=0;k--){
+  const p=S.parts[k],d=el('div',{className:'layer'+(p.id===view.sel?' sel':'')}),cols=colsOf(p,S.opts);
+  const sw=el('span',{className:'sw'});sw.style.background=cols[2];
+  const eye=el('button',{textContent:p.vis?'SHOW':'HIDE',title:'show or hide this part'});eye.style.opacity=p.vis?1:.5;
+  eye.onclick=e=>{e.stopPropagation();pushUndo();p.vis=p.vis?0:1;buildLayers();redraw()};
+  const lk=el('button',{textContent:p.lock?'LOCKED':'LOCK',title:'a locked part cannot be picked on the canvas'});lk.style.opacity=p.lock?1:.5;
+  lk.onclick=e=>{e.stopPropagation();pushUndo();p.lock=p.lock?0:1;buildLayers()};
+  d.append(sw,el('span',{className:'nm',textContent:SHB[p.type].name+(p.op==='cut'?' (CUT)':'')}),eye,lk);
+  d.onclick=()=>{view.sel=p.id;buildLayers();syncInspector();redraw()};
+  host.append(d);
+ }
+}
+function moveLayer(dir){
+ const k=S.parts.findIndex(p=>p.id===view.sel);if(k<0)return;const j=k+dir;if(j<0||j>=S.parts.length)return;
+ pushUndo();const t=S.parts[k];S.parts[k]=S.parts[j];S.parts[j]=t;buildLayers();redraw();
+}
+function toEnd(front){
+ const k=S.parts.findIndex(p=>p.id===view.sel);if(k<0)return;pushUndo();const [p]=S.parts.splice(k,1);front?S.parts.push(p):S.parts.unshift(p);buildLayers();redraw();
+}
+function delSel(){const k=S.parts.findIndex(p=>p.id===view.sel);if(k<0)return;pushUndo();S.parts.splice(k,1);view.sel=null;syncAll()}
+function dupSel(){const p=selPart();if(!p)return;pushUndo();const q=Object.assign({},p,{id:uid++,x:p.x+1});S.parts.push(q);view.sel=q.id;syncAll()}
+function flip(k){const p=selPart();if(!p)return;pushUndo();p[k]=p[k]?0:1;redraw()}
+
+/* ===================== canvas interaction ===================== */
+let drag=null;
+function ptrToDesign(e){const r=cv.getBoundingClientRect(),mx=(e.clientX-r.left)*(cv.width/r.width)-PAD,my=(e.clientY-r.top)*(cv.height/r.height)-PAD;return{mx,my,px:mx/cell,pd:Math.abs(S.n+.5-my/cell)}}
+const snapV=(v,st)=>view.snap?Math.round(v/st)*st:v;
+function pickAt(px,pd){
+ const tryAt=(x,d)=>{for(let k=S.parts.length-1;k>=0;k--){const p=S.parts[k];if(!p.vis||p.lock)continue;if(insidePart(xf(p),x,d))return p}return null};
+ let p=tryAt(px,pd);if(p)return p;
+ for(const [ox,od] of[[.45,0],[-.45,0],[0,.45],[0,-.45]]){p=tryAt(px+ox,pd+od);if(p)return p}
+ return null;
+}
+function hitHandle(p,mx,my){
+ const hp=handlePts(p);let best=null,bd=11;
+ for(const k of['rot','ne','nw','se','sw','n','s','e','w']){const d=Math.hypot(hp[k][0]-mx,hp[k][1]-my);if(d<bd){bd=d;best=k}}
+ return best;
+}
+cv.addEventListener('pointerdown',e=>{
+ const q=ptrToDesign(e);let p=selPart();const h=p&&p.vis&&!p.lock?hitHandle(p,q.mx,q.my):null;
+ if(!h){const np=pickAt(q.px,q.pd);if(np!==p){p=np;view.sel=p?p.id:null;buildLayers();syncInspector();redraw()}if(!p)return}
+ cv.setPointerCapture(e.pointerId);
+ const before=snapshot(),pushed=pushUndo();
+ drag={before,pushed,mode:h?(h==='rot'?'rot':'size'):'move',h,id:p.id,start:{x:p.x,y:p.y,w:p.w,h:p.h,rot:p.rot},p0:[q.px,q.pd]};
+ e.preventDefault();
+});
+cv.addEventListener('pointermove',e=>{
+ const q=ptrToDesign(e);
+ if(!drag){
+  const p=selPart();let c='default';
+  if(p&&p.vis&&!p.lock){const h=hitHandle(p,q.mx,q.my);if(h)c=h==='rot'?'grab':({n:'ns-resize',s:'ns-resize',e:'ew-resize',w:'ew-resize',ne:'nesw-resize',sw:'nesw-resize',nw:'nwse-resize',se:'nwse-resize'})[h];else if(insidePart(xf(p),q.px,q.pd))c='move'}
+  cv.style.cursor=c;return;
+ }
+ const p=S.parts.find(z=>z.id===drag.id);if(!p)return;const s=drag.start;
+ if(drag.mode==='move'){p.x=snapV(s.x+(q.px-drag.p0[0]),.5);p.y=snapV(s.y+(q.pd-drag.p0[1]),.5)}
+ else if(drag.mode==='rot'){
+  let a=Math.atan2(q.pd-s.y,q.px-s.x)*180/PI-90;if(view.snap){const st=e.shiftKey?15:5;a=Math.round(a/st)*st}
+  p.rot=((a+180)%360+360)%360-180;
+ }else{
+  const a=s.rot*PI/180,c=Math.cos(a),sn=Math.sin(a),dx=q.px-s.x,dd=q.pd-s.y;
+  let lx=dx*c+dd*sn,ld=-dx*sn+dd*c;
+  const rm=((s.rot%180)+180)%180,axis=(rm<1||rm>179)?0:(Math.abs(rm-90)<1?1:-1);
+  if(view.snap){
+   if(axis===0){lx=snapV(s.x+lx,.5)-s.x;ld=snapV(s.y+ld,.5)-s.y}
+   else if(axis===1){const wx=s.x-ld,wy=s.y+lx;lx=snapV(wy,.5)-s.y;ld=-(snapV(wx,.5)-s.x)}
+   else{lx=snapV(lx,.5);ld=snapV(ld,.5)}
+  }
+  let L=-s.w/2,Rr=s.w/2,B=-s.h/2,T=s.h/2;const hh=drag.h;
+  if(hh.includes('e'))Rr=lx;if(hh.includes('w'))L=lx;if(hh.includes('n'))T=ld;if(hh.includes('s'))B=ld;
+  if(e.altKey){if(hh.includes('e')||hh.includes('w')){const m=Math.abs(lx);L=-m;Rr=m}if(hh.includes('n')||hh.includes('s')){const m=Math.abs(ld);B=-m;T=m}}
+  if(e.shiftKey&&hh.length===2){
+   const k=Math.max((Rr-L)/s.w,(T-B)/s.h);
+   if(e.altKey){L=-s.w/2*k;Rr=s.w/2*k;B=-s.h/2*k;T=s.h/2*k}
+   else{if(hh.includes('e'))Rr=-s.w/2+s.w*k;else L=s.w/2-s.w*k;if(hh.includes('n'))T=-s.h/2+s.h*k;else B=s.h/2-s.h*k}
+  }
+  const nw=Math.max(.5,Rr-L),nh=Math.max(.5,T-B),cxl=(L+Rr)/2,cdl=(B+T)/2;
+  p.w=nw;p.h=nh;p.x=s.x+cxl*c-cdl*sn;p.y=s.y+cxl*sn+cdl*c;
+ }
+ syncFieldsLive(p);redraw();
+});
+function syncFieldsLive(p){for(const k of['x','y','w','h','rot']){const f=FIELDS[k];f.rg.value=p[k];f.nm.value=roundv(p[k])}}
+function endDrag(){if(!drag)return;if(drag.pushed&&snapshot()===drag.before){undoS.pop();updUndoBtns()}drag=null;buildLayers()}
+cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
+
+addEventListener('keydown',e=>{
+ const t=e.target,tag=t&&t.tagName;
+ if(tag==='TEXTAREA'||(tag==='INPUT'&&t.type!=='range'&&t.type!=='checkbox')||tag==='SELECT')return;
+ const p=selPart(),k=e.key.toLowerCase();
+ if((e.ctrlKey||e.metaKey)&&k==='z'){e.preventDefault();e.shiftKey?doRedo():doUndo();return}
+ if((e.ctrlKey||e.metaKey)&&k==='y'){e.preventDefault();doRedo();return}
+ if((e.ctrlKey||e.metaKey)&&k==='d'){e.preventDefault();dupSel();return}
+ if(!p)return;
+ if(k==='delete'||k==='backspace'){e.preventDefault();delSel();return}
+ if(k==='escape'){view.sel=null;syncAll();return}
+ if(k==='h'){flip('fx');return}if(k==='v'){flip('fy');return}
+ if(k==='['){moveLayer(-1);return}if(k===']'){moveLayer(1);return}
+ const st=e.shiftKey?2:.5;let dx=0,dy=0;
+ if(k==='arrowleft')dx=-st;else if(k==='arrowright')dx=st;else if(k==='arrowup')dy=st;else if(k==='arrowdown')dy=-st;else return;
+ e.preventDefault();if(!e.repeat)pushUndo();p.x+=dx;p.y+=dy;syncFieldsLive(p);redraw();
+});
+
+/* ===================== size + templates ===================== */
+function setSize(w,n,scaleParts){
+ w=clamp(Math.round(w)||24,8,96);n=clamp(Math.round(n)||8,4,32);
+ if(w===S.w&&n===S.n){syncAll();return}
+ pushUndo();
+ if(scaleParts){
+  const kx=w/S.w,ky=n/S.n;
+  for(const p of S.parts){
+   p.x*=kx;p.y*=ky;const r=((p.rot%180)+180)%180;
+   if(r<1||r>179){p.w*=kx;p.h*=ky}else if(Math.abs(r-90)<1){p.w*=ky;p.h*=kx}else{const q=Math.sqrt(kx*ky);p.w*=q;p.h*=q}
+  }
+ }
+ S.w=w;S.n=n;syncAll();
+}
+function loadTemplate(id){
+ pushUndo();
+ S.parts=TPL[id](S.w,S.n);
+ view.sel=S.parts.length?S.parts[S.parts.length-1].id:null;
+ syncAll();toast('TEMPLATE LOADED. CTRL+Z TO GO BACK.');
+}
+
+/* ===================== export / import ===================== */
+function buildExport(){
+ const r=renderShip(),W=r.W,N=r.N,legend={},keyChar={},pool='ABCDEFGHIJMNOPQRSTUVXYZabdefhijmnopqrstuvxyz'.split('');let pi=0;
+ const charFor=q=>{
+  const s=r.si[q];if(r.owner[q]<0)return'.';
+  if(s===-2){legend.k={hex:'#000000',role:'outline'};return'k'}
+  const key=r.rk[q]+'|'+s;if(keyChar[key])return keyChar[key];
+  let ch;
+  if(r.rk[q]==='hull')ch='wLlgd'[s];else if(r.rk[q]==='accent')ch='54321'[s];else ch=pool[pi++]||'?';
+  keyChar[key]=ch;
+  const role=r.rk[q]==='hull'?'hull':r.rk[q]==='accent'?'accent':'fixed';
+  legend[ch]={hex:r.hex[q],role,ramp:r.rk[q].startsWith('custom')?'custom':r.rk[q],shade:s};
+  return ch;
+ };
+ const rows=[];
+ for(let j=0;j<=N;j++){let s='';for(let i=0;i<W;i++)s+=charFor(j*W+i);rows.push(s)}
+ return{format:'idlyte-ship',version:1,w:W,n:N,h:2*N+1,note:'rows are the upper half including the centre line (last row). the lower half is the upper half mirrored and darker. hull and accent chars follow the paint shop.',opts:S.opts,rows,legend,parts:S.parts.map(p=>{const q=Object.assign({},p);delete q.id;return q})};
+}
+function shipCode(){return JSON.stringify(buildExport())}
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const b=$('#codeBox');b.focus();b.select();try{return document.execCommand('copy')}catch(_){return false}}}
+function importCode(txt){
+ let o;try{o=JSON.parse(txt)}catch(e){toast('THAT IS NOT A SHIP CODE');return false}
+ if(!o||!Array.isArray(o.parts)||!(o.w>0)||!(o.n>0)){toast('THAT IS NOT A SHIP CODE');return false}
+ pushUndo();
+ S.w=clamp(o.w|0,8,96);S.n=clamp(o.n|0,4,32);S.opts=cleanOpts(o.opts);
+ S.parts=o.parts.map(cleanPart).filter(Boolean);
+ view.sel=null;syncAll();toast('SHIP LOADED');return true;
+}
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function pngOf(scale){const c=document.createElement('canvas');c.width=sprCv.width*scale;c.height=sprCv.height*scale;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(sprCv,0,0,c.width,c.height);return c}
+
+/* ===================== wire up ===================== */
+let inspOpen=false;
+function init(){
+ buildInspector();buildLibrary();
+ const tp=$('#tpls');for(const [id,n] of TPL_NAMES){const b=el('button',{textContent:n});b.onclick=()=>loadTemplate(id);tp.append(b)}
+ let loaded=false;
+ try{const raw=localStorage.getItem('idlyteShipDesigner.v1');if(raw){const o=JSON.parse(raw);if(o&&Array.isArray(o.parts)&&o.w>0&&o.n>0){S.w=clamp(o.w|0,8,96);S.n=clamp(o.n|0,4,32);S.opts=cleanOpts(o.opts);S.parts=o.parts.map(cleanPart).filter(Boolean);loaded=true}}}catch(e){}
+ if(!loaded)S.parts=TPL.rocket(S.w,S.n);
+ view.sel=null;
+ $('#undo').onclick=doUndo;$('#redo').onclick=doRedo;
+ const sz=(w,n)=>setSize(w,n,$('#szScale').checked);
+ $('#szW').onchange=()=>sz(+$('#szW').value,S.n);$('#szN').onchange=()=>sz(S.w,+$('#szN').value);
+ $('#szGame').onclick=()=>sz(24,8);$('#sz32').onclick=()=>sz(32,10);$('#sz40').onclick=()=>sz(40,12);$('#sz48').onclick=()=>sz(48,16);
+ for(const [id,key] of[['#oOutline','outline'],['#oDark','dark'],['#oSnap64','snap64']])$(id).onchange=e=>{pushUndo();S.opts[key]=e.target.checked;buildLayers();redraw()};
+ $('#oHull').onchange=e=>{pushUndo();S.opts.hull=e.target.value;buildLayers();redraw()};
+ $('#oAcc').onchange=e=>{pushUndo();S.opts.accent=e.target.value;buildLayers();redraw()};
+ $('#vGrid').onchange=e=>{view.grid=e.target.checked;redraw()};$('#vGhost').onchange=e=>{view.ghost=e.target.checked;redraw()};$('#vSnap').onchange=e=>{view.snap=e.target.checked};
+ $('#vZoom').oninput=e=>{view.zoom=e.target.value/100;redraw()};
+ $('#inspBox').addEventListener('input',()=>{if(!inspOpen){pushUndo();inspOpen=true}},true);
+ $('#inspBox').addEventListener('change',()=>{inspOpen=false},true);
+ bindSel('#fType','type');bindSel('#fOp','op');bindSel('#fRamp','ramp');bindSel('#fCol','col');bindSel('#fShade','shade');bindSel('#fEdge','edge');
+ $('#bFlipX').onclick=()=>flip('fx');$('#bFlipY').onclick=()=>flip('fy');$('#bDup').onclick=dupSel;$('#bDel').onclick=delSel;
+ $('#bFront').onclick=()=>toEnd(true);$('#bBack').onclick=()=>toEnd(false);$('#bUp').onclick=()=>moveLayer(1);$('#bDown').onclick=()=>moveLayer(-1);
+ $('#xCopy').onclick=async()=>{const t=shipCode();$('#codeBox').value=t;const ok=await copyText(t);toast(ok?'SHIP CODE COPIED. PASTE IT INTO THE CHAT.':'COPY FAILED. SELECT THE BOX TEXT AND COPY IT.')};
+ $('#xSave').onclick=()=>dl('idlyte_ship.json',new Blob([shipCode()],{type:'application/json'}));
+ $('#xLoadFile').onclick=()=>$('#xFile').click();
+ $('#xFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>importCode(String(rd.result));rd.readAsText(f);e.target.value=''};
+ $('#xLoadBox').onclick=()=>importCode($('#codeBox').value);
+ $('#xPng1').onclick=()=>pngOf(1).toBlob(b=>dl('idlyte_ship_1x.png',b));
+ $('#xPng8').onclick=()=>pngOf(8).toBlob(b=>dl('idlyte_ship_8x.png',b));
+ $('#xStrip').onclick=()=>{const W=S.w,H=2*S.n+1,c=document.createElement('canvas');c.width=W*16;c.height=H;const x=c.getContext('2d');frames.forEach((f,i)=>x.drawImage(f,i*W,0));c.toBlob(b=>dl('idlyte_ship_roll_strip.png',b))};
+ addEventListener('resize',redraw);
+ syncAll();
+}
+init();
+window.SD={S,view,renderShip,buildExport,TPL,SH,loadTemplate,addPart,setSize,importCode,cleanPart};
+</script>
+</body>
+</html>
