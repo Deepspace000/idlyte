@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.51</title>
+<title>Idlyte v0.52</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -901,7 +901,7 @@ function draw(){
   for(const b of PB){
     if(b.hm){ctx.fillStyle='#9a6759';ctx.fillRect((b.x-5)|0,(b.y-1)|0,6,2);ctx.fillStyle='#ffffff';ctx.fillRect((b.x+1)|0,(b.y-1)|0,3,2);continue}
     ctx.fillStyle=((b.lv||1)>=4?'#ff9966':(b.lv||1)===3?'#b8c76f':(b.lv||1)===2?'#9ad284':'#70a4b2');ctx.fillRect((b.x-4)|0,(b.y-1)|0,8,(b.lv||1)>=3?3:2);
-    ctx.fillStyle='#fff';ctx.fillRect((b.x-1)|0,(b.y-1)|0,5,1);ctx.fillStyle=Math.floor(b.x/4)%2?'#ffffff':'#bbbbbb';ctx.fillRect((b.x+3)|0,(b.y-1)|0,1,(b.lv||1)>=3?3:2);ctx.fillStyle='#444444';ctx.fillRect((b.x-9)|0,b.y|0,4,1);
+    ctx.fillStyle='#fff';ctx.fillRect((b.x-1)|0,(b.y-1)|0,5,1);ctx.fillStyle=Math.floor(b.x/4)%2?'#ffffff':'#bbbbbb';ctx.fillRect((b.x+3)|0,(b.y-1)|0,1,(b.lv||1)>=3?3:2);ctx.fillStyle='#444444';ctx.fillRect((b.x-9)|0,b.y|0,4,1);ctx.fillStyle='#352879';ctx.fillRect((b.x-13)|0,b.y|0,4,1);
   }
   // enemy bullets
   for(const b of EB){
@@ -961,7 +961,7 @@ function drawHud(){
   drawMiniMap();
   if(G.msgT>0&&G.msg){
     const blink=G.msg==='WARNING'?Math.floor(G.msgT*5)%2:1;
-    if(blink)textC(G.msg,84,G.msg==='WARNING'?'#ff7777':'#fff',2);
+    if(blink){const mc=G.msg==='WARNING'?'#ff7777':['#ffffff','#b8c76f','#ff9966','#ffffff'][Math.floor(G.t*8)%4];for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1],[1,1]]){ctx.save();ctx.translate(ox,oy);textC(G.msg,84,'#000000',2);ctx.restore()}textC(G.msg,84,mc,2)}
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
   drawPowerMeter(4,17);
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.51';
+const VERSION='0.52';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1180,6 +1180,8 @@ function mkEarth(R){
     else if(land)col=ramp(['#000000','#2c5a2c','#588d43','#9ad284'],lit,i,j);
     else col=ramp(['#000000','#352879','#6c5eb5','#70a4b2'],lit,i,j);
     if(!cl&&land&&lit<.3&&((i*7+j*13)%9===0))col='#b8c76f';
+    if(d>R-2&&lit>.35)col=d>R-1?'#70a4b2':(((i+j)&1)?'#9ad2e0':'#70a4b2');
+    else if(lit<.16)col=((i+j)&1)?'#000000':'#1c1840';
     x.fillStyle=col;x.fillRect(i,j,1,1);
   }
   return c;
@@ -1365,6 +1367,9 @@ function mkInterior(r){
     counter(g,6,w-12,r.shop==='bank'?'#6c6c6c':'#9a6759');till(g,w-18,40);mug(g,10,40);
   }else if(t==='hangar'){
     base(g,w,'#6c6c6c','#444444','#444444','#222222','#444444');
+    R_(g,2,4,w-4,FL-4,'#1c1c1c');
+    for(let x=2;x<w-4;x+=24){R_(g,x,4,22,FL-5,'#2a2a2a');R_(g,x,4,22,1,'#444444');R_(g,x,4,1,FL-5,'#444444');R_(g,x+22,4,2,FL-4,'#000');R_(g,x+3,FL-12,16,1,'#333333')}
+    R_(g,2,FL-3,w-4,3,'#444444');R_(g,2,FL-3,w-4,1,'#6c6c6c');
     spaceWin(g,92,8,52,30,true);
     for(let x=0;x<w;x+=12){R_(g,x,FL,6,3,'#b8c76f');R_(g,x+6,FL,6,3,'#000')}
     R_(g,110,42,34,2,'#444');R_(g,6,6,3,40,'#959595');R_(g,6,6,30,3,'#959595');R_(g,34,6,2,10,'#6c6c6c');
@@ -1477,7 +1482,7 @@ function mkCover(r,locked){
   else{const sp=nm.split(' ');sp.forEach((q,i)=>{const qw=textW(q,1);textTo(g,q,((w-qw)>>1)+1,15+i*7,'#000',1);textTo(g,q,(w-qw)>>1,14+i*7,'#fff',1)})}
   if(r.shop){drawIconTo(g,r.shop,w>>1,34)}
   R_(g,(w>>1)-1,12,2,RH-13,'#1c1840');R_(g,(w>>1)-4,RH-26,2,7,'#bbbbbb');R_(g,(w>>1)+2,RH-26,2,7,'#bbbbbb');
-  for(let x=2;x<w-2;x+=4)R_(g,x,RH-5,2,2,(x>>2)&1?'#b8c76f':'#000000');for(const [rx,ry] of [[2,13],[w-4,13],[2,RH-9],[w-4,RH-9]])R_(g,rx,ry,2,2,'#959595');
+  for(let x=2;x<w-2;x+=4){R_(g,x,RH-6,2,3,(x>>2)&1?'#b8c76f':'#000000');R_(g,x+2,RH-6,2,3,(x>>2)&1?'#000000':'#b8c76f')}R_(g,2,12,1,RH-19,'#6c5eb5');R_(g,(w>>1)-8,38,3,5,'#bbbbbb');R_(g,(w>>1)+5,38,3,5,'#bbbbbb');for(const [rx,ry] of [[2,13],[w-4,13],[2,RH-9],[w-4,RH-9]])R_(g,rx,ry,2,2,'#959595');
   R_(g,w-7,15,4,4,locked?'#ff7777':'#9ad284');
   if(locked){R_(g,(w>>1)-20,RH-18,40,11,'#000');textTo(g,'CLOSED',(w>>1)-11,RH-15,'#ff7777',1)}
   return c;
@@ -1771,7 +1776,7 @@ function buildPerson(suit,hair,skin){
 const MROWS=["...kkkkk...","..kwwwwwk..",".kwwkkkkwk.",".kwwkcyyyk.",".kwwkyyyyk.",".kwwkkkkwk.","..kLwwwLk..","..kkLLLkk..","ggkwwwwwwk.","gglwwrrwwk.","gglwwcwwLk.","kkkLLLLLLk."];
 function buildMini(off,flip){
   const c=mk(11,15),g=c.getContext('2d');
-  const t=fromRows(MROWS.map(r=>r.padEnd(11,'.')),ch=>({k:'#000',w:'#ffffff',L:'#bbbbbb',g:'#6c6c6c',c:'#70a4b2',y:'#b8c76f',r:'#ff7777'})[ch]);
+  const t=fromRows(MROWS.map(r=>r.padEnd(11,'.')),ch=>({k:'#000',w:'#ffffff',L:'#bbbbbb',g:'#ff9966',c:'#70a4b2',y:'#b8c76f',r:'#ff7777'})[ch]);
   g.drawImage(t,0,0);
   R_(g,2,3,1,2,'#ffffff');R_(g,5,3,1,1,'#ffffff');
   R_(g,8-off,8,2,3,'#bbbbbb');R_(g,8-off,10,2,1,'#000');
@@ -2078,7 +2083,7 @@ function drawHub(){
       const px=Math.max(2,Math.min(W-w-2,(sp.x-cx-w/2)|0)),py=Math.max(16,(sp.y-cy-30)|0);
       ctx.fillStyle='#000';ctx.fillRect(px,py,w,11);ctx.fillStyle='#70a4b2';ctx.fillRect(px,py,w,1);text(label,px+4,py+3,'#fff',1);
       UI.list.push({x:px,y:py,w,h:11,fn:()=>interactWith(nt)});}
-    if(HUB.t<14){ctx.fillStyle='#000';ctx.fillRect(30,186,260,10)}
+    if(HUB.t<14){ctx.fillStyle='#000';ctx.fillRect(30,186,260,10);ctx.fillStyle='#6c5eb5';ctx.fillRect(30,186,260,1);ctx.fillRect(30,186,1,10);ctx.fillStyle='#1c1840';ctx.fillRect(30,195,260,1);ctx.fillRect(289,186,1,10)}
     if(HUB.t<14)textC(INP.last==='touch'?'ARROWS TO WALK, TAP A ROOM':INP.last==='pad'?'STICK TO WALK. A TO USE':'WASD TO WALK. E TO USE. CLICK TO GO',190,'#ffffff',1);
   }
   if(HUB.fade>0){ctx.fillStyle=HUB.fade>.7?'#000000':pat('#000000');ctx.fillRect(0,0,W,H);if(HUB.fade>.4)textC('ZZZ...',96,'#ffffff',2)}
