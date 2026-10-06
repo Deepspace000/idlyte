@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.19</title>
+<title>Idlyte v0.20</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -435,7 +435,7 @@ function buildScript(pl,level){
 function newRun(){
   const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,loop=MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6;
   const st=baseStats();
-  G={t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],flashT:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl,msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
+  G={t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl,msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
   P={x:40,y:100,hp:st.hp,inv:1.5,fireT:0,wpn:st.startGun,wpnT:0,shield:st.startShield,mag:0,anim:0,trail:[]};
   E=[];PB=[];EB=[];PK=[];FX=[];
 }
@@ -559,7 +559,7 @@ function update(dt){
   if(borderT>0){borderT-=dt;if(borderT<=0)BORDER=BORDER_DEF}
   G.warp=Math.max(0,G.warp-dt);
   if(G.msgT>0)G.msgT-=dt;
-  G.tap=Math.max(0,(G.tap||0)-.4*dt/Math.max(1,SPEED));
+  G.tap=Math.max(0,(G.tap||0)-.4*dt/Math.max(1,SPEED));if(G.tap<.5)G.tapArm=true;if(G.tapCd>0)G.tapCd-=dt;
   if(G.state==='play'||G.state==='clear'){const pc=runPct(),bk=G.planet+'-'+G.level;if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   G.salv=G.salv.filter(q=>(q.t-=dt)>0);if(G.flashT>0)G.flashT-=dt;
   // stars scroll in all states
@@ -777,7 +777,7 @@ function drawHud(){
     if(blink)textC(G.msg,G.msg==='WARNING'?60:44,G.msg==='WARNING'?'#ff7777':'#fff',2);
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
-  text('TAP',4,BOT-9,'#bbbbbb',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
+  text('TAP',4,BOT-9,'#bbbbbb',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80)textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
   G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt='SALVAGE FOUND: '+q.name,w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
     if(q.t<.3&&Math.floor(q.t*20)%2)return;
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.19';
+const VERSION='0.20';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1306,7 +1306,15 @@ function gymTap(){
 }
 function tapFire(){
   if(MODE!=='game'||!G||G.state!=='play')return;
-  G.tap=Math.min(1,(G.tap||0)+.07);SAVE.taps=(SAVE.taps||0)+1;
+  const was=G.tap||0;G.tap=Math.min(1,was+.07);SAVE.taps=(SAVE.taps||0)+1;
+  if(was<1&&G.tap>=1&&G.tapArm&&!(G.tapCd>0)){
+    G.tapArm=false;G.tapCd=6;
+    if(Math.random()<.35){
+      let r=Math.random(),p=r<.35?'P':r<.6?'S':r<.8?'M':'H';if(p==='H'&&P.hp>=G.stats.hp)p='S';
+      PK.push({k:'pw',p,x:Math.min(W-16,P.x+38),y:P.y+rnd(-14,14),vx:-18,vy:0,t:0});
+      FX.push({ring:1,x:P.x+38,y:P.y,r:2,life:.4,max:14});G.msg='TAP BONUS!';G.msgT=1.4;
+    }
+  }
 }
 function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(SPEED_NEED[SPEED]>systemsDone()){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 function drawScreen(){
