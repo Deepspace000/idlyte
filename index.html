@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.39</title>
+<title>Idlyte v0.40</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -60,7 +60,7 @@ const BORDER_DEF='#6c5eb5';
 
 /* ===== tiny font (3x5) ===== */
 const FONT={A:'25755',B:'65656',C:'34443',D:'65556',E:'74647',F:'74644',G:'34553',H:'55755',I:'72227',J:'11152',K:'55655',L:'44447',M:'57755',N:'75555',O:'25552',P:'65644',Q:'25531',R:'65655',S:'34216',T:'72222',U:'55557',V:'55552',W:'55577',X:'55255',Y:'55222',Z:'71247',
- 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245',',':'00024',"'":'22000','?':'61202','"':'55000','(':'12221',')':'42224',';':'02024','[':'74447',']':'71117','=':'07070','#':'75757'};
+ 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245',',':'00024',"'":'22000','?':'61202','"':'55000','(':'12221',')':'42224',';':'02024','[':'74447',']':'71117','=':'07070','#':'75757','<':'12421','>':'42124'};
 function text(s,x,y,col,sc){
   sc=sc||1;ctx.fillStyle=col;s=String(s).toUpperCase();
   for(let i=0;i<s.length;i++){
@@ -139,15 +139,52 @@ const HALF=[
 "krdgLLwwwwwwkBBcwwlkk...",
 "kordgggLLwwwwwwwwwwwk..."
 ];
+const SCHEMES={
+ chrome:{w:'#ffffff',L:'#bbbbbb',l:'#959595',g:'#6c6c6c',d:'#444444'},
+ gold:{w:'#ffffff',L:'#b8c76f',l:'#9a6759',g:'#6f4f25',d:'#433900'},
+ red:{w:'#ffffff',L:'#ff7777',l:'#9a3a3a',g:'#68372b',d:'#3a1c18'},
+ blue:{w:'#ffffff',L:'#70a4b2',l:'#6c5eb5',g:'#352879',d:'#1c1840'},
+ green:{w:'#ffffff',L:'#9ad284',l:'#588d43',g:'#2c5a2c',d:'#1a3a1a'},
+ purple:{w:'#ffffff',L:'#cc99ff',l:'#8a5aa6',g:'#6f3d86',d:'#2a1a40'},
+ ice:{w:'#ffffff',L:'#ffffff',l:'#70a4b2',g:'#6c8aa0',d:'#444444'},
+ shadow:{w:'#bbbbbb',L:'#6c6c6c',l:'#444444',g:'#222222',d:'#000000'},
+ lava:{w:'#ffffff',L:'#b8c76f',l:'#ff7777',g:'#9a3a3a',d:'#68372b'},
+ copper:{w:'#ffffff',L:'#d8a878',l:'#9a6759',g:'#6f4f25',d:'#3a2a10'}};
+const ACCENTS={
+ orange:{w:'#ffffff',L:'#ff9966',l:'#9a6759',g:'#68372b',d:'#3a2018'},
+ cyan:{w:'#ffffff',L:'#9ad2e0',l:'#70a4b2',g:'#3c6a78',d:'#1b3036'},
+ magenta:{w:'#ffffff',L:'#ff77ff',l:'#cc44cc',g:'#6f3d86',d:'#2a1a40'},
+ lime:{w:'#ffffff',L:'#ccff99',l:'#9ad284',g:'#588d43',d:'#1a3a1a'},
+ white:{w:'#ffffff',L:'#ffffff',l:'#ffffff',g:'#bbbbbb',d:'#959595'},
+ black:{w:'#444444',L:'#333333',l:'#222222',g:'#111111',d:'#000000'}};
+const CANOPY={
+ cyan:{},
+ pink:{B:'#9a6759',c:'#ff7777',b:'#68372b'},
+ lime:{B:'#588d43',c:'#9ad284',b:'#2c5a2c'},
+ amber:{B:'#9a6759',c:'#b8c76f',b:'#6f4f25'},
+ white:{B:'#959595',c:'#ffffff',b:'#444444'}};
+const PATTERNS={
+ none:()=>false,
+ stripes:(i,j)=>j%4<2,
+ chevrons:(i,j)=>((i+Math.abs(j-8)*1.5)|0)%8<2,
+ checker:(i,j)=>((i>>1)+(j>>1))%2===0,
+ flames:(i,j)=>i<15&&((j*3+i*2)%7)<2,
+ camo:(i,j)=>(((i*13+j*7)^(i*5))%9)<3,
+ diagonal:(i,j)=>(i+j)%6<2,
+ dots:(i,j)=>i%3===0&&j%3===0,
+ racing:(i,j)=>Math.abs(j-8)<=1||(i>14&&Math.abs(j-8)<=3)};
+const DECO_DEFAULT={color:'chrome',pattern:'none',accent:'orange',canopy:'cyan'};
 const PAINTS=[{},{B:'#9a6759',c:'#ff7777',b:'#68372b'},{B:'#588d43',c:'#9ad284',b:'#2c5a2c'},{B:'#b8c76f',c:'#ffffff',b:'#9a6759'}];
-function buildShipSet(paint){
-  const P2=Object.assign({},PAL,paint);
+function buildShipSet(paint,deco){
+  const P2=Object.assign({},PAL,paint,(deco&&deco.canopy&&deco.canopy!=='cyan')?CANOPY[deco.canopy]:{});
+  const HULLR=deco?SCHEMES[deco.color||'chrome']:null,ACCR=deco?ACCENTS[deco.accent||'orange']:null,PAT=deco?(PATTERNS[deco.pattern||'none']||PATTERNS.none):null;
   const half=HALF.map(r=>r.padEnd(24,'.').slice(0,24));
   const rows=[...half,...half.slice(0,8).reverse()];
   const dark={w:'l',l:'g',g:'d',B:'g',c:'l',b:'d'};
   const base=fromRows(rows,(ch,i,j)=>{
-    if(j>8){const m=dark[ch];return P2[m||ch]}
-    return P2[ch];
+    let c2=ch;if(j>8){const m=dark[ch];c2=m||ch}
+    if(deco&&'wLlgd'.includes(c2))return (PAT(i,j)?ACCR:HULLR)[c2];
+    return P2[c2];
   });
   const x=base.getContext('2d');
   x.fillStyle='#9a6759';x.fillRect(0,7,2,1);x.fillRect(0,9,2,1);
@@ -169,7 +206,9 @@ function buildShipSet(paint){
   return out;
 }
 const SPR={};
-SPR.shipSets=PAINTS.map(buildShipSet);
+SPR.shipSets=PAINTS.map(p=>buildShipSet(p));
+function rebuildShip(){const d=(typeof SAVE!=='undefined'&&SAVE.paint)?SAVE.paint:null;SPR.shipSets[(typeof SAVE!=='undefined'&&SAVE.ship)||0]=buildShipSet(PAINTS[(typeof SAVE!=='undefined'&&SAVE.ship)||0]||{},d&&(d.color!=='chrome'||d.pattern!=='none'||d.canopy!=='cyan')?d:null)}
+const PREVC={};
 SPR.shipRoll=SPR.shipSets[0];
 
 /* ===== enemies (procedural chrome, rolling frames) ===== */
@@ -340,7 +379,7 @@ for(let i=0;i<14;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP)
 const STAR_V=[6,16,38,64,130];
 
 /* ===== save / stats ===== */
-function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
+function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,paint:{color:'chrome',pattern:'none',accent:'orange',canopy:'cyan',own:{}},extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
 let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
@@ -903,7 +942,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.39';
+const VERSION='0.40';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1434,7 +1473,7 @@ function screenDef(id){
     title='SHIP SHOP';info.push('WALLET '+SAVE.coins+' GOLD');
     SHIPS.forEach((s,i)=>{const own=SAVE.ships.includes(i),cur=SAVE.ship===i;
       rows.push({n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:s.d,r:own?(cur?'':'USE'):String(s.price),ok:own?!cur:SAVE.coins>=s.price,
-        fn:()=>{if(own){SAVE.ship=i;toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
+        fn:()=>{if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
   }else if(id==='missions'){
     title='MISSION SHOP';info.push('CONTRACTS MAKE ANY DESTINATION HARDER AND PAY MORE GOLD.');info.push('WALLET '+SAVE.coins+' GOLD');
     MISSIONS.forEach((m,i)=>{const own=SAVE.missions.includes(i),cur=SAVE.mission===i;
@@ -1452,7 +1491,7 @@ function screenDef(id){
     if(opens.length>1){const nx=opens[(opens.indexOf(SAVE.planet||0)+1)%opens.length];rows.push({n:'CHANGE DESTINATION',d:'NEXT: '+PLANETS[nx].n,ok:true,fn:()=>{setPlanet(nx);save()}})}
     const ml=maxLevel(SAVE.planet||0);if(ml>1)rows.push({n:'CHANGE LEVEL',d:'NEXT: LEVEL '+(((SAVE.level||1)%ml)+1)+'.  LEVELS CLEARED: '+(SAVE.prog[SAVE.planet||0]||0)+' OF 3',ok:true,fn:()=>{SAVE.level=((SAVE.level||1)%ml)+1;save()}});
     if(SAVE.missions.length>1){const nx=SAVE.missions[(SAVE.missions.indexOf(SAVE.mission)+1)%SAVE.missions.length];rows.push({n:'CHANGE CONTRACT',d:'NEXT: '+MISSIONS[nx].n,ok:true,fn:()=>{SAVE.mission=nx;save()}})}
-    rows.push({n:'BACK',d:'STAY ON THE STATION',ok:true,fn:()=>{HUB.screen=null}});
+    rows.push({n:'DECORATE YOUR SHIP',d:'PAINT SHOP. COLOURS AND PATTERNS. CHEAP.',ok:true,fn:()=>{HUB.paintSel=Object.assign({},SAVE.paint);HUB.screen='paint';UI.focus=0}});
   }else{title=extraScreen(id,rows,info)}
   return {title,info,rows};
 }
@@ -1619,6 +1658,7 @@ function drawScreen(){
   });
   // close button registered last (above) is keyed by index: move it to the end
   const cb=UI.list.splice(rowsStart-1,1)[0];UI.list.push(cb);
+  if(HUB.screenDraw){HUB.screenDraw();HUB.screenDraw=null}
   UI.nrows=UI.list.length-1;
   if(UI.focus>=UI.list.length)UI.focus=0;
   if(HUB.infoMax>0){UI.list.push({x:20,y:36,w:270,h:68,fn:()=>{HUB.iscroll=Math.max(0,HUB.iscroll-4)}});UI.list.push({x:20,y:104,w:270,h:72,fn:()=>{HUB.iscroll=Math.min(HUB.infoMax,HUB.iscroll+4)}})}
@@ -2037,6 +2077,29 @@ function extraScreen(id,rows,info){
     if(ROOMS.filter(r=>r.built).length>2)rows.push({n:'MOVE AN AREA',d:'CHANGE WHERE A BUILT AREA SITS ON THE STATION',r:'',ok:true,fn:()=>{HUB.mvPage=0;HUB.screen='move';UI.focus=0}});
     rows.push({n:'EXTRAS: PETS, STAFF, TRAFFIC',d:'BUY A DOG, A PARROT, STAFF, SHUTTLES AND MORE',r:'',ok:true,fn:()=>{HUB.screen='extras';UI.focus=0}});
     return 'STATION';
+  }
+  if(id==='paint'){
+    const sel=HUB.paintSel||(HUB.paintSel=Object.assign({},SAVE.paint));
+    L('PAINT SHOP. NEW LOOKS COST A FEW GOLD. LOOKS YOU OWN ARE FREE.   GOLD '+SAVE.coins);L('USE < > TO PREVIEW. PRESS BUY OR USE TO PAINT YOUR SHIP.');
+    L('');L('');L('');L('');
+    const CATS=[['color','HULL COLOUR',Object.keys(SCHEMES),40],['pattern','PATTERN',Object.keys(PATTERNS),60],['accent','PATTERN COLOUR',Object.keys(ACCENTS),30],['canopy','CANOPY GLASS',Object.keys(CANOPY),30]];
+    for(const [k,label,opts,price] of CATS){
+      const cur=sel[k],i=opts.indexOf(cur),own=SAVE.paint.own[k+':'+cur]||cur===DECO_DEFAULT[k],applied=SAVE.paint[k]===cur;
+      rows.push({n:label+': '+cur.toUpperCase(),d:applied?'IN USE ON YOUR SHIP':(own?'YOU OWN THIS. PRESS USE.':'NEW LOOK. '+price+' GOLD'),r:'',ok:true,
+        btns:[{l:'<',ok:true,fn:()=>{sel[k]=opts[(i+opts.length-1)%opts.length]}},{l:'>',ok:true,fn:()=>{sel[k]=opts[(i+1)%opts.length]}},
+          {l:applied?'IN USE':(own?'USE':'BUY '+price),ok:!applied&&(own||SAVE.coins>=price),fn:()=>{
+            if(!own){if(SAVE.coins<price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=price;SAVE.paint.own[k+':'+cur]=1}
+            SAVE.paint[k]=cur;rebuildShip();save();toast('YOUR SHIP IS PAINTED')}}]});
+    }
+    rows.push({n:'BACK',d:'BACK TO THE HANGAR',r:'',ok:true,fn:()=>{HUB.screen='hangar';UI.focus=0}});
+    HUB.screenDraw=()=>{
+      const key=JSON.stringify(sel)+'|'+SAVE.ship;let set=PREVC[key];
+      if(!set){const keep=Object.keys(PREVC);if(keep.length>20)for(const q of keep)delete PREVC[q];set=PREVC[key]=buildShipSet(PAINTS[SAVE.ship]||{},sel)}
+      ctx.fillStyle='#000';ctx.fillRect(112,50,96,42);ctx.fillStyle='#6c5eb5';ctx.fillRect(112,50,96,1);ctx.fillRect(112,91,96,1);ctx.fillRect(112,50,1,42);ctx.fillRect(207,50,1,42);
+      for(let q=0;q<16;q++){const sx=(113+((q*47+HUB.t*8)%94))|0,sy=(52+((q*29)%38))|0;ctx.fillStyle='#444';ctx.fillRect(sx,sy,1,1)}
+      ctx.drawImage(set[Math.floor(HUB.t*4)%16],136,54,48,34);
+    };
+    return 'PAINT SHOP';
   }
   if(id==='extras'){
     L('THE CAT LIVES HERE FOR FREE. EVERYTHING ELSE IS BOUGHT WITH GOLD.   GOLD '+SAVE.coins);
@@ -2608,6 +2671,7 @@ function finishLoad(){
   for(const c of COMPANIES)if(!SAVE.sh[c.id])SAVE.sh[c.id]={own:0,p:c.price};
   if(SAVE.monthsPaid==null)SAVE.monthsPaid=monthIdx(SAVE.day);
   if(!SAVE.shipName)SAVE.shipName='DRIFTER';
+  SAVE.paint=Object.assign({color:'chrome',pattern:'none',accent:'orange',canopy:'cyan'},SAVE.paint||{});SAVE.paint.own=SAVE.paint.own||{};rebuildShip();
   SAVE.extras=SAVE.extras||{};SAVE.booksOwned=SAVE.booksOwned||{};for(const b of BOOKS)if(SAVE.bookOpened[b.id]||SAVE.bookPage[b.id]>0)SAVE.booksOwned[b.id]=1;
   mus.on=SAVE.set.music!==0;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
   HUB.cam.x=0;HUB.cam.y=0;HUB.acc=0;HUB.screen=null;
