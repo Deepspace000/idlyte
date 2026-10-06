@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.16</title>
+<title>Idlyte v0.17</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.16';
+const VERSION='0.17';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1872,6 +1872,7 @@ cv.addEventListener('pointerdown',e=>{
   if(MODE==='title')return;
   const [x,y]=toCanvas(e),i=uiAt(x,y);
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
+  if(MODE==='hub'&&HUB.screen){if(x<14||x>306||y<18||y>190)HUB.screen=null;return}
   if(MODE==='arcade'){arcadeFire();return}
   if(MODE==='hub'&&!HUB.screen)hubClick(x,y);
 });
