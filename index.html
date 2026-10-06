@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.71</title>
+<title>Idlyte v0.78</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
   #wrap{background:#000;line-height:0;position:relative}
-  #scan{display:none;position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+  #scan{display:none;position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.26) 0 1px,transparent 1px 3px),repeating-linear-gradient(to right,rgba(255,40,40,.045) 0 1px,rgba(40,255,40,.045) 1px 2px,rgba(60,60,255,.045) 2px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
+  #wrap.crt canvas{filter:blur(.4px) contrast(1.07) saturate(1.1) brightness(1.06)}
   #menu{display:none;margin-top:8px;gap:6px;line-height:1;justify-content:center;flex-wrap:wrap;padding:0 6px}
   #menu button{font-size:12px;padding:8px 10px}
   canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
@@ -53,6 +54,8 @@ function fit(){
 }
 addEventListener('resize',fit);fit();
 
+const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const RAMPS={steel:['#222222','#444444','#6c6c6c','#959595','#bbbbbb','#ffffff'],green:['#1a3a1a','#2c5a2c','#588d43','#9ad284','#ccff99','#ffffff'],orange:['#3a2018','#68372b','#9a6759','#ff9966','#d8a878','#ffffff'],red:['#3a1c18','#68372b','#9a3a3a','#ff7777','#ffaaaa','#ffffff']};
 const PAL={k:'#000000',w:'#ffffff',d:'#444444',g:'#6c6c6c',l:'#959595',L:'#bbbbbb',
  b:'#352879',B:'#6c5eb5',c:'#70a4b2',r:'#68372b',o:'#9a6759',y:'#b8c76f',n:'#6f4f25',
  G:'#588d43',p:'#6f3d86',R:'#883232'};
@@ -187,6 +190,16 @@ function buildShipSet(paint,deco){
     return P2[c2];
   });
   const x=base.getContext('2d');
+  {const iw=base.width,ih=base.height,id=x.getImageData(0,0,iw,ih),d=id.data;
+    const at=(i,j)=>{const q=(j*iw+i)*4;return [d[q],d[q+1],d[q+2],d[q+3]]};
+    const set=(i,j,hex)=>{const q=(j*iw+i)*4;d[q]=parseInt(hex.slice(1,3),16);d[q+1]=parseInt(hex.slice(3,5),16);d[q+2]=parseInt(hex.slice(5,7),16)};
+    const upd=[];
+    for(let j=1;j<ih-1;j++)for(let i=0;i<iw;i++){const p=at(i,j);if(p[3]<200||(p[0]+p[1]+p[2])<60)continue;const up=at(i,j-1),dn=at(i,j+1);
+      if(j<=8&&up[3]>200&&(up[0]+up[1]+up[2])<30&&(p[0]>130))upd.push([i,j,'#ffffff']);
+      else if(j>8&&dn[3]>200&&(dn[0]+dn[1]+dn[2])<30)upd.push([i,j,'#444444']);
+      else if(j>8&&j<ih-3&&p[0]>100&&p[0]<200&&((i+j)&1)===0&&dn[3]>200&&(dn[0]+dn[1]+dn[2])>=60&&at(i,j+2)[3]<20)upd.push([i,j,'#6c6c6c'])}
+    for(const [i,j,h] of upd)set(i,j,h);x.putImageData(id,0,0)}
+  if(!deco)chromeRamp(base,RAMPS.steel,.45);
   x.fillStyle='#9a6759';x.fillRect(0,7,2,1);x.fillRect(0,9,2,1);
   x.fillStyle='#ffffff';x.fillRect(10,8,2,1);
   x.fillStyle='#70a4b2';x.fillRect(7,1,1,1);x.fillRect(7,15,1,1);
@@ -300,6 +313,22 @@ SPR.pod=podFrames();
 SPR.rockL=[rockSprite(9,3),rockSprite(10,11)];
 SPR.rockS=[rockSprite(4,5),rockSprite(5,9),rockSprite(4,17)];
 for(const k of ['ring','ringR','dart','cross','pod'])SPR[k].forEach(polish);
+function chromeRamp(c,ramp,mix){
+  const g=c.getContext('2d'),w=c.width,h=c.height,id=g.getImageData(0,0,w,h),d=id.data;
+  let y0=h,y1=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>200){y0=Math.min(y0,j);y1=Math.max(y1,j)}
+  if(y1<y0)return;const span=y1-y0+1,n=ramp.length,rgb=ramp.map(x=>[parseInt(x.slice(1,3),16),parseInt(x.slice(3,5),16),parseInt(x.slice(5,7),16)]);
+  const prof=t=>t<.46?.95-.55*(t/.46):.2+.62*((t-.46)/.54);
+  for(let j=y0;j<=y1;j++)for(let i=0;i<w;i++){const q=(j*w+i)*4;if(d[q+3]<200)continue;const r=d[q],gg=d[q+1],b=d[q+2];
+    if(r+gg+b<70||(r>250&&gg>250&&b>250)||Math.abs(r-gg)>14||Math.abs(gg-b)>14)continue;
+    const L=(r+gg+b)/765,t=(j-y0+.5)/span,v=Math.max(0,Math.min(.999,(mix||.6)*prof(t)+(1-(mix||.6))*L*1.05));
+    const tt=v*(n-1),k=Math.floor(tt),f=tt-k,pick=f>BAYER[j&3][i&3]/16?k+1:k;const c2=rgb[Math.min(n-1,pick)];d[q]=c2[0];d[q+1]=c2[1];d[q+2]=c2[2]}
+  g.putImageData(id,0,0)}
+function recolor(c,map){const g=c.getContext('2d'),id=g.getImageData(0,0,c.width,c.height),d=id.data;
+  for(let q=0;q<d.length;q+=4){if(d[q+3]<200)continue;const h='#'+[d[q],d[q+1],d[q+2]].map(v=>v.toString(16).padStart(2,'0')).join(''),m=map[h];if(m){d[q]=parseInt(m.slice(1,3),16);d[q+1]=parseInt(m.slice(3,5),16);d[q+2]=parseInt(m.slice(5,7),16)}}
+  g.putImageData(id,0,0)}
+SPR.ring.forEach(c=>chromeRamp(c,RAMPS.green,.6));
+SPR.ringR.forEach(c=>chromeRamp(c,RAMPS.orange,.6));
+SPR.dart.forEach(c=>chromeRamp(c,RAMPS.red,.6));
 for(const k of ['ring','ringR','dart','cross','pod'])SPR[k+'W']=SPR[k].map(whiteOf);
 
 /* boss: chrome horned manta */
@@ -356,7 +385,7 @@ SPR.token=fromRows(['..kkk..','.kcccK.','kcwcccK','kccccBk','kcccBBk','.kBBBk.',
 SPR.guard=shaded(9,9,(x,y)=>Math.hypot(x-4,y-4)<=4.2,CHROME.red,(i,j)=>(i===3&&j===3)?'#ffffff':null);
 
 /* ===== backgrounds ===== */
-const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+
 function dithered(w,h,fn,cols){ // fn(x,y)->0..1 ; cols ascending
   const c=mk(w,h),x=c.getContext('2d');
   for(let j=0;j<h;j++)for(let i=0;i<w;i++){
@@ -372,7 +401,7 @@ SPR.planet=(function(){
     const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;
     const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55));
-    const band=.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8);
+    const band=Math.round((.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8))*3)/3;
     return Math.min(1,lit*.55+band*.45*lit+(d>R-1.5?-.3:0))*0.999;
   },['#000000','#352879','#6f3d86','#9a6759','#b8c76f']);
 })();
@@ -393,13 +422,15 @@ for(let i=0;i<12;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP)
 for(let i=0;i<14;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:4,c:'#6c5eb5'});
 for(let i=0;i<60;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:1,c:'#6c6c6c'});
 for(let i=0;i<24;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:2,c:'#bbbbbb'});
-const STAR_V=[6,16,38,64,130];
+const STAR_V=[6,16,38,64,130,24,230];
+for(let i=0;i<12;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:5,c:'#352879'});
+for(let i=0;i<4;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),l:6,c:'#6c6c6c'});
 
 /* ===== save / stats ===== */
 function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,paint:{color:'chrome',pattern:'none',accent:'orange',canopy:'cyan',own:{}},extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
 let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
-SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
+SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
 if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
 function save(){if(!CURSLOT)return;try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
@@ -463,7 +494,7 @@ function mkCloud(seed,cols){
 }
 function mkPlanet(cols){const R=44,S=R*2+1;
   return dithered(S,S,(x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
-    const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8);return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.5?(lit>.2?.5:-.3):0))*0.999},cols)}
+    const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.5?(lit>.2?.5:-.3):0))*0.999},cols)}
 function themeAssets(i){return THC[i]||(THC[i]={clouds:[mkCloud(7,THEMES[i].cl),mkCloud(41,THEMES[i].cl),mkCloud(99,THEMES[i].cl)],planet:mkPlanet(THEMES[i].pl)})}
 function shipPowerRaw(){const st=baseStats();
   return Math.max(0,(st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5)}
@@ -826,7 +857,7 @@ function drawBackground(){
   }
   // planet drifts across the level
   const px=400-G.t*3.4;if(px>-60&&px<W+60)ctx.drawImage(TH.planet,(px-44)|0,(70)|0);
-  for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:(s.l===3?2:1),s.l===3?2:1)}
+  for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:s.l===5?9:s.l===6?14:(s.l===3?2:1),s.l===3?2:1)}
 }
 function drawBoss(e){
   const f=e.flash>0,spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss),bx=(e.x-70)|0,by=(e.y-46)|0;
@@ -988,7 +1019,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.71';
+const VERSION='0.78';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1381,6 +1412,8 @@ function mkInterior(r){
     R_(g,110,42,34,2,'#444');R_(g,6,6,3,40,'#959595');R_(g,6,6,30,3,'#959595');R_(g,34,6,2,10,'#6c6c6c');
     R_(g,118,40,26,9,'#222');R_(g,119,41,24,8,'#444');R_(g,122,44,3,2,'#b8c76f');R_(g,128,44,3,2,'#ff7777');R_(g,134,44,3,2,'#70a4b2');R_(g,116,22,30,19,'#222');R_(g,117,23,28,17,'#000');R_(g,121,27,6,6,'#9a6759');R_(g,131,29,4,4,'#70a4b2');R_(g,137,26,5,5,'#6f3d86');R_(g,121,36,22,1,'#352879');R_(g,128,25,1,12,'#352879');
     R_(g,76,40,12,3,'#222');R_(g,78,36,8,4,'#959595');
+    R_(g,118,26,26,1,'#70a4b2');R_(g,119,31,12,1,'#9ad284');R_(g,119,34,18,1,'#9ad284');R_(g,119,37,8,1,'#ff9966');R_(g,116,22,30,1,'#959595');R_(g,116,22,1,19,'#959595');
+    for(let lx=10;lx<w-10;lx+=34){R_(g,lx,FL-8,2,2,'#ff9966');R_(g,lx+4,FL-8,2,2,'#9ad284')}
     poster(g,48,8,18,12,'#352879');R_(g,52,12,10,1,'#fff');R_(g,52,15,6,1,'#70a4b2');
     lamp(g,45,16,'#fff');lamp(g,100,12,'#fff');
     R_(g,6,40,8,9,'#9a6759');R_(g,7,41,6,2,'#fff');mug(g,16,49);
@@ -2200,7 +2233,7 @@ function extraScreen(id,rows,info){
     rows.push({n:'MUSIC VOLUME',d:'HOW LOUD THE MUSIC IS',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
     rows.push({n:'CLOCK',d:'SHOW STATION TIME OR YOUR REAL LOCAL TIME',r:S.clock?'REAL TIME':'STATION TIME',ok:true,fn:()=>{S.clock=S.clock?0:1;save()}});
     rows.push({n:'SHIP NAME',d:'CHANGE THE NAME OF YOUR SHIP',r:SAVE.shipName||'',ok:true,fn:()=>{SAVE.shipName=askShipName(SAVE.shipName||'DRIFTER');save()}});
-    rows.push({n:'SCANLINES',d:'OLD TV SCREEN LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
+    rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
     rows.push({n:HUB.confirmReset?'PRESS AGAIN TO ERASE EVERYTHING':'RESET ALL PROGRESS',d:'STARTS A NEW GAME FROM THE BEGINNING',r:'',ok:true,fn:()=>{if(HUB.confirmReset){try{localStorage.removeItem('idlyte_slot_'+CURSLOT)}catch(e){}location.reload()}else HUB.confirmReset=1}});
     L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL, O SETTINGS, H GOALS, M MUSIC');
     return 'SETTINGS';
@@ -2362,7 +2395,7 @@ function extraScreen(id,rows,info){
   }
   return 'MENU';
 }
-function applySettings(){const sc=document.getElementById('scan');if(sc)sc.style.display=(SAVE.set&&SAVE.set.scan)?'block':'none'}
+function applySettings(){const sc=document.getElementById('scan'),on=!!(SAVE.set&&SAVE.set.scan);if(sc)sc.style.display=on?'block':'none';const w=document.getElementById('wrap');if(w)w.classList.toggle('crt',on)}
 
 function textC2(s,cx,y,col){text(s,(cx-textW(s,1)/2)|0,y,col,1)}
 function drawToast(y){
@@ -2832,7 +2865,7 @@ function askShipName(def){
 }
 function finishLoad(){
   SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
-  SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
+  SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
   if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
   for(const c of COMPANIES)if(!SAVE.sh[c.id])SAVE.sh[c.id]={own:0,p:c.price};
   if(SAVE.monthsPaid==null)SAVE.monthsPaid=monthIdx(SAVE.day);
