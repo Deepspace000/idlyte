@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.23</title>
+<title>Idlyte v0.24</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -650,7 +650,7 @@ function updateEntities(dt,live){
     if(live&&d<12){
       k.dead=1;
       if(k.k==='coin'){const cm=G.stats.coinMul,v=Math.max(1,Math.floor(cm)+(Math.random()<cm%1?1:0));SAVE.coins+=v;SAVE.earned+=v;G.coinsRun+=v;G.score+=10}
-      else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;G.score+=25;G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop();if(it.v>=90)G.flashT=.3}
+      else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;SAVE.inv[k.id]=(SAVE.inv[k.id]||0)+1;save();G.score+=25;G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop();if(it.v>=90)G.flashT=.3}
       else powerup(k.p);
     }
   }
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.23';
+const VERSION='0.24';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1658,6 +1658,7 @@ function extraScreen(id,rows,info){
     let tot=0,n=0;for(const it of ITEMS){const c=SAVE.inv[it.id]||0;tot+=c*it.v;n+=c}
     L('WALLET '+SAVE.coins+'   BANK '+SAVE.bank+'   SHARES '+shareValue(),Y_);
     L('SALVAGE '+n+' ITEMS WORTH '+tot+'   NET WORTH '+(SAVE.coins+SAVE.bank+shareValue()+tot),Y_);
+    L(shopById('salvage').open()?'SELL SALVAGE AT THE SALVAGE SHOP.':'SALVAGE IS KEPT HERE UNTIL THE SALVAGE SHOP OPENS AT '+UNLOCK_GOLD.salvage+' GOLD.','#70a4b2');
     L('');L('SALVAGE IN YOUR HOLD','#fff');
     if(!n)L('  NOTHING. FLY A MISSION TO FIND SOME.');
     for(const it of ITEMS){const c=SAVE.inv[it.id]||0;if(c)L('  '+it.n+'  X'+c+'  = '+c*it.v+' GOLD')}
@@ -1812,7 +1813,7 @@ function drawLoot(){
     ctx.drawImage(SPR.crate[ITEMS.indexOf(it)],40,y-1);text(it.n,52,y,'#ffffff',1);text('X'+c,160,y,'#bbbbbb',1);textR(c*it.v+' GOLD',280,y,'#b8c76f',1);y+=10});
   ctx.fillStyle='#352879';ctx.fillRect(40,142,240,1);
   text('SALVAGE VALUE',40,147,'#bbbbbb',1);textR(tot+' GOLD',280,147,'#b8c76f',1);
-  text('SELL SALVAGE AT THE SALVAGE SHOP ON THE STATION',40,156,'#70a4b2',1);
+  text(shopById('salvage').open()?'SELL SALVAGE AT THE SALVAGE SHOP ON THE STATION':'KEPT IN YOUR CARGO. THE SALVAGE SHOP OPENS AT '+UNLOCK_GOLD.salvage+' GOLD',40,156,'#70a4b2',1);
   const mk2=(x,label,fn)=>uiBtn(x,166,112,18,fn,(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(x,166,112,18);ctx.fillStyle=f?'#fff':'#6c5eb5';ctx.fillRect(x,166,112,1);textC2(label,x+56,172,'#fff')});
   mk2(40,'ANOTHER MISSION',launch);
   mk2(168,'RETURN TO HUB',()=>enterHub(false));
@@ -1823,7 +1824,6 @@ function endSortie(result){
   {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();
     if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={1:4,2:8,3:16}[after];if(nu)toast('SPEED X'+nu+' UNLOCKED')}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
-  for(const id in G.loot)SAVE.inv[id]=(SAVE.inv[id]||0)+G.loot[id];
   if(G.score>SAVE.best)SAVE.best=G.score;
   LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
   refreshSpeedBtns();advanceDays(7);checkUnlocks();save();MODE='loot';UI.focus=0;
