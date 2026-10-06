@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.29</title>
+<title>Idlyte v0.30</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -30,7 +30,7 @@
 </head>
 <body>
 <div id="wrap"><canvas id="c"></canvas><div id="scan"></div></div>
-<div id="menu"><button data-m="inv">INVENTORY</button><button data-m="shipstats">SHIP STATS</button><button data-m="personnel">PERSONNEL</button><button data-m="settings">SETTINGS</button><button data-m="achv">GOALS</button></div>
+<div id="menu"><button data-m="inv">INVENTORY</button><button data-m="shipstats">SHIP STATS</button><button data-m="personnel">PERSONNEL</button><button data-m="settings">SETTINGS</button><button data-m="station">STATION</button><button data-m="achv">GOALS</button></div>
 <div id="touch"><div id="pad"><button id="tu">&#9650;</button><button id="tl">&#9664;</button><button id="td">&#9660;</button><button id="tr">&#9654;</button></div></div>
 <div id="bar">
   <button data-sp="1" class="on">SPEED X1</button>
@@ -281,6 +281,7 @@ function capsule(col,letter){
 }
 SPR.pw={P:capsule('#ff7777','P'),S:capsule('#70a4b2','S'),M:capsule('#b8c76f','M'),H:capsule('#9ad284','+'),O:capsule('#6c5eb5','O'),R:capsule('#9a6759','R'),B:capsule('#ffffff','B')};
 SPR.chance=shaded(7,7,(x,y)=>Math.hypot(x-3,y-3)<=3.2,[[0,'#6f3d86'],[.15,'#ffffff'],[.35,'#b8c76f'],[.5,'#000000'],[.55,'#6f3d86'],[.75,'#6c5eb5'],[.95,'#352879']],(i,j)=>(i===2&&j===2)?'#ffffff':null);
+SPR.token=fromRows(['..kkk..','.kcccK.','kcwcccK','kccccBk','kcccBBk','.kBBBk.','..kkk..'],(ch)=>({k:'#000',c:'#70a4b2',w:'#ffffff',K:'#6c6c6c',B:'#352879'})[ch]);
 SPR.guard=shaded(9,9,(x,y)=>Math.hypot(x-4,y-4)<=4.2,CHROME.red,(i,j)=>(i===3&&j===3)?'#ffffff':null);
 
 /* ===== backgrounds ===== */
@@ -319,7 +320,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
@@ -558,6 +559,7 @@ function hurtPlayer(){
 function killEnemy(e){
   G.score+=Math.round(e.pts);SAVE.kills++;lootDrop(e);
   if(e.type!=='rock'&&Math.random()<(e.type==='boss'?1:e.type==='pod'?.5:.07))PK.push({k:'chance',x:e.x,y:e.y,vx:-18,vy:rnd(-10,10),t:0});
+  {const nt=e.type==='boss'?3:(e.type!=='rock'&&Math.random()<(e.type==='pod'?.3:.04))?1:0;for(let q=0;q<nt;q++)PK.push({k:'token',x:e.x+q*6,y:e.y+q*4,vx:-18,vy:rnd(-10,10),t:0})}
   if(!e.carry&&e.type!=='rock'&&e.type!=='boss'&&Math.random()<.04)PK.push({k:'pw',p:['P','S','M','O','R','B'][Math.floor(Math.random()*6)],x:e.x,y:e.y,vx:-18,vy:0,t:0});
   boom(e.x,e.y,e.type==='boss'?90:e.type==='rock'&&!e.big?6:18,e.type==='boss'||e.w>16);
   if(e.type==='boss'){
@@ -691,6 +693,7 @@ function updateEntities(dt,live){
     if(live&&d<12){
       k.dead=1;
       if(k.k==='coin'){const cm=G.stats.coinMul,v=Math.max(1,Math.floor(cm)+(Math.random()<cm%1?1:0));SAVE.coins+=v;SAVE.earned+=v;G.coinsRun+=v;G.score+=10}
+      else if(k.k==='token'){SAVE.tokens=(SAVE.tokens||0)+1;G.salv.unshift({t:1.8,name:'AREA TOKEN',txt:'AREA TOKEN +1  ('+SAVE.tokens+' TOTAL)',c:'#70a4b2',ix:3});if(G.salv.length>3)G.salv.pop();save()}
       else if(k.k==='chance'){SAVE.chance=Math.min(5,(SAVE.chance||0)+1);G.salv.unshift({t:1.8,name:'CHANCE ORB',txt:'CHANCE ORB +1  ('+SAVE.chance+' OF 5)',c:'#cc99ff',ix:3});if(G.salv.length>3)G.salv.pop();save()}
       else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;SAVE.inv[k.id]=(SAVE.inv[k.id]||0)+1;save();G.score+=25;G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop();if(it.v>=90)G.flashT=.3}
       else powerup(k.p);
@@ -771,6 +774,7 @@ function draw(){
   drawBackground();
   for(const k of PK){
     if(k.k==='coin')ctx.drawImage(SPR.coin[Math.floor(k.t*8)%4],(k.x-3)|0,(k.y-3)|0);
+    else if(k.k==='token'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.token,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='chance'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.chance,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='item')ctx.drawImage(SPR.crate[ITEMS.findIndex(q=>q.id===k.id)],(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1)|0);
     else ctx.drawImage(SPR.pw[k.p],(k.x-5)|0,(k.y-4+Math.sin(k.t*4)*1.5)|0);
@@ -842,7 +846,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.29';
+const VERSION='0.30';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -963,7 +967,7 @@ function checkUnlocks(){
   if(typeof BOOKS!=='undefined'&&booksAvailable()>(SAVE.booksSeen||1)){SAVE.booksSeen=booksAvailable();SAVE.newBook=true;toast('A NEW BOOK HAS ARRIVED IN THE LIBRARY!');toast(BOOKS[SAVE.booksSeen-1].title+' ('+BOOKS[SAVE.booksSeen-1].genre+')');save()}
   for(let i=1;i<PLANETS.length;i++)if(!SAVE.pSeen[i]&&planetOpen(i)){SAVE.pSeen[i]=1;toast('NEW DESTINATION: '+PLANETS[i].n);save()}
   for(const a of ACHV)if(!SAVE.ach[a.id]&&a.t()){SAVE.ach[a.id]=1;toast('ACHIEVEMENT: '+a.n);save()}
-  for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;if(s.id!=='salvage')toast('NEW SHOP OPEN: '+s.n);save()}
+  for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;toast('THE STATION GROWS: NEW SHOP - '+s.n);SAVE.built=SAVE.built||{};SAVE.built[s.id]=1;if(typeof ROOMS!=='undefined'&&ROOMS.length&&typeof EXT!=='undefined'){syncBuilt();HUB.grow={id:s.id,t:1.8}}save()}
 }
 
 /* ===== UI plumbing ===== */
@@ -1048,7 +1052,7 @@ const DECK_H=64,FD=9,WWID=600,WH=280,RH=58,FL=49,SHAFTS=[24,300,576];
 const yTop=d=>WH-(d+1)*DECK_H,FYd=d=>yTop(d)+DECK_H-6;
 const ROOMS=[
  {id:'hangar',d:0,x0:36,x1:186,t:'hangar',n:'HANGAR',c:'#6c6c6c'},
- {id:'engine',d:0,x0:190,x1:288,t:'engine',n:'ENGINE ROOM',c:'#9a3a3a'},
+ {id:'sleep',d:0,x0:190,x1:288,t:'sleep',n:'SLEEP QUARTERS',c:'#6c5eb5'},
  {id:'gym',d:0,x0:312,x1:424,t:'gym',n:'GYM',c:'#588d43'},
  {id:'cargo',d:0,x0:428,x1:564,t:'cargo',n:'CARGO BAY',c:'#6f4f25'},
  {id:'salvage',d:1,x0:36,x1:92,t:'shop',shop:'salvage'},
@@ -1065,17 +1069,55 @@ const ROOMS=[
  {id:'library',d:2,x0:204,x1:288,t:'library',n:'LIBRARY',c:'#6f3d86'},
  {id:'lounge',d:2,x0:312,x1:440,t:'lounge',n:'LOUNGE',c:'#70a4b2'},
  {id:'arcade',d:2,x0:444,x1:564,t:'arcade',n:'ARCADE',c:'#9a3a3a'},
- {id:'sleep',d:3,x0:36,x1:164,t:'sleep',n:'SLEEP QUARTERS',c:'#6c5eb5'},
+ {id:'engine',d:3,x0:36,x1:164,t:'engine',n:'ENGINE ROOM',c:'#9a3a3a'},
  {id:'dining',d:3,x0:168,x1:288,t:'dining',n:'DINING',c:'#9a6759'},
  {id:'garden',d:3,x0:312,x1:440,t:'garden',n:'GARDEN',c:'#588d43'},
  {id:'office',d:3,x0:444,x1:564,t:'office',n:'CAPTAIN OFFICE',c:'#6f4f25'}];
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
 function roomById(id){return ROOMS.find(r=>r.id===id)}
 function deckOf(y){for(let d=0;d<4;d++)if(y>=FYd(d)-FD-1.5&&y<=FYd(d)+1.5)return d;return -1}
+let EXT=[null,null,null,null],SHX={};
+function inExt(d,x){return !!EXT[d]&&x>=EXT[d].l&&x<=EXT[d].r}
+function recomputeStation(){
+  EXT=[null,null,null,null];SHX={};
+  for(const r of ROOMS)if(r.built){const e=EXT[r.d]||(EXT[r.d]={l:r.x0,r:r.x1});e.l=Math.min(e.l,r.x0);e.r=Math.max(e.r,r.x1)}
+  for(let pass=0;pass<2;pass++)for(let d=0;d<4;d++){const e=EXT[d];if(!e)continue;
+    let best=null,bd=1e9;for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;if(dist<bd){bd=dist;best=sx}}
+    for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;
+      if(dist<=40||sx===best){e.l=Math.min(e.l,sx-9);e.r=Math.max(e.r,sx+9);const q=SHX[sx]||(SHX[sx]={lo:d,hi:d});q.lo=Math.min(q.lo,d);q.hi=Math.max(q.hi,d)}}
+    e.l=Math.max(14,e.l);e.r=Math.min(WWID-14,e.r)}
+}
+function syncBuilt(){
+  SAVE.built=SAVE.built||{};SAVE.built.hangar=1;SAVE.built.sleep=1;
+  for(const s2 of SHOPS)if(s2.open())SAVE.built[s2.id]=1;
+  for(const r of ROOMS){r.built=!!SAVE.built[r.id];if(!r.built)r.p=0}
+  recomputeStation();HULL=null;
+}
 function walkable(x,y){
-  for(let d=0;d<4;d++)if(y>=FYd(d)-FD&&y<=FYd(d)&&x>=14&&x<=WWID-14)return true;
-  for(const sx of SHAFTS)if(Math.abs(x-sx)<=4&&y<=FYd(0)&&y>=FYd(3)-FD)return true;
+  for(let d=0;d<4;d++){const e=EXT[d];if(e&&y>=FYd(d)-FD&&y<=FYd(d)&&x>=e.l&&x<=e.r)return true}
+  for(const k in SHX){const sx=+k,q=SHX[k];if(Math.abs(x-sx)<=4&&y<=FYd(q.lo)&&y>=FYd(q.hi)-FD)return true}
   return false;
+}
+/* what can be built next: rooms that touch the station */
+function areaCost(){return 3+2*(SAVE.areasBuilt||0)}
+function buildOptions(){
+  const out=[];
+  for(const r of ROOMS){
+    if(r.built||r.shop)continue;
+    let dir=null;
+    const row=ROOMS.filter(q=>q.d===r.d).sort((a,b)=>a.x0-b.x0),i=row.indexOf(r);
+    if(i>0&&row[i-1].built)dir='RIGHT OF '+row[i-1].n;
+    else if(i<row.length-1&&row[i+1].built)dir='LEFT OF '+row[i+1].n;
+    if(!dir)for(const q of ROOMS)if(q.built&&q.x0<r.x1&&q.x1>r.x0){if(q.d===r.d-1){dir='ABOVE '+q.n;break}if(q.d===r.d+1){dir='BELOW '+q.n;break}}
+    if(dir)out.push({room:r,dir});
+  }
+  return out;
+}
+function buildRoom(r){
+  const cost=areaCost();
+  if((SAVE.tokens||0)<cost){toast('NOT ENOUGH AREA TOKENS');return}
+  SAVE.tokens-=cost;SAVE.areasBuilt=(SAVE.areasBuilt||0)+1;SAVE.built[r.id]=1;syncBuilt();HUB.grow={id:r.id,t:1.8};
+  toast('THE STATION GROWS: '+r.n);save();
 }
 
 /* ===== drawing helpers ===== */
@@ -1195,6 +1237,14 @@ function mkInterior(r){
     base(g,w,'#352879','#000000','#222','#111','#6f3d86');
     for(let i=0;i<5;i++){const x=6+i*22;R_(g,x,14,16,34,'#222');R_(g,x+1,15,14,32,['#9a3a3a','#6f3d86','#588d43','#352879','#9a6759'][i]);R_(g,x+3,17,10,10,'#000');R_(g,x+4,18,8,8,'#111');R_(g,x+3,30,10,2,'#ff7777');R_(g,x+4,34,2,2,'#b8c76f');R_(g,x+9,34,2,2,'#70a4b2')}
     stringLights(g,2,w-2,6);rug(g,12,FL+2,w-24,'#6f3d86','#352879');
+  }else if(t==='sleep'&&w<110){
+    base(g,w,'#6c5eb5','#352879','#68372b','#444','#444444');
+    spaceWin(g,42,8,26,22,true,'#ff7777');
+    R_(g,4,10,2,38,'#959595');R_(g,34,10,2,38,'#959595');R_(g,4,10,32,2,'#222');R_(g,4,28,32,2,'#959595');
+    R_(g,6,18,28,10,'#222');R_(g,7,19,26,9,'#70a4b2');R_(g,7,19,26,3,'#fff');
+    R_(g,6,36,28,10,'#222');R_(g,7,37,26,9,'#9a3a3a');R_(g,7,37,26,3,'#ff7777');R_(g,8,34,8,3,'#fff');
+    R_(g,w-24,26,16,22,'#6f4f25');R_(g,w-23,27,14,9,'#9a6759');R_(g,w-23,37,14,9,'#9a6759');R_(g,w-11,38,1,2,'#fff');
+    lamp(g,w-30,6,'#b8c76f');frm(g,44,36,10,8,'#fff','#70a4b2');rug(g,40,FL+2,40,'#b8c76f','#9a6759');plant(g,w-4,FL-1,1);
   }else if(t==='sleep'){
     base(g,w,'#6c5eb5','#352879','#68372b','#444','#444444');
     spaceWin(g,48,8,28,24,true,'#ff7777');
@@ -1433,6 +1483,7 @@ function drawSlot(){
   else if(q.phase==='respin'){textC2('TAP A REEL',W>>1,y0+21,Math.floor(q.t*5)%2?'#ffffff':'#cc99ff');textC2('USE A CHANCE ORB ('+(SAVE.chance||0)+' LEFT)',W>>1,y0-7,'#cc99ff')}
 }
 function drawChanceMeter(){
+  text('TOKENS '+(SAVE.tokens||0),4,BOT-29,'#70a4b2',1);
   const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
   for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
@@ -1482,31 +1533,36 @@ function drawScreen(){
 /* ===== hub scene: hull, people, things to use, movement, drawing ===== */
 let HULL=null;const ROOMC={};
 function buildHull(){
-  const c=mk(WWID,WH),g=c.getContext('2d'),top=yTop(3);
-  // roof gear
-  for(const [x0,x1] of [[40,150],[450,560]]){R_(g,x0,6,x1-x0,9,'#222');for(let x=x0+1;x<x1-1;x+=9){R_(g,x,7,8,7,'#352879');R_(g,x,7,8,1,'#6c5eb5');R_(g,x+4,7,1,7,'#6c5eb5')}R_(g,(x0+x1)/2-1,15,3,top-15,'#6c6c6c')}
-  R_(g,299,0,3,top,'#bbbbbb');R_(g,296,4,9,1,'#959595');R_(g,294,9,13,1,'#959595');
-  R_(g,372,10,26,2,'#6c6c6c');for(let i=0;i<10;i++)R_(g,375+i*2,4+Math.abs(i-5),2,6-Math.abs(i-5),'#bbbbbb');R_(g,384,12,2,top-12,'#6c6c6c');
-  // hull body
-  g.drawImage(dithered(WWID-12,WH-top+2,(x,y)=>.3+.2*((x>>3)&1),['#352879','#2c2260']),6,top-2);
-  R_(g,6,top-2,WWID-12,2,'#bbbbbb');R_(g,6,top-2,WWID-12,1,'#ffffff');R_(g,4,top,2,WH-top,'#959595');R_(g,WWID-6,top,2,WH-top,'#959595');
-  for(let y=top+6;y<WH-6;y+=12){R_(g,4,y,2,2,'#444');R_(g,WWID-6,y,2,2,'#444')}
-  R_(g,0,FYd(0)-20,4,16,'#6c6c6c');R_(g,WWID-4,FYd(0)-20,4,16,'#6c6c6c');
-  // corridor floors and slabs
+  const c=mk(WWID,WH),g=c.getContext('2d');
+  let top=-1;for(let d=3;d>=0;d--)if(EXT[d]){top=d;break}
+  if(top<0)return c;
+  // body, corridor floors and slabs per deck
   for(let d=0;d<4;d++){
-    const fy=FYd(d);R_(g,14,fy-FD,WWID-28,FD,'#444444');for(let x=14;x<WWID-14;x+=10)R_(g,x,fy-FD,1,FD,'#333');
-    R_(g,6,fy,WWID-12,6,'#6c6c6c');R_(g,6,fy,WWID-12,1,'#bbbbbb');for(let x=10;x<WWID-8;x+=14)R_(g,x,fy+3,2,2,'#444');
-    for(let x=18;x<WWID-18;x+=70)R_(g,x,yTop(d)+4,30,2,'#70a4b2');
+    const e=EXT[d];if(!e)continue;
+    const l=Math.max(6,e.l-8),r=Math.min(WWID-6,e.r+8),yt=yTop(d),fy=FYd(d);
+    g.drawImage(dithered(r-l,DECK_H,(x,y)=>.3+.2*((x>>3)&1),['#352879','#2c2260']),l,yt);
+    R_(g,l,yt,r-l,2,'#bbbbbb');R_(g,l,yt,r-l,1,'#ffffff');R_(g,l-2,yt,2,DECK_H,'#959595');R_(g,r,yt,2,DECK_H,'#959595');
+    for(let y=yt+6;y<fy;y+=12){R_(g,l-2,y,2,2,'#444');R_(g,r,y,2,2,'#444')}
+    R_(g,e.l,fy-FD,e.r-e.l,FD,'#444444');for(let x=e.l;x<e.r;x+=10)R_(g,x,fy-FD,1,FD,'#333');
+    R_(g,l,fy,r-l,6,'#6c6c6c');R_(g,l,fy,r-l,1,'#bbbbbb');for(let x=l+4;x<r-2;x+=14)R_(g,x,fy+3,2,2,'#444');
+    for(let x=e.l+8;x<e.r-30;x+=70)R_(g,x,yt+4,30,2,'#70a4b2');
   }
-  // ladder shafts
-  for(const sx of SHAFTS){
-    const el=sx===300;
-    R_(g,sx-6,top,12,WH-top-2,el?'#0c1c3c':'#101028');R_(g,sx-6,top,1,WH-top-2,'#444');R_(g,sx+5,top,1,WH-top-2,'#444');
-    if(el){R_(g,sx-5,top,1,WH-top-2,'#70a4b2');R_(g,sx+4,top,1,WH-top-2,'#70a4b2');for(let y=top+3;y<WH-4;y+=8)R_(g,sx-5,y,10,1,'#352879')}
-    else{R_(g,sx-3,top,1,WH-top-2,'#bbbbbb');R_(g,sx+3,top,1,WH-top-2,'#bbbbbb');for(let y=top+2;y<WH-4;y+=4)R_(g,sx-3,y,7,1,'#6c6c6c')}
-    for(let d=0;d<4;d++){R_(g,sx-4,FYd(d),9,6,'#101028');if(!el)for(let y=FYd(d);y<FYd(d)+6;y+=4)R_(g,sx-3,y,7,1,'#6c6c6c');
-      if(el){R_(g,sx-6,FYd(d)-22,2,22,'#bbbbbb');R_(g,sx+4,FYd(d)-22,2,22,'#bbbbbb');R_(g,sx-6,FYd(d)-24,12,2,'#959595')}
-      R_(g,sx-3,yTop(d)+3,7,7,'#000');R_(g,sx-2,yTop(d)+4,5,5,el?'#9ad284':'#70a4b2');textTo(g,String(d+1),sx-1,yTop(d)+5,'#000',1)}
+  // engine pods on the lowest deck, roof gear on the top deck
+  if(EXT[0]){R_(g,Math.max(0,EXT[0].l-12),FYd(0)-20,4,16,'#6c6c6c');R_(g,EXT[0].r+8,FYd(0)-20,4,16,'#6c6c6c')}
+  {const e=EXT[top],yt=yTop(top),mid=(e.l+e.r)>>1;
+    R_(g,mid-1,Math.max(0,yt-24),3,24,'#bbbbbb');R_(g,mid-4,Math.max(0,yt-20),9,1,'#959595');R_(g,mid-6,Math.max(0,yt-15),13,1,'#959595');
+    if(yt>=16){const px=Math.max(8,e.l),pw=Math.min(100,(mid-8)-px);if(pw>20){R_(g,px,yt-12,pw,8,'#222');for(let x=px+1;x<px+pw-1;x+=9){R_(g,x,yt-11,8,6,'#352879');R_(g,x,yt-11,8,1,'#6c5eb5')}R_(g,px+(pw>>1),yt-4,2,4,'#6c6c6c')}
+      const qx=mid+10,qw=Math.min(100,e.r-qx);if(qw>20){R_(g,qx,yt-12,qw,8,'#222');for(let x=qx+1;x<qx+qw-1;x+=9){R_(g,x,yt-11,8,6,'#352879');R_(g,x,yt-11,8,1,'#6c5eb5')}R_(g,qx+(qw>>1),yt-4,2,4,'#6c6c6c')}}}
+  // ladder shafts and the elevator
+  for(const k in SHX){
+    const sx=+k,q=SHX[k],el=sx===300,t0=yTop(q.hi),t1=FYd(q.lo)+6;
+    R_(g,sx-6,t0,12,t1-t0,el?'#0c1c3c':'#101028');R_(g,sx-6,t0,1,t1-t0,'#444');R_(g,sx+5,t0,1,t1-t0,'#444');
+    if(el){R_(g,sx-5,t0,1,t1-t0,'#70a4b2');R_(g,sx+4,t0,1,t1-t0,'#70a4b2');for(let y=t0+3;y<t1-2;y+=8)R_(g,sx-5,y,10,1,'#352879')}
+    else{R_(g,sx-3,t0,1,t1-t0,'#bbbbbb');R_(g,sx+3,t0,1,t1-t0,'#bbbbbb');for(let y=t0+2;y<t1-2;y+=4)R_(g,sx-3,y,7,1,'#6c6c6c')}
+    for(let d=q.lo;d<=q.hi;d++){R_(g,sx-4,FYd(d),9,6,'#101028');if(!el)for(let y=FYd(d);y<FYd(d)+6;y+=4)R_(g,sx-3,y,7,1,'#6c6c6c');
+      if(inExt(d,sx)){
+        if(el){R_(g,sx-6,FYd(d)-22,2,22,'#bbbbbb');R_(g,sx+4,FYd(d)-22,2,22,'#bbbbbb');R_(g,sx-6,FYd(d)-24,12,2,'#959595')}
+        R_(g,sx-3,yTop(d)+3,7,7,'#000');R_(g,sx-2,yTop(d)+4,5,5,el?'#9ad284':'#70a4b2');textTo(g,String(d+1),sx-1,yTop(d)+5,'#000',1)}}
   }
   return c;
 }
@@ -1570,32 +1626,46 @@ function curDeck(){let b=0,bd=1e9;for(let d=0;d<4;d++){const q=Math.abs(HUB.sp.y
 function nearThing(){
   const sp=HUB.sp,d=deckOf(sp.y);if(d<0)return null;
   let best=null,bd=11;
-  for(const t of THINGS)if(t.d===d){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
-  if(!best&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT',fn:()=>toast('THE CAT PURRS.')};
+  for(const t of THINGS)if(t.d===d&&t.room.built){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
+  if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT',fn:()=>toast('THE CAT PURRS.')};
   return best;
 }
 function interactWith(t){if(t)t.fn()}
 
 /* ===== entering, clicking, moving ===== */
 function enterHub(first){
-  MODE='hub';UI.focus=0;HUB.screen=null;
+  MODE='hub';UI.focus=0;HUB.screen=null;syncBuilt();
   const r=roomById('hangar');HUB.sp.x=r.x0+96;HUB.sp.y=FYd(0)-4;HUB.sp.path=null;HUB.sp.pend=null;HUB.sp.face=1;
   HUB.cam.x=Math.max(0,Math.min(WWID-W,HUB.sp.x-W/2));HUB.cam.y=Math.max(0,Math.min(WH-H+4,HUB.sp.y-130));
   if(!HULL)HULL=buildHull();
   checkUnlocks();
 }
+function shaftsFor(d1,d2){
+  const lo=Math.min(d1,d2),hi=Math.max(d1,d2),out=[];
+  for(const k in SHX){const q=SHX[k],sx=+k;if(q.lo<=lo&&q.hi>=hi&&inExt(d1,sx)&&inExt(d2,sx))out.push(sx)}
+  return out;
+}
 function planPath(tx,ty,pend){
   const sp=HUB.sp,td=deckOf(ty),cd=deckOf(sp.y);
-  if(cd===td&&td>=0){sp.path=[{x:tx,y:ty}]}
-  else{let sx=SHAFTS[0],bd=1e9;for(const s of SHAFTS){const q=Math.abs(s-sp.x)/46+Math.abs(sp.y-ty)/(s===300?72:36)+Math.abs(tx-s)/46;if(q<bd){bd=q;sx=s}}
-    sp.path=cd>=0?[{x:sx,y:sp.y},{x:sx,y:ty},{x:tx,y:ty}]:[{x:sx,y:sp.y},{x:sx,y:ty},{x:tx,y:ty}]}
+  if(td<0||!EXT[td])return;
+  tx=Math.max(EXT[td].l,Math.min(EXT[td].r,tx));
+  if(cd===td){sp.path=[{x:tx,y:ty}]}
+  else{
+    const cands=cd>=0?shaftsFor(cd,td):Object.keys(SHX).map(Number).filter(k=>Math.abs(k-sp.x)<6);
+    let sx=null,bd=1e9;
+    for(const s2 of cands){const q=Math.abs(s2-sp.x)/46+Math.abs(sp.y-ty)/(s2===300?72:36)+Math.abs(tx-s2)/46;if(q<bd){bd=q;sx=s2}}
+    if(sx===null)return;
+    sp.path=[{x:sx,y:sp.y},{x:sx,y:ty},{x:tx,y:ty}];
+  }
   sp.pend=pend||null;
 }
 function hubClick(x,y){
   const wx=x+HUB.cam.x,wy=y+HUB.cam.y;
+  for(const o of buildOptions()){const r=o.room;if(wx>=r.x0&&wx<r.x1&&wy>=yTop(r.d)&&wy<yTop(r.d)+RH){HUB.screen='station';UI.focus=0;return}}
   for(let d=0;d<4;d++)if(wy>=yTop(d)&&wy<yTop(d)+DECK_H){
+    if(!EXT[d])return;
     let pend=null,tx=Math.max(14,Math.min(WWID-14,wx));
-    for(const t of THINGS)if(t.d===d&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
+    for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
     if(!pend&&CAT.d===d&&Math.abs(wx-CAT.x)<10){pend={fn:()=>toast('THE CAT PURRS.')};tx=CAT.x}
     planPath(tx,FYd(d)-4,pend);return;
   }
@@ -1608,15 +1678,17 @@ function hubUpdate(dt){
   checkUnlocks();
   // rooms open and close
   const cd=deckOf(sp.y);
+  if(HUB.grow){HUB.grow.t-=dt;if(HUB.grow.t<=0)HUB.grow=null}
   for(const r of ROOMS){
+    if(!r.built){r.p=0;continue}
     const inside=!HUB.screen||true,here=cd===r.d&&sp.x>=r.x0&&sp.x<r.x1&&inside&&!(r.sh&&!r.sh.open());
     r.p+=((here?1:0)-r.p)*Math.min(1,dt*(here?5:2.2));if(Math.abs(r.p-(here?1:0))<.01)r.p=here?1:0;
   }
   // cat
   CAT.t+=dt;CAT.tele-=dt;
-  if(CAT.tele<=0){CAT.tele=25+Math.random()*30;CAT.d=Math.floor(Math.random()*4);CAT.x=40+Math.random()*500}
+  if(CAT.tele<=0||!EXT[CAT.d]){CAT.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){CAT.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[CAT.d];CAT.x=e.l+8+Math.random()*Math.max(4,e.r-e.l-16)}}
   if(CAT.wait>0)CAT.wait-=dt;else{if(!CAT.vx&&Math.random()<.5){CAT.vx=(Math.random()<.5?-1:1)*9;CAT.go=.8+Math.random()*2.5}
-    CAT.x+=CAT.vx*dt;CAT.go-=dt;if(CAT.x<20||CAT.x>WWID-20)CAT.vx*=-1;if(CAT.go<=0){CAT.vx=0;CAT.wait=1+Math.random()*4}}
+    CAT.x+=CAT.vx*dt;CAT.go-=dt;if(EXT[CAT.d]&&(CAT.x<EXT[CAT.d].l+6||CAT.x>EXT[CAT.d].r-6))CAT.vx*=-1;if(CAT.go<=0){CAT.vx=0;CAT.wait=1+Math.random()*4}}
   if(HUB.screen){musVol(.3);return}
   let dx=0,dy=0;
   if(UI.keys.arrowleft||UI.keys.a||PAD.x<0)dx=-1;else if(UI.keys.arrowright||UI.keys.d||PAD.x>0)dx=1;
@@ -1637,7 +1709,7 @@ function hubUpdate(dt){
   if(dx)sp.face=dx;
   if(sp.x!==ox||sp.y!==oy)sp.t+=dt;else sp.t=0;
   sp.climb=deckOf(sp.y)<0;
-  if(Math.abs(sp.x-300)<=5)EL.y=deckOf(sp.y)>=0?FYd(deckOf(sp.y)):sp.y+3;
+  if(SHX[300]&&Math.abs(sp.x-300)<=5)EL.y=deckOf(sp.y)>=0?FYd(deckOf(sp.y)):sp.y+3;
   const cx=Math.max(0,Math.min(WWID-W,sp.x-W/2)),cy=Math.max(0,Math.min(WH-H+4,sp.y-125));
   HUB.cam.x+=(cx-HUB.cam.x)*Math.min(1,dt*5);HUB.cam.y+=(cy-HUB.cam.y)*Math.min(1,dt*5);
   musVol(roomById('lounge').p>0||roomById('cafe').p>0||cd===1?.85:.45);
@@ -1698,24 +1770,27 @@ function drawHub(){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
   ctx.save();ctx.translate(-cx,-cy);
   for(const s of HSTARS){const sx=(s.x*1.4)%(WWID+60)-30,sy=(s.y*2.6)%(WH+40)-20;ctx.fillStyle=s.c;ctx.fillRect(sx|0,sy|0,1,1)}
-  ctx.drawImage(HULL,0,0);
-  R_(ctx,300,0,2,2,Math.sin(t*3)>0?'#ff7777':'#68372b');
-  for(const r of ROOMS)drawRoom(r,t);
+  if(!HULL)HULL=buildHull();ctx.drawImage(HULL,0,0);
+  for(const r of ROOMS)if(r.built)drawRoom(r,t);
+  for(const o of buildOptions()){const r=o.room,bx=r.x0,by=yTop(r.d);ctx.fillStyle=Math.floor(t*2)%2?'#70a4b2':'#3c6a78';
+    for(let i=0;i<r.w;i+=4){ctx.fillRect(bx+i,by,2,1);ctx.fillRect(bx+i,by+RH-1,2,1)}for(let j=0;j<RH;j+=4){ctx.fillRect(bx,by+j,1,2);ctx.fillRect(bx+r.w-1,by+j,1,2)}
+    const nm=r.n.length*4<=r.w-6?r.n:'';if(nm)text(nm,bx+((r.w-nm.length*4)>>1),by+RH/2-8,'#3c6a78',1);text('+',bx+(r.w>>1)-1,by+RH/2,'#70a4b2',1)}
+  if(HUB.grow){const r=roomById(HUB.grow.id),a=HUB.grow.t/1.8;ctx.fillStyle='rgba(255,255,255,'+(a*.5)+')';ctx.fillRect(r.x0,yTop(r.d),r.w,RH);for(let i=0;i<8;i++)R_(ctx,r.x0+((i*37+HUB.t*60)%r.w),yTop(r.d)+((i*23+HUB.t*40)%RH),2,2,'#ffffff')}
   // cat
-  const cf=Math.floor(t*6)%2;ctx.save();ctx.translate(CAT.x|0,0);if(CAT.vx<0){ctx.scale(-1,1)}ctx.drawImage(SPR.cat[CAT.vx?cf:0],-5,(FYd(CAT.d)-8)|0);ctx.restore();
+  if(EXT[CAT.d]){const cf=Math.floor(t*6)%2;ctx.save();ctx.translate(CAT.x|0,0);if(CAT.vx<0){ctx.scale(-1,1)}ctx.drawImage(SPR.cat[CAT.vx?cf:0],-5,(FYd(CAT.d)-8)|0);ctx.restore()}
   // elevator car
-  {const ey=EL.y|0,top2=ey-18;R_(ctx,300,yTop(3),1,top2-yTop(3),'#6c6c6c');R_(ctx,294,top2,12,18,'#222');R_(ctx,295,top2+1,10,15,'#70a4b2');R_(ctx,295,top2+1,10,1,'#ffffff');R_(ctx,295,ey-3,10,2,'#444');R_(ctx,299,top2+2,2,13,'#00000044');R_(ctx,296,top2+3,1,8,'#ffffff77')}
+  if(SHX[300]){const ey=EL.y|0,top2=ey-18;R_(ctx,300,yTop(3),1,top2-yTop(3),'#6c6c6c');R_(ctx,294,top2,12,18,'#222');R_(ctx,295,top2+1,10,15,'#70a4b2');R_(ctx,295,top2+1,10,1,'#ffffff');R_(ctx,295,ey-3,10,2,'#444');R_(ctx,299,top2+2,2,13,'#00000044');R_(ctx,296,top2+3,1,8,'#ffffff77')}
   // spaceman
   const fi=sp.t>0?Math.floor(sp.t*7)%4:0,spr=(sp.face<0?SPR.miniL:SPR.mini)[fi];
   R_(ctx,(sp.x-3)|0,(sp.y)|0,6,1,'#00000066');
   ctx.drawImage(spr,(sp.x-4.5)|0,(sp.y-13+(sp.climb&&fi%2?-1:0))|0);
-  if(Math.abs(sp.x-300)<=5){ctx.fillStyle='#70a4b244';ctx.fillRect(295,(EL.y|0)-17,10,14);R_(ctx,296,(EL.y|0)-17,1,10,'#ffffff88')}
+  if(SHX[300]&&Math.abs(sp.x-300)<=5){ctx.fillStyle='#70a4b244';ctx.fillRect(295,(EL.y|0)-17,10,14);R_(ctx,296,(EL.y|0)-17,1,10,'#ffffff88')}
   ctx.restore();
   // top bar
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
   text(dateStr(SAVE.day),4,4,'#fff',1);text(clockStr(),52,4,'#b8c76f',1);text('GOLD',84,4,'#b8c76f',1);text(SAVE.coins,104,4,'#fff',1);
   text('BANK',160,4,'#70a4b2',1);text(SAVE.bank,180,4,'#fff',1);
-  text('FIT '+fitLevel(),260,4,'#9ad284',1);if(SAVE.fed>0)text('FED',286,4,'#ff7777',1);
+  text('TOK '+(SAVE.tokens||0),214,4,'#70a4b2',1);text('FIT '+fitLevel(),260,4,'#9ad284',1);if(SAVE.fed>0)text('FED',286,4,'#ff7777',1);
   // prompt (tap it too)
   if(!HUB.screen){
     const nt=nearThing();
@@ -1794,6 +1869,19 @@ function extraScreen(id,rows,info){
     L('');L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
     for(const a2 of ACHV){const d2=SAVE.ach[a2.id];L((d2?'* ':'- ')+a2.n+': '+a2.d,d2?G_:'#6c6c6c')}
     return 'GOALS';
+  }
+  if(id==='station'){
+    const opts=buildOptions(),cost=areaCost(),shopsBuilt=ROOMS.filter(r=>r.shop&&r.built).length,shopsAll=ROOMS.filter(r=>r.shop).length,
+      areas=ROOMS.filter(r=>!r.shop),areasBuilt=areas.filter(r=>r.built).length;
+    L('AREA TOKENS: '+(SAVE.tokens||0)+'     NEXT AREA COSTS: '+cost+' TOKENS',(SAVE.tokens||0)>=cost?G_:Y_);
+    L('SHOPS UNLOCKED: '+shopsBuilt+' OF '+shopsAll+'     AREAS BUILT: '+areasBuilt+' OF '+areas.length+'  (2 FREE)');
+    L('TOKENS DROP FROM ENEMIES AND BOSSES. NEW SHOPS GROW THE STATION.');
+    opts.sort((a,b)=>a.room.d-b.room.d||a.room.x0-b.room.x0);
+    if(!opts.length)L(areasBuilt>=areas.length?'EVERY AREA IS BUILT.':'NO AREA CAN BE BUILT YET.',G_);
+    else L('CHOOSE WHICH WAY TO BUILD:','#fff');
+    for(const o of opts.slice(0,7)){const r=o.room;
+      rows.push({n:r.n,d:o.dir+'  (DECK '+(r.d+1)+')',r:String(cost),ok:(SAVE.tokens||0)>=cost,fn:()=>{buildRoom(r)}})}
+    return 'STATION';
   }
   if(id==='library'){
     const av=booksAvailable();
@@ -1963,7 +2051,7 @@ function handleKey(k){
   if(MODE==='game'){if(G&&G.slot&&(k==='1'||k==='2'||k==='3')){slotRespin(+k-1);return}if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
   if(MODE==='arcade'){arcadeKey(k);return}
   if(k==='m'){mus.on=!mus.on;toast(mus.on?'MUSIC ON':'MUSIC OFF');return}
-  const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
+  const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv',b:'station'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
     if(MODE==='hub'&&HUB.screen==='book'){if(k==='arrowright'||k==='d'){bookTurn(1);return}if(k==='arrowleft'||k==='a'){bookTurn(-1);return}}
