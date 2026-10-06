@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Idlyte v0.03</title>
+<title>Idlyte v0.04</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -100,15 +100,15 @@ function shaded(w,h,mask,bands,extra){
 
 /* ===== player ship (hand drawn, chrome, nose to the right) ===== */
 const HALF=[
-"....kkkkkkkkkkkkkkk.....",
-"....kLwwwwwwwwwwwlgk....",
-"....kdgggggggggkkkk.....",
-"...kkdgLwlgkk...........",
-"..kddgLwwlllgkk.........",
-".kddgLwwwwlllgkkkk......",
-"kddgLwwwwwlkBBBcwgkkk...",
-"krdgLLwwwwwwkBBcwwwwwlkk",
-"kordgggLLwwwwwwwwwwwwwwk"
+"........kkkkkkkkkkkkkkk.",
+"........kLwwwwwwwwwwwlgk",
+"........kdgggggggggggkk.",
+"....kkkkkdgLwlgk........",
+"..kkddgLwwwlllgkk.......",
+".kddgLwwwwwlllllgkk.....",
+"kddgLwwwwwwlkBBcgkk.....",
+"krdgLLwwwwwwkBBcwwlkk...",
+"kordgggLLwwwwwwwwwwwk..."
 ];
 function buildShip(){
   const half=HALF.map(r=>r.padEnd(24,'.').slice(0,24));
@@ -135,7 +135,7 @@ SPR.shipW=whiteOf(SPR.ship);
     const o=mk(w,h),ox=o.getContext('2d'),od=ox.createImageData(w,h);
     for(let j=0;j<h;j++){
       const dy=j-8;let sj=Math.round(8+(c<0?-dy:dy)/ac);
-      if(ac<.3&&Math.abs(dy)===1)sj=8;
+      if(ac<.3&&Math.abs(dy)<=2)sj=8;
       if(sj<0||sj>=h)continue;
       for(let i=0;i<w;i++){const k=(sj*w+i)*4,q=(j*w+i)*4;
         od.data[q]=src.data[k];od.data[q+1]=src.data[k+1];od.data[q+2]=src.data[k+2];od.data[q+3]=src.data[k+3]}
@@ -651,7 +651,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.03';
+const VERSION='0.04';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
