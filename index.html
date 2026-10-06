@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.28</title>
+<title>Idlyte v0.29</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -366,11 +366,11 @@ function setPlanet(i){SAVE.planet=i;SAVE.level=maxLevel(i)}
 function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=systemsDone()<SPEED_NEED[sp];b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
 const PLANETS=[
  {n:'OPEN SPACE',pow:0,diff:0,gold:1,loot:0,d:'EMPTY SPACE. EASY ENEMIES.',every:0},
- {n:'ASTEROID BELT',pow:10,diff:1,gold:1.3,loot:.04,d:'LOTS OF DRIFTING ROCKS.',every:9,waves:[['rock',5,.5]]},
- {n:'ICE MOON',pow:24,diff:2,gold:1.7,loot:.06,d:'RING ENEMIES IN LARGE GROUPS.',every:9,waves:[['ring',6,.45],['ringR',3,.6]]},
- {n:'LAVA WORLD',pow:42,diff:3,gold:2.2,loot:.08,d:'FAST DARTS FROM EVERY SIDE.',every:7,waves:[['dart',6,.4],['cross',2,1]]},
- {n:'GAS GIANT',pow:64,diff:4,gold:3,loot:.1,d:'CROSSES AND CARRIER PODS.',every:8,waves:[['cross',4,.8],['pod',1,0]]},
- {n:'ENEMY BASE',pow:90,diff:6,gold:4.5,loot:.14,d:'EVERYTHING AT ONCE.',every:6,waves:[['ring',4,.4],['dart',4,.4],['cross',3,.8],['pod',1,0]]}];
+ {n:'ASTEROID BELT',pow:20,diff:1,gold:1.3,loot:.04,d:'LOTS OF DRIFTING ROCKS.',every:9,waves:[['rock',5,.5]]},
+ {n:'ICE MOON',pow:50,diff:2,gold:1.7,loot:.06,d:'RING ENEMIES IN LARGE GROUPS.',every:9,waves:[['ring',6,.45],['ringR',3,.6]]},
+ {n:'LAVA WORLD',pow:90,diff:3,gold:2.2,loot:.08,d:'FAST DARTS FROM EVERY SIDE.',every:7,waves:[['dart',6,.4],['cross',2,1]]},
+ {n:'GAS GIANT',pow:140,diff:4,gold:3,loot:.1,d:'CROSSES AND CARRIER PODS.',every:8,waves:[['cross',4,.8],['pod',1,0]]},
+ {n:'ENEMY BASE',pow:200,diff:6,gold:4.5,loot:.14,d:'EVERYTHING AT ONCE.',every:6,waves:[['ring',4,.4],['dart',4,.4],['cross',3,.8],['pod',1,0]]}];
 const THEMES=[
  {cl:['#000000','#352879','#6f3d86'],pl:['#000000','#352879','#6f3d86','#9a6759','#b8c76f']},
  {cl:['#000000','#2a2a2a','#444444'],pl:['#000000','#444444','#6c6c6c','#9a6759','#bbbbbb']},
@@ -390,7 +390,7 @@ function mkPlanet(cols){const R=44,S=R*2+1;
 function themeAssets(i){return THC[i]||(THC[i]={clouds:[mkCloud(7,THEMES[i].cl),mkCloud(41,THEMES[i].cl),mkCloud(99,THEMES[i].cl)],planet:mkPlanet(THEMES[i].pl)})}
 function shipPower(){const st=baseStats();
   return Math.max(0,Math.round((st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5))}
-function planetOpen(i){return shipPower()>=PLANETS[i].pow}
+function planetOpen(i){return i===0||((SAVE.prog[i-1]||0)>=3&&shipPower()>=PLANETS[i].pow)}
 function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return Math.round(u.base*Math.pow(u.mul,l)/5)*5}
 const CREW=[
  {id:'nav',n:'NAVIGATOR',d:'FASTER SHIP, BETTER DODGING',cost:[1500,6000,20000]},
@@ -842,7 +842,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.28';
+const VERSION='0.29';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1823,9 +1823,9 @@ function extraScreen(id,rows,info){
   }
   if(id==='starmap'){
     const pw=shipPower();
-    L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('EACH SYSTEM HAS 3 LEVELS. CLEAR 1, THEN 2, THEN 3.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
-    PLANETS.forEach((p,i)=>{const ok=pw>=p.pow,cur=(SAVE.planet||0)===i;
-      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3':'LOCKED. NEEDS SHIP POWER '+p.pow,r:ok?(cur?'':'GO'):'POWER '+p.pow,ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
+    L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
+    PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=i===0||(SAVE.prog[i-1]||0)>=3;
+      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3':(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
         fn:()=>{setPlanet(i);toast('DESTINATION SET: '+p.n+' LEVEL '+SAVE.level);save()}})});
     return 'STAR MAP';
   }
