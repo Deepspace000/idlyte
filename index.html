@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.26</title>
+<title>Idlyte v0.27</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -280,6 +280,7 @@ function capsule(col,letter){
   return c;
 }
 SPR.pw={P:capsule('#ff7777','P'),S:capsule('#70a4b2','S'),M:capsule('#b8c76f','M'),H:capsule('#9ad284','+'),O:capsule('#6c5eb5','O'),R:capsule('#9a6759','R'),B:capsule('#ffffff','B')};
+SPR.chance=shaded(7,7,(x,y)=>Math.hypot(x-3,y-3)<=3.2,[[0,'#6f3d86'],[.15,'#ffffff'],[.35,'#b8c76f'],[.5,'#000000'],[.55,'#6f3d86'],[.75,'#6c5eb5'],[.95,'#352879']],(i,j)=>(i===2&&j===2)?'#ffffff':null);
 SPR.guard=shaded(9,9,(x,y)=>Math.hypot(x-4,y-4)<=4.2,CHROME.red,(i,j)=>(i===3&&j===3)?'#ffffff':null);
 
 /* ===== backgrounds ===== */
@@ -318,7 +319,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
@@ -545,6 +546,7 @@ function hurtPlayer(){
 }
 function killEnemy(e){
   G.score+=Math.round(e.pts);SAVE.kills++;lootDrop(e);
+  if(e.type!=='rock'&&Math.random()<(e.type==='boss'?1:e.type==='pod'?.5:.07))PK.push({k:'chance',x:e.x,y:e.y,vx:-18,vy:rnd(-10,10),t:0});
   if(!e.carry&&e.type!=='rock'&&e.type!=='boss'&&Math.random()<.04)PK.push({k:'pw',p:['P','S','M','O','R','B'][Math.floor(Math.random()*6)],x:e.x,y:e.y,vx:-18,vy:0,t:0});
   boom(e.x,e.y,e.type==='boss'?90:e.type==='rock'&&!e.big?6:18,e.type==='boss'||e.w>16);
   if(e.type==='boss'){
@@ -678,6 +680,7 @@ function updateEntities(dt,live){
     if(live&&d<12){
       k.dead=1;
       if(k.k==='coin'){const cm=G.stats.coinMul,v=Math.max(1,Math.floor(cm)+(Math.random()<cm%1?1:0));SAVE.coins+=v;SAVE.earned+=v;G.coinsRun+=v;G.score+=10}
+      else if(k.k==='chance'){SAVE.chance=Math.min(5,(SAVE.chance||0)+1);G.salv.unshift({t:1.8,name:'CHANCE ORB',txt:'CHANCE ORB +1  ('+SAVE.chance+' OF 5)',c:'#cc99ff',ix:3});if(G.salv.length>3)G.salv.pop();save()}
       else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;SAVE.inv[k.id]=(SAVE.inv[k.id]||0)+1;save();G.score+=25;G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop();if(it.v>=90)G.flashT=.3}
       else powerup(k.p);
     }
@@ -756,6 +759,7 @@ function draw(){
   drawBackground();
   for(const k of PK){
     if(k.k==='coin')ctx.drawImage(SPR.coin[Math.floor(k.t*8)%4],(k.x-3)|0,(k.y-3)|0);
+    else if(k.k==='chance'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.chance,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='item')ctx.drawImage(SPR.crate[ITEMS.findIndex(q=>q.id===k.id)],(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1)|0);
     else ctx.drawImage(SPR.pw[k.p],(k.x-5)|0,(k.y-4+Math.sin(k.t*4)*1.5)|0);
   }
@@ -809,9 +813,9 @@ function drawHud(){
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
   {let ty=17;if(P.twinT>0){text('ORBS '+Math.ceil(P.twinT),4,ty,'#70a4b2',1);ty+=7}if(P.guardT>0){text('GUARD '+Math.ceil(P.guardT),4,ty,'#ff9966',1)}}
-  if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
+  drawChanceMeter();if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80)textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
-  G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt='SALVAGE FOUND: '+q.name,w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
+  G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt=q.txt||('SALVAGE FOUND: '+q.name),w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
     if(q.t<.3&&Math.floor(q.t*20)%2)return;
     ctx.fillStyle=fl?'#ffffff':q.c;ctx.fillRect(x-1,y-1,w+2,13);ctx.fillStyle=fl?q.c:'#000';ctx.fillRect(x,y,w,11);
     ctx.drawImage(SPR.crate[q.ix],x+2,y+2);text(txt,x+11,y+3,fl?'#000':'#fff',1)});
@@ -820,7 +824,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.26';
+const VERSION='0.27';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1341,38 +1345,64 @@ function tapFire(){
   const was=G.tap||0;G.tap=Math.min(1,was+.07);SAVE.taps=(SAVE.taps||0)+1;
   if(was<1&&G.tap>=1&&G.tapArm&&!G.slot){G.tapArm=false;startSlot()}
 }
-const SLOT_SYMS=['P','S','M','H','O','R','B','C','X1','X2'];
+const SLOT_SYMS=['P','S','M','H','O','R','B','C','X1','X2'],SLOT_PW=['P','S','M','H','O','R','B'];
 function slotImg(k){if(k==='C')return SPR.coin[0];if(k[0]==='X')return SPR.crate[k==='X1'?0:3];return SPR.pw[k]}
+function slotPick(){return SLOT_SYMS[Math.floor(Math.random()*SLOT_SYMS.length)]}
 function startSlot(){
   const win=Math.random()<.35;let r=Math.random(),type=r<.25?'P':r<.42?'S':r<.55?'M':r<.68?'H':r<.8?'O':r<.92?'R':'B';if(type==='H'&&P.hp>=G.stats.hp)type='S';
   let fin;
   if(win)fin=[type,type,type];
   else{
-    const pick=()=>SLOT_SYMS[Math.floor(Math.random()*SLOT_SYMS.length)];
-    fin=[pick(),pick(),pick()];
-    if(Math.random()<.4){const a=['P','S','M','H','O','R','B'][Math.floor(Math.random()*7)];let b;do{b=pick()}while(b===a);fin=Math.random()<.5?[a,a,b]:[a,b,a]}
+    fin=[slotPick(),slotPick(),slotPick()];
+    if(Math.random()<.4){const a=SLOT_PW[Math.floor(Math.random()*7)];let b;do{b=slotPick()}while(b===a);fin=Math.random()<.5?[a,a,b]:[a,b,a]}
     if(fin[0]===fin[1]&&fin[1]===fin[2])fin[2]=fin[2]==='C'?'P':'C';
   }
-  G.slot={t:0,win,type,fin,done:false,snd:0};
+  G.slot={t:0,phase:'spin',win,fin,snd:0,rs:[null,null,null],rsSnd:[0,0,0],wait:0,end:0};
+}
+function slotIsTriple(q){return q.fin[0]===q.fin[1]&&q.fin[1]===q.fin[2]&&SLOT_PW.includes(q.fin[0])}
+function slotEval(q){
+  if(slotIsTriple(q)){
+    q.phase='win';q.win=true;q.end=q.t+1.3;
+    PK.push({k:'pw',p:q.fin[0],x:Math.min(W-16,P.x+38),y:P.y+rnd(-14,14),vx:-18,vy:0,t:0});
+    FX.push({ring:1,x:P.x+38,y:P.y,r:2,life:.4,max:14});beep(880,.15,'square',.04);setTimeout(()=>beep(1320,.2,'square',.04),140);
+  }else if((SAVE.chance||0)>0){q.phase='respin';q.wait=5}
+  else{q.phase='lose';q.end=q.t+1.3}
+}
+function slotRespin(i){
+  const q=G.slot;if(!q||q.phase!=='respin'||(SAVE.chance||0)<1)return;
+  SAVE.chance--;save();
+  const o=q.fin.filter((_,k)=>k!==i);let ns;
+  if(o[0]===o[1])ns=Math.random()<.4?o[0]:slotPick();
+  else ns=Math.random()<.5?o[Math.floor(Math.random()*2)]:slotPick();
+  const t3=(n)=>q.fin.map((v,k)=>k===i?n:v);
+  const tri=(arr)=>arr[0]===arr[1]&&arr[1]===arr[2];
+  if(tri(t3(ns))&&(!SLOT_PW.includes(ns)||(ns==='H'&&P.hp>=G.stats.hp))){do{ns=slotPick()}while(tri(t3(ns)))}
+  q.fin[i]=ns;q.rs[i]=q.t;q.rsSnd[i]=0;q.phase='spinning2';
+}
+function slotTap(x,y){
+  const q=G.slot;if(!q||q.phase!=='respin')return false;
+  const x0=((W-66)/2)|0,y0=BOT-34;
+  for(let i=0;i<3;i++){const bx=x0+4+i*20,by=y0+3;if(x>=bx-2&&x<bx+20&&y>=by-3&&y<by+20){slotRespin(i);return true}}
+  return false;
 }
 function updateSlot(dt){
   const q=G.slot;if(!q)return;
-  q.t+=dt/Math.max(1,SPEED);
+  const d=dt/Math.max(1,SPEED);q.t+=d;
   while(q.snd<3&&q.t>=.8+q.snd*.45){beep(380+q.snd*120,.07,'square',.03);q.snd++}
-  if(!q.done&&q.t>=1.7){
-    q.done=true;
-    if(q.win){PK.push({k:'pw',p:q.type,x:Math.min(W-16,P.x+38),y:P.y+rnd(-14,14),vx:-18,vy:0,t:0});FX.push({ring:1,x:P.x+38,y:P.y,r:2,life:.4,max:14});beep(880,.15,'square',.04);setTimeout(()=>beep(1320,.2,'square',.04),140)}
-  }
-  if(q.t>=3)G.slot=null;
+  for(let i=0;i<3;i++)if(q.rs[i]!=null&&!q.rsSnd[i]&&q.t>=q.rs[i]+.7){q.rsSnd[i]=1;beep(500+i*90,.07,'square',.03)}
+  if(q.phase==='spin'&&q.t>=1.7)slotEval(q);
+  else if(q.phase==='spinning2'){let done=true;for(let i=0;i<3;i++)if(q.rs[i]!=null&&q.t<q.rs[i]+.7)done=false;if(done){for(let i=0;i<3;i++)q.rs[i]=q.rs[i]!=null?q.t-1:null;slotEval(q)}}
+  else if(q.phase==='respin'){q.wait-=d;if(q.wait<=0||(SAVE.chance||0)<1){q.phase='lose';q.end=q.t+1.3}}
+  else if((q.phase==='win'||q.phase==='lose')&&q.t>=q.end)G.slot=null;
 }
 function drawSlot(){
-  const q=G.slot,x0=((W-66)/2)|0,y0=BOT-34,fin=q.t>=1.7;
+  const q=G.slot,x0=((W-66)/2)|0,y0=BOT-34,res=q.phase==='win'||q.phase==='lose'||q.phase==='respin';
   ctx.fillStyle='#000';ctx.fillRect(x0,y0,66,28);
-  const fl=fin&&q.win&&Math.floor(q.t*10)%2;
-  ctx.fillStyle=fl?'#ffffff':(fin&&q.win?'#b8c76f':'#6c5eb5');ctx.fillRect(x0,y0,66,1);ctx.fillRect(x0,y0+27,66,1);ctx.fillRect(x0,y0,1,28);ctx.fillRect(x0+65,y0,1,28);
+  const fl=q.phase==='win'&&Math.floor(q.t*10)%2;
+  ctx.fillStyle=fl?'#ffffff':(q.phase==='win'?'#b8c76f':(q.phase==='respin'?'#cc99ff':'#6c5eb5'));ctx.fillRect(x0,y0,66,1);ctx.fillRect(x0,y0+27,66,1);ctx.fillRect(x0,y0,1,28);ctx.fillRect(x0+65,y0,1,28);
   for(let i=0;i<3;i++){
-    const bx=x0+4+i*20,by=y0+3,spun=q.t<.8+i*.45;
-    ctx.fillStyle='#333';ctx.fillRect(bx,by,18,16);ctx.fillStyle='#111';ctx.fillRect(bx+1,by+1,16,14);
+    const bx=x0+4+i*20,by=y0+3,stop=q.rs[i]!=null?q.rs[i]+.7:.8+i*.45,spun=q.t<stop;
+    ctx.fillStyle=(q.phase==='respin'&&Math.floor(q.t*6)%2)?'#cc99ff':'#333';ctx.fillRect(bx,by,18,16);ctx.fillStyle='#111';ctx.fillRect(bx+1,by+1,16,14);
     ctx.save();ctx.beginPath();ctx.rect(bx+1,by+1,16,14);ctx.clip();
     if(spun){const pos=q.t*16+i*3,ix=Math.floor(pos),fr=pos-ix,ia=slotImg(SLOT_SYMS[ix%SLOT_SYMS.length]),ib=slotImg(SLOT_SYMS[(ix+1)%SLOT_SYMS.length]),off=Math.round(fr*14);
       ctx.drawImage(ia,bx+((18-ia.width)>>1),by+((16-ia.height)>>1)+off);ctx.drawImage(ib,bx+((18-ib.width)>>1),by+((16-ib.height)>>1)+off-14)}
@@ -1380,7 +1410,13 @@ function drawSlot(){
     ctx.restore();
   }
   ctx.fillStyle='#ff777777';ctx.fillRect(x0+2,y0+11,62,1);
-  if(fin)textC2(q.win?'POWER UP!':'NO LUCK',W>>1,y0+21,q.win?(fl?'#ffffff':'#b8c76f'):'#6c6c6c');
+  if(q.phase==='win')textC2('POWER UP!',W>>1,y0+21,fl?'#ffffff':'#b8c76f');
+  else if(q.phase==='lose')textC2('NO LUCK',W>>1,y0+21,'#6c6c6c');
+  else if(q.phase==='respin'){textC2('TAP A REEL',W>>1,y0+21,Math.floor(q.t*5)%2?'#ffffff':'#cc99ff');textC2('USE A CHANCE ORB ('+(SAVE.chance||0)+' LEFT)',W>>1,y0-7,'#cc99ff')}
+}
+function drawChanceMeter(){
+  const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
+  for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
 function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(SPEED_NEED[SPEED]>systemsDone()){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 function drawScreen(){
@@ -1906,7 +1942,7 @@ function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 function handleKey(k){
   if(MODE==='title')return;
   if(AC&&AC.state==='suspended')AC.resume();
-  if(MODE==='game'){if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
+  if(MODE==='game'){if(G&&G.slot&&(k==='1'||k==='2'||k==='3')){slotRespin(+k-1);return}if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
   if(MODE==='arcade'){arcadeKey(k);return}
   if(k==='m'){mus.on=!mus.on;toast(mus.on?'MUSIC ON':'MUSIC OFF');return}
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
@@ -1963,7 +1999,7 @@ cv.addEventListener('wheel',e=>{if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.
 cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);if(i>=0)UI.focus=i});
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
-  if(MODE==='game'){tapFire();return}
+  if(MODE==='game'){const [gx,gy]=toCanvas(e);if(G&&G.slot&&slotTap(gx,gy))return;tapFire();return}
   if(MODE==='title')return;
   const [x,y]=toCanvas(e),i=uiAt(x,y);
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
