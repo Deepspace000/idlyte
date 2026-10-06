@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.82</title>
+<title>Idlyte v0.84</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -132,15 +132,15 @@ function shaded(w,h,mask,bands,extra){
 
 /* ===== player ship (hand drawn, chrome, nose to the right) ===== */
 const HALF=[
-"........kkkkkkkkkkkkkkk.",
-"........kLwwwwwwwwwwwlgk",
-"........kdgggggggggggkk.",
-"....kkkkkdgLwlgk........",
-"..kkddgLwwwlllgkk.......",
-".kddgLwwwwwlllllgkk.....",
-"kddgLwwwwwwlkBBcgkk.....",
-"krdgLLwwwwwwkBBcwwlkk...",
-"kordgggLLwwwwwwwwwwwk..."
+".kkkkk..................",
+".kLwwkk.................",
+".kdLwwwkk...............",
+"..kddLwwkkkkkkkk........",
+"...kddgLwwwwwwwLLgkkk...",
+".kkddgLLwwwwwwwwlLLgkk..",
+"kddgLLwwLLggLLwwlkBBclgk",
+"krdgLLggggggggwwkBBcwlk.",
+"kordgggLLwwwwwwwwwwwwLkk"
 ];
 const SCHEMES={
  chrome:{w:'#ffffff',L:'#bbbbbb',l:'#959595',g:'#6c6c6c',d:'#444444'},
@@ -198,10 +198,8 @@ function buildShipSet(paint,deco){
       if(j<=8&&up[3]>200&&(up[0]+up[1]+up[2])<30&&(p[0]>130))upd.push([i,j,'#ffffff']);
       }
     for(const [i,j,h] of upd)set(i,j,h);x.putImageData(id,0,0)}
-  if(!deco){const px=(i,j,c)=>{const q=x.getImageData(i,j,1,1).data;if(q[3]>200&&(q[0]+q[1]+q[2])>120){x.fillStyle=c;x.fillRect(i,j,1,1)}};
-    for(const j of [3,13]){px(9,j,'#444444');px(9,j+1,'#444444');px(14,j,'#ff9966');px(15,j,'#ff9966');px(16,j,'#ff9966');px(12,j+1,'#ffffff')}
-    for(const j of [5,11]){px(7,j,'#6c6c6c');px(8,j,'#6c6c6c');px(13,j,'#ffffff')}
-    px(18,4,'#9a6759');px(18,12,'#9a6759');px(11,6,'#444444');px(11,10,'#444444')}
+  if(!deco){const dot=(i,j,c)=>{x.fillStyle=c;x.fillRect(i,j,1,1)};
+    dot(8,5,'#ffffff');dot(9,4,'#ffffff');dot(10,5,'#bbbbbb');dot(7,11,'#6c6c6c');dot(12,12,'#6c6c6c');dot(6,6,'#ffffff');dot(13,6,'#ffffff')}
   x.fillStyle='#9a6759';x.fillRect(0,7,2,1);x.fillRect(0,9,2,1);
   x.fillStyle='#ffffff';x.fillRect(10,8,2,1);
   x.fillStyle='#70a4b2';x.fillRect(7,1,1,1);x.fillRect(7,15,1,1);
@@ -1027,7 +1025,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.82';
+const VERSION='0.84';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
