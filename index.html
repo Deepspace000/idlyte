@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.24</title>
+<title>Idlyte v0.25</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -279,7 +279,8 @@ function capsule(col,letter){
   for(let r=0;r<5;r++)for(let q=0;q<3;q++)if(+g[r]&(4>>q))x.fillRect(4+q,2+r,1,1);
   return c;
 }
-SPR.pw={P:capsule('#ff7777','P'),S:capsule('#70a4b2','S'),M:capsule('#b8c76f','M'),H:capsule('#9ad284','+')};
+SPR.pw={P:capsule('#ff7777','P'),S:capsule('#70a4b2','S'),M:capsule('#b8c76f','M'),H:capsule('#9ad284','+'),O:capsule('#6c5eb5','O'),R:capsule('#9a6759','R'),B:capsule('#ffffff','B')};
+SPR.guard=shaded(9,9,(x,y)=>Math.hypot(x-4,y-4)<=4.2,CHROME.red,(i,j)=>(i===3&&j===3)?'#ffffff':null);
 
 /* ===== backgrounds ===== */
 const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
@@ -466,7 +467,7 @@ function spawn(o){
   if(o.type==='rock'){e.big=Math.random()<.35;e.hp=e.mhp=(e.big?5:2)*loopScale();e.w=e.h=e.big?21:9;e.spr=Math.floor(Math.random()*(e.big?2:3));e.y=rnd(TOP+14,BOT-14);e.vy=rnd(-14,14);e.vx=rnd(-45,-22)}
   if(o.type==='dart'){if(o.rand)e.y=rnd(TOP+12,BOT-12);e.y0=e.y}
   if(o.type==='cross'){if(o.rand)e.y=rnd(TOP+14,BOT-14);e.vy=Math.random()<.5?24:-24}
-  if(o.type==='pod'){e.carry=['P','P','S','M','H'][Math.floor(Math.random()*5)]}
+  if(o.type==='pod'){const CAR=['P','P','S','M','H','O','R','B'];e.carry=CAR[Math.floor(Math.random()*CAR.length)]}
   E.push(e);return e;
 }
 function spawnBoss(){
@@ -517,12 +518,23 @@ function aiThink(){
 }
 
 /* ===== update ===== */
+function bombBlast(){
+  for(const e of E.slice()){
+    if(e.type==='boss'){e.hp-=e.mhp*.08;e.flash=.15}else{e.hp-=10*Math.max(1,G.stats.dmg);e.flash=.15}
+    if(e.hp<=0&&!e.dead){e.dead=1;killEnemy(e)}
+  }
+  EB=[];G.flashT=.3;shake=.4;
+  for(let i=0;i<5;i++)FX.push({ring:1,x:P.x+i*34,y:P.y+(i%2?-18:18),r:2,life:.45,max:34});
+}
 function powerup(k){
   if(k==='P'){P.wpn=Math.min(4,P.wpn+1);P.wpnT=24}
   else if(k==='S')P.shield=G.stats.shieldDur;
   else if(k==='M')P.mag=12;
   else if(k==='H')P.hp=Math.min(G.stats.hp,P.hp+1);
-  G.msg={P:'WEAPON UP',S:'SHIELD',M:'COIN MAGNET',H:'REPAIR'}[k];G.msgT=1.2;
+  else if(k==='O')P.twinT=20;
+  else if(k==='R')P.guardT=20;
+  else if(k==='B')bombBlast();
+  G.msg={P:'WEAPON UP',S:'SHIELD',M:'COIN MAGNET',H:'REPAIR',O:'TWIN ORBS',R:'GUARD ORB',B:'SMART BOMB'}[k];G.msgT=1.2;
 }
 function hurtPlayer(){
   if(P.inv>0||G.state!=='play')return;
@@ -533,6 +545,7 @@ function hurtPlayer(){
 }
 function killEnemy(e){
   G.score+=Math.round(e.pts);SAVE.kills++;lootDrop(e);
+  if(!e.carry&&e.type!=='rock'&&e.type!=='boss'&&Math.random()<.04)PK.push({k:'pw',p:['P','S','M','O','R','B'][Math.floor(Math.random()*6)],x:e.x,y:e.y,vx:-18,vy:0,t:0});
   boom(e.x,e.y,e.type==='boss'?90:e.type==='rock'&&!e.big?6:18,e.type==='boss'||e.w>16);
   if(e.type==='boss'){
     dropCoins(e.x,e.y,40);G.state='clear';G.timer=6;G.msg=(G.level>=3?'SYSTEM CLEAR':'LEVEL '+G.level+' CLEAR');G.msgT=6;G.boss=null;
@@ -590,6 +603,21 @@ function update(dt){
   if(P.wpnT>0){P.wpnT-=dt;if(P.wpnT<=0&&P.wpn>G.stats.startGun){P.wpn--;P.wpnT=P.wpn>G.stats.startGun?12:0}}
   if(P.shield>0)P.shield-=dt;if(P.mag>0)P.mag-=dt;
   P.fireT-=dt;if(P.fireT<=0&&E.length)fireShots();
+  if(P.twinT>0){
+    P.twinT-=dt;P.twinFire=(P.twinFire||0)-dt;
+    if(P.twinFire<=0&&E.length){P.twinFire=.45;
+      for(const sg of [-1,1]){const ox=P.x+4,oy=P.y+sg*14;let tg=null,bd=170;
+        for(const e of E){const d=Math.hypot(e.x-ox,e.y-oy);if(e.x>ox-20&&d<bd){bd=d;tg=e}}
+        if(tg){const d=Math.hypot(tg.x-ox,tg.y-oy)||1;PB.push({x:ox,y:oy,vx:(tg.x-ox)/d*210,vy:(tg.y-oy)/d*210,dmg:G.stats.dmg*.8})}}}
+  }
+  if(P.guardT>0){
+    P.guardT-=dt;P.gAng=(P.gAng||0)+4.5*dt;P.gx=P.x+Math.cos(P.gAng)*19;P.gy=P.y+Math.sin(P.gAng)*19;
+    for(const e of E){
+      if(e.gcd>0)e.gcd-=dt;
+      else if(Math.abs(e.x-P.gx)<e.w/2+5&&Math.abs(e.y-P.gy)<e.h/2+5){e.hp-=3*Math.max(1,G.stats.dmg);e.flash=.08;e.gcd=.15;if(e.hp<=0&&!e.dead){e.dead=1;killEnemy(e)}}
+    }
+    EB=EB.filter(b=>Math.hypot(b.x-P.gx,b.y-P.gy)>7);
+  }
   if(G.stats.missile){P.misT=(P.misT||0)-dt;if(P.misT<=0&&E.length){P.misT=1.8/(1+G.stats.missile*.5);PB.push({x:P.x+8,y:P.y,vx:110,vy:(Math.random()<.5?-1:1)*40,dmg:3,hm:1})}}
   updateEntities(dt,true);
 }
@@ -701,6 +729,7 @@ function drawEnemy(e){
   else if(e.fr==='boss'){spr=f?SPR.bossW:SPR.boss}
   ctx.drawImage(spr,(e.x-spr.width/2)|0,(e.y-spr.height/2)|0);ctx.globalAlpha=1;
 }
+function glowDot(x,y){ctx.fillStyle='#70a4b244';ctx.fillRect(x-5,y-1,10,2);ctx.fillRect(x-1,y-5,2,10)}
 function drawShip(){
   if(G.state==='dead')return;
   if(P.inv>0&&P.inv<9&&Math.floor(P.inv*16)%2&&G.state==='play')return;
@@ -732,6 +761,8 @@ function draw(){
   }
   for(const e of E)drawEnemy(e);
   drawShip();
+  if(G.state==='play'&&P.twinT>0&&(P.twinT>2||Math.floor(P.twinT*8)%2))for(const sg of [-1,1]){const ox=(P.x+4)|0,oy=(P.y+sg*14+Math.sin(P.anim*5+sg)*1.5)|0;glowDot(ox,oy);ctx.drawImage(SPR.opt,ox-3,oy-3)}
+  if(G.state==='play'&&P.guardT>0&&(P.guardT>2||Math.floor(P.guardT*8)%2)){for(let k=1;k<=4;k++){const a=(P.gAng||0)-k*.28;ctx.fillStyle=k<3?'#ff7777':'#9a6759';ctx.fillRect((P.x+Math.cos(a)*19)|0,(P.y+Math.sin(a)*19)|0,2,2)}ctx.drawImage(SPR.guard,((P.gx||P.x)-4)|0,((P.gy||P.y)-4)|0)}
   if(G.state==='play')for(let i=0;i<G.stats.opts;i++){const o=optPos(i);ctx.drawImage(SPR.opt,(o[0]-3)|0,(o[1]-3)|0)}
   // shots
   for(const b of PB){
@@ -777,6 +808,7 @@ function drawHud(){
     if(blink)textC(G.msg,G.msg==='WARNING'?60:44,G.msg==='WARNING'?'#ff7777':'#fff',2);
     if(G.state==='clear'){textC('COINS COLLECTED '+G.coinsRun,70,'#b8c76f',1);textC('RETURNING TO STATION',80,'#70a4b2',1)}
   }
+  {let ty=17;if(P.twinT>0){text('ORBS '+Math.ceil(P.twinT),4,ty,'#70a4b2',1);ty+=7}if(P.guardT>0){text('GUARD '+Math.ceil(P.guardT),4,ty,'#ff9966',1)}}
   if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80)textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
   G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt='SALVAGE FOUND: '+q.name,w=textW(txt,1)+18,x=((W-w)/2)|0,y=20+i*14;
@@ -788,7 +820,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.24';
+const VERSION='0.25';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1309,16 +1341,16 @@ function tapFire(){
   const was=G.tap||0;G.tap=Math.min(1,was+.07);SAVE.taps=(SAVE.taps||0)+1;
   if(was<1&&G.tap>=1&&G.tapArm&&!G.slot){G.tapArm=false;startSlot()}
 }
-const SLOT_SYMS=['P','S','M','H','C','X1','X2'];
+const SLOT_SYMS=['P','S','M','H','O','R','B','C','X1','X2'];
 function slotImg(k){if(k==='C')return SPR.coin[0];if(k[0]==='X')return SPR.crate[k==='X1'?0:3];return SPR.pw[k]}
 function startSlot(){
-  const win=Math.random()<.35;let r=Math.random(),type=r<.35?'P':r<.6?'S':r<.8?'M':'H';if(type==='H'&&P.hp>=G.stats.hp)type='S';
+  const win=Math.random()<.35;let r=Math.random(),type=r<.25?'P':r<.42?'S':r<.55?'M':r<.68?'H':r<.8?'O':r<.92?'R':'B';if(type==='H'&&P.hp>=G.stats.hp)type='S';
   let fin;
   if(win)fin=[type,type,type];
   else{
     const pick=()=>SLOT_SYMS[Math.floor(Math.random()*SLOT_SYMS.length)];
     fin=[pick(),pick(),pick()];
-    if(Math.random()<.4){const a=['P','S','M','H'][Math.floor(Math.random()*4)];let b;do{b=pick()}while(b===a);fin=Math.random()<.5?[a,a,b]:[a,b,a]}
+    if(Math.random()<.4){const a=['P','S','M','H','O','R','B'][Math.floor(Math.random()*7)];let b;do{b=pick()}while(b===a);fin=Math.random()<.5?[a,a,b]:[a,b,a]}
     if(fin[0]===fin[1]&&fin[1]===fin[2])fin[2]=fin[2]==='C'?'P':'C';
   }
   G.slot={t:0,win,type,fin,done:false,snd:0};
@@ -1342,7 +1374,7 @@ function drawSlot(){
     const bx=x0+4+i*20,by=y0+3,spun=q.t<.8+i*.45;
     ctx.fillStyle='#333';ctx.fillRect(bx,by,18,16);ctx.fillStyle='#111';ctx.fillRect(bx+1,by+1,16,14);
     ctx.save();ctx.beginPath();ctx.rect(bx+1,by+1,16,14);ctx.clip();
-    if(spun){const pos=q.t*16+i*3,ix=Math.floor(pos),fr=pos-ix,ia=slotImg(SLOT_SYMS[ix%7]),ib=slotImg(SLOT_SYMS[(ix+1)%7]),off=Math.round(fr*14);
+    if(spun){const pos=q.t*16+i*3,ix=Math.floor(pos),fr=pos-ix,ia=slotImg(SLOT_SYMS[ix%SLOT_SYMS.length]),ib=slotImg(SLOT_SYMS[(ix+1)%SLOT_SYMS.length]),off=Math.round(fr*14);
       ctx.drawImage(ia,bx+((18-ia.width)>>1),by+((16-ia.height)>>1)+off);ctx.drawImage(ib,bx+((18-ib.width)>>1),by+((16-ib.height)>>1)+off-14)}
     else{const im=slotImg(q.fin[i]);ctx.drawImage(im,bx+((18-im.width)>>1),by+((16-im.height)>>1))}
     ctx.restore();
