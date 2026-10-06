@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.13</title>
+<title>Idlyte v0.14</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -60,7 +60,7 @@ const BORDER_DEF='#6c5eb5';
 
 /* ===== tiny font (3x5) ===== */
 const FONT={A:'25755',B:'65656',C:'34443',D:'65556',E:'74647',F:'74644',G:'34553',H:'55755',I:'72227',J:'11152',K:'55655',L:'44447',M:'57755',N:'75555',O:'25552',P:'65644',Q:'25531',R:'65655',S:'34216',T:'72222',U:'55557',V:'55552',W:'55577',X:'55255',Y:'55222',Z:'71247',
- 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'41247'};
+ 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245'};
 function text(s,x,y,col,sc){
   sc=sc||1;ctx.fillStyle=col;s=String(s).toUpperCase();
   for(let i=0;i<s.length;i++){
@@ -317,7 +317,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{}};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1},SAVE.set||{});
@@ -559,6 +559,7 @@ function update(dt){
   G.warp=Math.max(0,G.warp-dt);
   if(G.msgT>0)G.msgT-=dt;
   G.tap=Math.max(0,(G.tap||0)-.4*dt/Math.max(1,SPEED));
+  if(G.state==='play'||G.state==='clear'){const pc=runPct(),bk=G.planet+'-'+G.level;if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   G.salv=G.salv.filter(q=>(q.t-=dt)>0);if(G.flashT>0)G.flashT-=dt;
   // stars scroll in all states
   const sv=G.state==='clear'?4:1;
@@ -762,12 +763,14 @@ function drawHud(){
     if(i<P.hp){ctx.fillStyle='#fff';ctx.fillRect(172+i*6,4,5,1)}}
   text('GUN '+P.wpn,232,4,'#9ad284');
   text('P'+((G.planet||0)+1)+'-'+(G.level||1),270,4,'#bbb');
-  // progress bar
-  const frac=G.boss?1:Math.min(1,G.t/LEVEL_LEN);
-  ctx.fillStyle='#352879';ctx.fillRect(4,BOT+4,W-8,4);
-  ctx.fillStyle='#70a4b2';ctx.fillRect(5,BOT+5,Math.floor((W-10)*frac),2);
-  if(G.boss){const hf=Math.max(0,G.boss.hp/G.boss.mhp);ctx.fillStyle='#000';ctx.fillRect(5,BOT+5,W-10,2);ctx.fillStyle='#ff7777';ctx.fillRect(5,BOT+5,Math.floor((W-10)*hf),2)}
-  ctx.fillStyle='#ffffff';ctx.fillRect(W-8,BOT+3,2,6);
+  // overall level completion
+  const pc=runPct();text(Math.floor(pc)+'%',4,BOT+2,'#ffffff',1);
+  const bx=28,bw=W-bx-12;
+  ctx.fillStyle='#352879';ctx.fillRect(bx-1,BOT+3,bw+2,6);
+  ctx.fillStyle='#70a4b2';ctx.fillRect(bx,BOT+4,Math.floor(Math.min(90,pc)/100*bw),4);
+  if(pc>90){ctx.fillStyle='#ff7777';ctx.fillRect(bx+Math.floor(bw*.9),BOT+4,Math.floor((pc-90)/100*bw),4)}
+  ctx.fillStyle='#ffffff';ctx.fillRect(bx+Math.floor(bw*.9),BOT+3,1,6);ctx.fillRect(bx+bw,BOT+3,2,6);
+  drawMiniMap();
   if(G.msgT>0&&G.msg){
     const blink=G.msg==='WARNING'?Math.floor(G.msgT*5)%2:1;
     if(blink)textC(G.msg,G.msg==='WARNING'?60:44,G.msg==='WARNING'?'#ff7777':'#fff',2);
@@ -784,7 +787,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.13';
+const VERSION='0.14';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1239,6 +1242,7 @@ function screenDef(id){
     info.push(sh.n+'   HULL '+st.hp+'   SPEED '+Math.round(st.speed)+'   DRONES '+st.opts+'   POWER '+shipPower());
     info.push('FIRE RATE '+st.fire.toFixed(1)+'   DAMAGE '+st.dmg.toFixed(1)+'   START GUN '+st.startGun);
     info.push('DESTINATION: '+pl.n+' LEVEL '+(SAVE.level||1));info.push('CONTRACT: '+ms.n);
+    info.push({t:'BEST: '+[1,2,3].map(l=>'L'+l+' '+((SAVE.prog[SAVE.planet||0]||0)>=l?100:Math.floor(SAVE.bestPct[(SAVE.planet||0)+'-'+l]||0))+'%').join('   '),c:'#9ad284'});
     rows.push({n:'LAUNCH',d:'FLY TO '+pl.n+' LEVEL '+(SAVE.level||1),ok:true,fn:launch});
     const opens=PLANETS.map((p,i)=>i).filter(planetOpen);
     if(opens.length>1){const nx=opens[(opens.indexOf(SAVE.planet||0)+1)%opens.length];rows.push({n:'CHANGE DESTINATION',d:'NEXT: '+PLANETS[nx].n,ok:true,fn:()=>{setPlanet(nx);save()}})}
@@ -1247,6 +1251,40 @@ function screenDef(id){
     rows.push({n:'BACK',d:'STAY ON THE STATION',ok:true,fn:()=>{HUB.screen=null}});
   }else{title=extraScreen(id,rows,info)}
   return {title,info,rows};
+}
+function runPct(){
+  if(G.state==='clear')return 100;
+  if(G.boss)return 90+10*(1-Math.max(0,G.boss.hp/G.boss.mhp));
+  return Math.min(90,G.t/LEVEL_LEN*90);
+}
+function levelSegs(planet,curLevel,runPc){
+  const out=[];
+  for(let lv=1;lv<=3;lv++){const cleared=(SAVE.prog[planet]||0)>=lv,best=cleared?100:Math.floor(SAVE.bestPct[planet+'-'+lv]||0);
+    out.push({lv,best,locked:lv>maxLevel(planet),cur:lv===curLevel,run:lv===curLevel?runPc:0})}
+  return out;
+}
+function drawLevelMap(x,y,w,h,segs,withText){
+  const gap=3,sw=Math.floor((w-gap*2)/3);
+  segs.forEach((q,i)=>{
+    const sx=x+i*(sw+gap);
+    ctx.fillStyle=q.cur?'#ffffff':'#444444';ctx.fillRect(sx-1,y-1,sw+2,h+2);ctx.fillStyle=q.locked?'#222222':'#000000';ctx.fillRect(sx,y,sw,h);
+    if(!q.locked){
+      ctx.fillStyle=q.best>=100?'#588d43':'#6c5eb5';ctx.fillRect(sx,y,Math.round(sw*q.best/100),h);
+      if(q.cur&&q.run>q.best){ctx.fillStyle='#9ad284';ctx.fillRect(sx,y,Math.round(sw*q.run/100),h)}
+      if(q.cur){ctx.fillStyle='#ffffff';ctx.fillRect(Math.min(sx+sw-1,sx+Math.round(sw*q.run/100)),y,1,h)}
+    }
+    if(withText){
+      const t=q.locked?'L'+q.lv+' LOCKED':(q.cur?'L'+q.lv+' '+Math.floor(q.run)+'% BEST '+Math.floor(Math.max(q.best,q.run))+'%':'L'+q.lv+' BEST '+q.best+'%');
+      text(t,sx+2,y+((h-5)>>1),q.locked?'#6c6c6c':'#ffffff',1);
+    }
+  });
+}
+function drawMiniMap(){
+  const x0=W-110,y0=BOT-27,pc=runPct(),k=G.planet+'-'+G.level,best=Math.floor(Math.max(SAVE.bestPct[k]||0,pc));
+  ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x0,y0,106,25);
+  text(PLANETS[G.planet||0].n,x0+3,y0+2,'#bbbbbb',1);
+  drawLevelMap(x0+3,y0+9,100,6,levelSegs(G.planet||0,G.level||1,pc),false);
+  text('L'+(G.level||1)+' NOW '+Math.floor(pc)+'%  BEST '+best+'%',x0+3,y0+18,'#ffffff',1);
 }
 function tapNeed(){return Math.round(40*Math.pow(1.3,SAVE.tapHull||0))}
 function gymTap(){
@@ -1685,9 +1723,9 @@ function drawLoot(){
   textC(LOOT.result==='clear'?'MISSION COMPLETE':'SHIP LOST',16,LOOT.result==='clear'?'#9ad284':'#ff7777',2);
   text(PLANETS[LOOT.planet||0].n+' LEVEL '+(LOOT.level||1)+(LOOT.mission?'  '+MISSIONS[LOOT.mission].n:''),40,36,'#70a4b2',1);textR(dateStr(SAVE.day),280,36,'#bbbbbb',1);
   text('GOLD GAINED',40,50,'#ffffff',1);textR('+'+LOOT.gold,280,48,'#b8c76f',2);
-  ctx.fillStyle='#352879';ctx.fillRect(40,62,240,1);
-  text('SALVAGE FOUND',40,67,'#ffffff',1);
-  let y=77,tot=0;const ids=ITEMS.filter(it=>LOOT.items[it.id]);
+  drawLevelMap(40,62,240,8,levelSegs(LOOT.planet||0,LOOT.level||1,LOOT.pct||0),true);
+  text('SALVAGE FOUND',40,74,'#ffffff',1);
+  let y=84,tot=0;const ids=ITEMS.filter(it=>LOOT.items[it.id]);
   if(!ids.length)text('NOTHING THIS TIME',48,y,'#6c6c6c',1);
   ids.forEach(it=>{const c=LOOT.items[it.id];tot+=c*it.v;
     ctx.drawImage(SPR.crate[ITEMS.indexOf(it)],40,y-1);text(it.n,52,y,'#ffffff',1);text('X'+c,160,y,'#bbbbbb',1);textR(c*it.v+' GOLD',280,y,'#b8c76f',1);y+=10});
@@ -1701,11 +1739,12 @@ function drawLoot(){
 }
 function endSortie(result){
   SAVE.sorties++;if(result==='clear')SAVE.clears++;
+  {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();
     if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={1:4,2:8,3:16}[after];if(nu)toast('SPEED X'+nu+' UNLOCKED')}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
   for(const id in G.loot)SAVE.inv[id]=(SAVE.inv[id]||0)+G.loot[id];
   if(G.score>SAVE.best)SAVE.best=G.score;
-  LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,mission:SAVE.mission,planet:G.planet,level:G.level};
+  LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
   refreshSpeedBtns();advanceDays(7);checkUnlocks();save();MODE='loot';UI.focus=0;
 }
 
