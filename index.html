@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Idlyte v0.06</title>
+<title>Idlyte v0.07</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -308,15 +308,15 @@ function save(){try{localStorage.setItem('idlyte1',JSON.stringify(SAVE))}catch(e
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
 const SHIPS=[
  {n:'DRIFTER',price:0,hp:0,sp:1,fr:1,dm:1,opt:0,d:'THE STANDARD SHIP'},
- {n:'WASP',price:2500,hp:-1,sp:1.25,fr:1.2,dm:1,opt:0,d:'FAST AND FRAGILE. -1 HULL'},
- {n:'BULWARK',price:4000,hp:3,sp:.85,fr:1,dm:1.2,opt:0,d:'SLOW AND TOUGH. +3 HULL'},
- {n:'ECLIPSE',price:12000,hp:1,sp:1.15,fr:1.15,dm:1.15,opt:1,d:'BEST ALL ROUND. 1 FREE DRONE'}];
+ {n:'WASP',price:12500,hp:-1,sp:1.25,fr:1.2,dm:1,opt:0,d:'FAST AND FRAGILE. -1 HULL'},
+ {n:'BULWARK',price:20000,hp:3,sp:.85,fr:1,dm:1.2,opt:0,d:'SLOW AND TOUGH. +3 HULL'},
+ {n:'ECLIPSE',price:60000,hp:1,sp:1.15,fr:1.15,dm:1.15,opt:1,d:'BEST ALL ROUND. 1 FREE DRONE'}];
 const MISSIONS=[
  {n:'OPEN SPACE',diff:0,gold:1,price:0},
- {n:'OPEN SPACE - HARD',diff:1,gold:1.6,price:600},
- {n:'DEEP SPACE',diff:2,gold:2.4,price:2500},
- {n:'DEEP SPACE - EXTREME',diff:4,gold:4,price:9000},
- {n:'WAR ZONE',diff:7,gold:7,price:30000}];
+ {n:'OPEN SPACE - HARD',diff:1,gold:1.6,price:3000},
+ {n:'DEEP SPACE',diff:2,gold:2.4,price:12500},
+ {n:'DEEP SPACE - EXTREME',diff:4,gold:4,price:45000},
+ {n:'WAR ZONE',diff:7,gold:7,price:150000}];
 const ITEMS=[
  {id:'scrap',n:'SCRAP METAL',v:4,w:50,c:'#6c6c6c'},
  {id:'circ',n:'CIRCUIT BOARD',v:10,w:28,c:'#588d43'},
@@ -325,26 +325,26 @@ const ITEMS=[
  {id:'crys',n:'ALIEN CRYSTAL',v:90,w:3,c:'#cc44cc'},
  {id:'relic',n:'ANCIENT RELIC',v:260,w:1,c:'#b8c76f'}];
 const UPG={
- dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:8,base:120,mul:1.6,shop:'weapons'},
- guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:8,base:100,mul:1.55,shop:'weapons'},
- startgun:{n:'MULTI-SHOT LINK',d:'START EACH MISSION WITH EXTRA GUNS',max:2,base:800,mul:3,shop:'weapons'},
- hull:{n:'HULL PLATING',d:'+1 HULL POINT',max:8,base:150,mul:1.6,shop:'armour'},
- shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:5,base:250,mul:1.7,shop:'armour'},
- damper:{n:'IMPACT DAMPER',d:'LONGER SAFE TIME AFTER A HIT',max:3,base:400,mul:2,shop:'armour'},
- opt:{n:'OPTION DRONE',d:'A DRONE FOLLOWS YOU AND FIRES',max:2,base:900,mul:3,shop:'design'},
- engine:{n:'ENGINE BOOSTERS',d:'FASTER SHIP',max:6,base:120,mul:1.55,shop:'design'},
- magnet:{n:'MAGNET COIL',d:'PULLS IN COINS FROM FURTHER AWAY',max:6,base:100,mul:1.5,shop:'design'},
- coin:{n:'SCAVENGER ARM',d:'25% MORE GOLD FROM COINS',max:6,base:300,mul:1.8,shop:'design'},
- repair:{n:'REPAIR BOTS',d:'REGAIN 1 HULL EVERY 25 SECONDS',max:1,base:1500,mul:1,shop:'design',eng:1},
- salv:{n:'SALVAGE ARM',d:'PULLS IN LOOT, MORE SALVAGE',max:1,base:2500,mul:1,shop:'design',eng:2},
- missile:{n:'MISSILE POD',d:'FIRES HOMING MISSILES',max:3,base:3500,mul:2.2,shop:'design',eng:3},
- cargo:{n:'CARGO NET',d:'ENEMIES DROP MORE SALVAGE',max:6,base:250,mul:1.7,shop:'design'}};
+ dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:8,base:600,mul:1.6,shop:'weapons'},
+ guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:8,base:500,mul:1.55,shop:'weapons'},
+ startgun:{n:'MULTI-SHOT LINK',d:'START EACH MISSION WITH EXTRA GUNS',max:2,base:4000,mul:3,shop:'weapons'},
+ hull:{n:'HULL PLATING',d:'+1 HULL POINT',max:8,base:750,mul:1.6,shop:'armour'},
+ shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:5,base:1250,mul:1.7,shop:'armour'},
+ damper:{n:'IMPACT DAMPER',d:'LONGER SAFE TIME AFTER A HIT',max:3,base:2000,mul:2,shop:'armour'},
+ opt:{n:'OPTION DRONE',d:'A DRONE FOLLOWS YOU AND FIRES',max:2,base:4500,mul:3,shop:'design'},
+ engine:{n:'ENGINE BOOSTERS',d:'FASTER SHIP',max:6,base:600,mul:1.55,shop:'design'},
+ magnet:{n:'MAGNET COIL',d:'PULLS IN COINS FROM FURTHER AWAY',max:6,base:500,mul:1.5,shop:'design'},
+ coin:{n:'SCAVENGER ARM',d:'25% MORE GOLD FROM COINS',max:6,base:1500,mul:1.8,shop:'design'},
+ repair:{n:'REPAIR BOTS',d:'REGAIN 1 HULL EVERY 25 SECONDS',max:1,base:7500,mul:1,shop:'design',eng:1},
+ salv:{n:'SALVAGE ARM',d:'PULLS IN LOOT, MORE SALVAGE',max:1,base:12500,mul:1,shop:'design',eng:2},
+ missile:{n:'MISSILE POD',d:'FIRES HOMING MISSILES',max:3,base:17500,mul:2.2,shop:'design',eng:3},
+ cargo:{n:'CARGO NET',d:'ENEMIES DROP MORE SALVAGE',max:6,base:1250,mul:1.7,shop:'design'}};
 function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return Math.round(u.base*Math.pow(u.mul,l)/5)*5}
 const CREW=[
- {id:'nav',n:'NAVIGATOR',d:'FASTER SHIP, BETTER DODGING',cost:[300,1200,4000]},
- {id:'weap',n:'WEAPONS EXPERT',d:'FASTER AND STRONGER SHOTS',cost:[400,1500,5000]},
- {id:'tech',n:'TECHNICIAN',d:'LONGER SHIELDS, START WITH A SHIELD',cost:[350,1300,4500]},
- {id:'eng',n:'ENGINEER',d:'BUILDS NEW PARTS IN THE DESIGN SHOP',cost:[600,2500,8000]}];
+ {id:'nav',n:'NAVIGATOR',d:'FASTER SHIP, BETTER DODGING',cost:[1500,6000,20000]},
+ {id:'weap',n:'WEAPONS EXPERT',d:'FASTER AND STRONGER SHOTS',cost:[2000,7500,25000]},
+ {id:'tech',n:'TECHNICIAN',d:'LONGER SHIELDS, START WITH A SHIELD',cost:[1750,6500,22500]},
+ {id:'eng',n:'ENGINEER',d:'BUILDS NEW PARTS IN THE DESIGN SHOP',cost:[3000,12500,40000]}];
 const TIERS=['ROOKIE','VETERAN','ACE'];
 const CREWNAMES={nav:['JAN VOSS','IRIS KANE','ORLA FINCH'],weap:['TOM BRIGGS','NELL ARDEN','RAY KOVAC'],tech:['PIA LUND','SAM OKORO','DEE MARSH'],eng:['ABE TOLLIVER','KIRA NASH','MAX DELANEY']};
 function baseStats(){
@@ -722,7 +722,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.06';
+const VERSION='0.07';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
