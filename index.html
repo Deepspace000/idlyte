@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.87</title>
+<title>Idlyte v0.89</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -1058,7 +1058,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.87';
+const VERSION='0.89';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1179,8 +1179,8 @@ const EXTRAS=[
 /* the spaces an extra still needs: names of the rooms that are not built yet */
 function extraMissing(x){return (x.need||[]).map(roomById).filter(r=>r&&!r.built).map(r=>r.n)}
 const BOOK_PRICE=[60,200,600,1500,4000];
-const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:5000,missions:12000,design:30000,shares:75000,crew:180000,ships:450000};
-const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
+const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:3000,missions:12000,design:30000,shares:75000,crew:180000,ships:450000};
+const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3000,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
 const SHOPS=[
  {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
  {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'EARN '+UNLOCK_GOLD.weapons+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.weapons},
@@ -1201,7 +1201,7 @@ function checkUnlocks(){
 }
 
 /* ===== UI plumbing ===== */
-const UI={list:[],focus:0,keys:{}};
+const UI={list:[],focus:0,keys:{}},MOUSE={x:-99,y:-99};
 function uiBtn(x,y,w,h,fn,draw){const i=UI.list.length;UI.list.push({x,y,w,h,fn});draw(UI.focus===i,i);return i}
 function uiAt(px,py){for(let i=UI.list.length-1;i>=0;i--){const b=UI.list[i];if(px>=b.x&&px<b.x+b.w&&py>=b.y&&py<b.y+b.h)return i}return -1}
 function toCanvas(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]}
@@ -1883,7 +1883,6 @@ function drawScreen(){
   box(14,18,292,172,'#000','#6c5eb5');
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
   text(def.title,20,22,'#ffffff',1);textR('GOLD '+SAVE.coins,282,22,'#b8c76f',1);
-  uiBtn(288,19,16,13,()=>{HUB.screen=null},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1)});
   let y=36;
   if(HUB.scrId!==HUB.screen){HUB.scrId=HUB.screen;HUB.iscroll=0}
   const over=def.rows.length===0&&def.info.length>17;HUB.infoMax=over?def.info.length-17:0;
@@ -1891,17 +1890,16 @@ function drawScreen(){
   for(const l of (over?def.info.slice(HUB.iscroll,HUB.iscroll+17):def.info)){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;if(o.t)text(o.t,22,y,o.c,1);y+=8}
   if(over){const bx=HUB.iscroll>0,by=HUB.iscroll<HUB.infoMax;text(bx?'^':' ',296,38,'#70a4b2',1);text(by?'v':' ',296,168,'#70a4b2',1)}
   y+=4;
-  // rows are registered before the close button so keyboard focus starts on them
-  const rowsStart=UI.list.length;
+  // rows are registered first so keyboard focus starts on them, and each row's index matches its highlight
   def.rows.forEach((r,i)=>{
     const pitch=def.rows.length>7?16:18,ry=y+i*pitch,i0=UI.list.length,cnt=r.btns?r.btns.length:1,fo=UI.focus>=i0&&UI.focus<i0+cnt;
     const run=(f)=>()=>{if(f.ok===false){toast(f.msg||(f.n&&/NEEDS|LOCKED/.test(f.d||'')?'LOCKED. HIRE A BETTER ENGINEER':'CANNOT DO THAT NOW'));return}f.fn()};
-    ctx.fillStyle=fo?'#352879':'#111111';ctx.fillRect(20,ry,280,pitch-1);
-    if(fo){ctx.fillStyle='#70a4b2';ctx.fillRect(20,ry,2,pitch-1)}
+    ctx.fillStyle=fo?'#4d40a8':'#111111';ctx.fillRect(20,ry,280,pitch-1);
+    if(fo){const pu=Math.floor(HUB.t*4)%2;ctx.fillStyle=pu?'#ffffff':'#9a8fe0';ctx.fillRect(20,ry,280,1);ctx.fillRect(20,ry+pitch-2,280,1);ctx.fillRect(20,ry,3,pitch-1);ctx.fillRect(297,ry,3,pitch-1)}
     if(r.bar!==undefined){ctx.fillStyle=fo?'#3c7a3c':'#2c5a2c';ctx.fillRect(22,ry,Math.round(278*r.bar),pitch-1)}
     const tx=r.icon?34:25;if(r.icon){ctx.fillStyle='#000';ctx.fillRect(24,ry+4,8,8);ctx.fillStyle=r.icon;ctx.fillRect(25,ry+5,6,6)}
     const o1=pitch===16?2:3,o2=pitch===16?8:10;
-    text(r.n,tx,ry+o1,r.ok===false&&!r.btns?'#6c6c6c':'#ffffff',1);text(r.d,tx,ry+o2,'#70a4b2',1);
+    text(r.n,tx,ry+o1,r.ok===false&&!r.btns?'#6c6c6c':'#ffffff',1);text(r.d,tx,ry+o2,fo?'#e0f4ff':'#70a4b2',1);
     if(r.btns){
       const bx=[150,196,242],bw=[44,44,56];
       r.btns.forEach((b,k)=>UI.list.push({x:bx[k],y:ry+2,w:bw[k],h:13,fn:run(b)}));
@@ -1912,8 +1910,7 @@ function drawScreen(){
       if(r.pw){const a=r.pw[0],b=r.pw[1],dl=Math.round((b-a)*10)/10;textR('POWER '+Math.floor(a+1e-6)+'>'+Math.floor(b+1e-6)+'  '+(dl>0?'+':'')+dl,296,ry+o2,dl>0?'#9ad284':dl<0?'#ff7777':'#959595',1)}
     }
   });
-  // close button registered last (above) is keyed by index: move it to the end
-  const cb=UI.list.splice(rowsStart-1,1)[0];UI.list.push(cb);
+  uiBtn(288,19,16,13,()=>{HUB.screen=null},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1)});
   if(HUB.screenDraw){HUB.screenDraw();HUB.screenDraw=null}
   UI.nrows=UI.list.length-1;
   if(UI.focus>=UI.list.length)UI.focus=0;
@@ -2095,6 +2092,27 @@ function planPath(tx,ty,pend){
   }
   sp.pend=pend||null;
 }
+function hubHover(wx,wy){
+  for(let d=0;d<4;d++)if(EXT[d]&&wy>=yTop(d)&&wy<yTop(d)+DECK_H){
+    let hit=null;for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8)hit=t;
+    if(hit)return{x:hit.x,d,label:typeof hit.label==='function'?hit.label():hit.label};
+    if(CAT.d===d&&Math.abs(wx-CAT.x)<10)return{x:CAT.x,d,label:'PET THE CAT'};
+    return null;
+  }
+  return null;
+}
+function drawHubGlow(){
+  if(HUB.screen)return;
+  let g=MOUSE.x>-50?hubHover(MOUSE.x+HUB.cam.x,MOUSE.y+HUB.cam.y):null;
+  if(!g){const nt=nearThing();if(nt)g={x:nt.x,d:nt.d,label:typeof nt.label==='function'?nt.label():nt.label}}
+  if(!g)return;
+  const x0=Math.round(g.x-16),y0=yTop(g.d)+8,w2=32,h2=FYd(g.d)-y0,pu=Math.floor(HUB.t*5)%2;
+  ctx.fillStyle='#ffffff30';ctx.fillRect(x0,y0,w2,h2);
+  ctx.fillStyle=pu?'#ffffff':'#9ad2e0';ctx.fillRect(x0,y0,w2,1);ctx.fillRect(x0,y0+h2-1,w2,1);ctx.fillRect(x0,y0,1,h2);ctx.fillRect(x0+w2-1,y0,1,h2);
+  const lb=String(g.label||''),lw=textW(lb,1)+6,lx=Math.max(Math.round(HUB.cam.x)+2,Math.min(Math.round(HUB.cam.x)+W-lw-2,Math.round(g.x-lw/2))),ly=y0-9;
+  ctx.fillStyle='#000';ctx.fillRect(lx,ly,lw,9);ctx.fillStyle=pu?'#ffffff':'#9ad2e0';ctx.fillRect(lx,ly,lw,1);ctx.fillRect(lx,ly+8,lw,1);ctx.fillRect(lx,ly,1,9);ctx.fillRect(lx+lw-1,ly,1,9);
+  text(lb,lx+3,ly+2,'#ffffff',1);
+}
 function hubClick(x,y){
   const wx=x+HUB.cam.x,wy=y+HUB.cam.y;
   for(let d=0;d<4;d++)if(wy>=yTop(d)&&wy<yTop(d)+DECK_H){
@@ -2231,8 +2249,9 @@ function drawHubMenu(){
   const items=[['INV','inv'],['SHIP','shipstats'],['CREW','personnel'],['SET','settings'],['BUILD','station'],['GOALS','achv']];
   items.forEach((it,i)=>{
     const x=W-3-(6-i)*26,y=16,on=HUB.screen===it[1];
-    const dr=(f)=>{ctx.fillStyle=on?'#000000':'#352879';ctx.fillRect(x,y,25,11);ctx.fillStyle=on?'#1c1840':(f?'#ffffff':'#9a8fe0');ctx.fillRect(x,y,25,1);ctx.fillRect(x,y,1,11);
-      ctx.fillStyle=on?'#9a8fe0':'#1c1840';ctx.fillRect(x,y+10,25,1);ctx.fillRect(x+24,y,1,11);textC2(it[0],x+12,y+3,on?'#ffffff':'#bbbbbb')};
+    const hv=MOUSE.x>=x&&MOUSE.x<x+25&&MOUSE.y>=y&&MOUSE.y<y+11;
+    const dr=(f)=>{const lit=hv&&!on;ctx.fillStyle=on?'#000000':(lit?'#6c5eb5':'#352879');ctx.fillRect(x,y,25,11);ctx.fillStyle=on?'#1c1840':(lit?'#ffffff':'#9a8fe0');ctx.fillRect(x,y,25,1);ctx.fillRect(x,y,1,11);
+      ctx.fillStyle=on?'#9a8fe0':(lit?'#ffffff':'#1c1840');ctx.fillRect(x,y+10,25,1);ctx.fillRect(x+24,y,1,11);textC2(it[0],x+12,y+3,on||lit?'#ffffff':'#bbbbbb')};
     if(HUB.screen)dr(false);else uiBtn(x,y,25,11,()=>{HUB.screen=it[1];UI.focus=0},dr);
   });
 }
@@ -2263,6 +2282,7 @@ function drawHub(){
   R_(ctx,(sp.x-3)|0,(sp.y)|0,6,1,'#00000066');
   ctx.drawImage(spr,(sp.x-5.5)|0,(sp.y-15+(sp.climb&&fi%2?-1:0))|0);
   if(SHX[300]&&Math.abs(sp.x-300)<=5){ctx.fillStyle='#70a4b244';ctx.fillRect(295,(EL.y|0)-17,10,14);R_(ctx,296,(EL.y|0)-17,1,10,'#ffffff88')}
+  drawHubGlow();
   ctx.restore();
   // top bar
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
@@ -2661,7 +2681,8 @@ function padPoll(dt){
   hold('tl','arrowleft');hold('tr','arrowright');hold('tu','arrowup');hold('td','arrowdown');tap('ta','e');tap('tb','escape');tap('tm','m');tap('th','h');
 })();
 cv.addEventListener('wheel',e=>{if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}},{passive:false});
-cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);if(i>=0)UI.focus=i});
+cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
+cv.addEventListener('pointerleave',()=>{MOUSE.x=-99;MOUSE.y=-99});
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
   if(MODE==='game'){const [gx,gy]=toCanvas(e);if(G&&G.slot&&slotTap(gx,gy))return;const bi=uiAt(gx,gy);if(bi>=0){UI.list[bi].fn();return}tapAt(gx,gy);return}
