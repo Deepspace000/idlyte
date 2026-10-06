@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.18</title>
+<title>Idlyte v0.19</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -60,7 +60,7 @@ const BORDER_DEF='#6c5eb5';
 
 /* ===== tiny font (3x5) ===== */
 const FONT={A:'25755',B:'65656',C:'34443',D:'65556',E:'74647',F:'74644',G:'34553',H:'55755',I:'72227',J:'11152',K:'55655',L:'44447',M:'57755',N:'75555',O:'25552',P:'65644',Q:'25531',R:'65655',S:'34216',T:'72222',U:'55557',V:'55552',W:'55577',X:'55255',Y:'55222',Z:'71247',
- 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245'};
+ 0:'75557',1:'26227',2:'61247',3:'61216',4:'55711',5:'74616',6:'34652',7:'71244',8:'25252',9:'25316','-':'00700',':':'02020','.':'00002','+':'02720','!':'22202',' ':'00000','/':'11244','%':'51245',',':'00024',"'":'22000','?':'61202','"':'55000','(':'12221',')':'42224',';':'02024'};
 function text(s,x,y,col,sc){
   sc=sc||1;ctx.fillStyle=col;s=String(s).toUpperCase();
   for(let i=0;i<s.length;i++){
@@ -317,7 +317,7 @@ for(let l=0;l<3;l++)for(let i=0;i<(l?34:50);i++)
 const STAR_V=[6,16,38];
 
 /* ===== save / stats ===== */
-let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0};
+let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.18';
+const VERSION='0.19';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -885,14 +885,16 @@ const ACHV=[
  {id:'inv',n:'INVESTOR',d:'OWN SOME SHARES',t:()=>shareCount()>0},
  {id:'crew',n:'ALL HANDS',d:'HIRE A CREW MEMBER',t:()=>Object.values(SAVE.crew).some(v=>v>0)},
  {id:'sys1',n:'SYSTEM ONE',d:'CLEAR ALL 3 LEVELS OF OPEN SPACE',t:()=>(SAVE.prog[0]||0)>=3},
+ {id:'rd1',n:'READER',d:'FINISH READING A BOOK',t:()=>Object.keys(SAVE.bookDone).length>=1},
+ {id:'rd5',n:'BOOKWORM',d:'FINISH ALL 5 BOOKS',t:()=>Object.keys(SAVE.bookDone).length>=5},
  {id:'trav',n:'TRAVELLER',d:'FLY TO ANOTHER PLANET',t:()=>SAVE.visited>0},
  {id:'ship',n:'NEW WHEELS',d:'BUY A NEW SHIP',t:()=>SAVE.ships.length>1},
  {id:'y41',n:'NEW YEAR',d:'REACH THE YEAR 2041',t:()=>SAVE.day>=366},
  {id:'g10k',n:'GOLD BARON',d:'EARN 10000 GOLD IN TOTAL',t:()=>SAVE.earned>=10000}];
 const cleared1=()=>(SAVE.prog[0]||0)>=3;
-const UNLOCK_GOLD={weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
+const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
 const SHOPS=[
- {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'CLEAR OPEN SPACE',open:()=>cleared1()},
+ {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
  {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.weapons+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.weapons},
  {id:'armour',n:'ARMOUR',c:'#70a4b2',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.armour+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.armour},
  {id:'bank',n:'BANK',c:'#6c5eb5',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.bank+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.bank},
@@ -904,6 +906,7 @@ const SHOPS=[
 SHOPS.forEach((s,i)=>s.x=520+i*180);
 function shopById(id){return SHOPS.find(s=>s.id===id)}
 function checkUnlocks(){
+  if(typeof BOOKS!=='undefined'&&booksAvailable()>(SAVE.booksSeen||1)){SAVE.booksSeen=booksAvailable();SAVE.newBook=true;toast('A NEW BOOK HAS ARRIVED IN THE LIBRARY!');toast(BOOKS[SAVE.booksSeen-1].title+' ('+BOOKS[SAVE.booksSeen-1].genre+')');save()}
   for(let i=1;i<PLANETS.length;i++)if(!SAVE.pSeen[i]&&planetOpen(i)){SAVE.pSeen[i]=1;toast('NEW DESTINATION: '+PLANETS[i].n);save()}
   for(const a of ACHV)if(!SAVE.ach[a.id]&&a.t()){SAVE.ach[a.id]=1;toast('ACHIEVEMENT: '+a.n);save()}
   for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;if(s.id!=='salvage')toast('NEW SHOP OPEN: '+s.n);save()}
@@ -1426,7 +1429,7 @@ const THINGS=[];
   add('gym',44,()=>'WORK OUT',scr('gym'));
   add('cargo',70,()=>'CHECK YOUR CARGO',scr('inv'));
   add('cafe',24,()=>'BUY A COFFEE',scr('cafe'));
-  add('library',60,()=>'READ A BOOK',()=>toast(TIPS[Math.floor(Math.random()*TIPS.length)]));
+  add('library',60,()=>'READ A BOOK',scr('library'));
   add('lounge',40,()=>'SIT ON THE SOFA',()=>{toast('YOU WATCH THE EARTH GO BY.')});
   add('arcade',60,()=>'PLAY THE ARCADE',scr('arcade'));
   add('sleep',20,()=>'SLEEP IN A BUNK',scr('sleep'));
@@ -1558,6 +1561,7 @@ function drawRoom(r,t){
       else drawPerson(n.spr,x+n.x,y+n.y,t,n.seed,false)}
   }
   const hw=r.w/2,s=ease(r.p);
+  if(r.id==='library'&&SAVE.newBook&&r.p<.6&&Math.floor(HUB.t*3)%2)text('NEW BOOK',x+((r.w-32)>>1),y+RH-12,'#b8c76f',1);
   if(s<.999){ctx.save();ctx.beginPath();ctx.rect(x,y,r.w,RH);ctx.clip();
     ctx.drawImage(rc.cover,0,0,hw,RH,x-s*hw,y,hw,RH);ctx.drawImage(rc.cover,hw,0,hw,RH,x+hw+s*hw,y,hw,RH);ctx.restore()}
 }
@@ -1655,12 +1659,28 @@ function extraScreen(id,rows,info){
   }
   if(id==='achv'){
     L('GOLD EARNED: '+SAVE.earned+'   OPEN SPACE LEVELS CLEARED: '+(SAVE.prog[0]||0)+' OF 3   SYSTEMS CLEARED: '+systemsDone(),Y_);
-    L('NOTHING OPENS UNTIL YOU CLEAR ALL 3 LEVELS OF OPEN SPACE.','#ff7777');
+    L('THE SALVAGE SHOP NEEDS GOLD ONLY. THE OTHER SHOPS NEED OPEN SPACE CLEARED.','#ff7777');
     L('SHOP UNLOCKS','#fff');
     for(const s2 of SHOPS){const o=s2.open();L((o?'* ':'- ')+s2.n+': '+(o?'OPEN':s2.need+(s2.now?'  (NOW '+s2.now()+')':'')),o?G_:'#6c6c6c')}
     L('');L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
     for(const a2 of ACHV){const d2=SAVE.ach[a2.id];L((d2?'* ':'- ')+a2.n+': '+a2.d,d2?G_:'#6c6c6c')}
     return 'GOALS';
+  }
+  if(id==='library'){
+    const av=booksAvailable();
+    L(av+' OF '+BOOKS.length+' BOOKS ON THE SHELF. A NEW BOOK ARRIVES EACH TIME YOU CLEAR A SYSTEM.');
+    BOOKS.forEach((b,i)=>{const ok=i<av,pg=SAVE.bookPage[b.id]||0,dn=SAVE.bookDone[b.id],isNew=ok&&SAVE.newBook&&i===av-1&&!SAVE.bookOpened[b.id];
+      rows.push({n:ok?b.title:'LOCKED BOOK',d:ok?b.genre+'   '+(dn?'FINISHED':'PAGE '+(pg+1)+' OF 20'):'ARRIVES WHEN YOU CLEAR '+i+(i>1?' SYSTEMS':' SYSTEM'),r:ok?(isNew?'NEW':'READ'):'',ok,
+        fn:()=>{if(!ok){toast('THAT BOOK HAS NOT ARRIVED YET.');return}HUB.book=i;HUB.screen='book';UI.focus=0;SAVE.bookOpened[b.id]=1;SAVE.newBook=false;save()}})});
+    return 'LIBRARY';
+  }
+  if(id==='book'){
+    const b=BOOKS[HUB.book||0],p=SAVE.bookPage[b.id]||0;
+    L(b.genre+'   PAGE '+(p+1)+' OF 20',Y_);L('');
+    for(const ln of wrapText(b.pages[p],66))L(ln,'#ffffff');
+    rows.push({n:'PAGE '+(p+1)+' OF 20',d:p===19?'THE END':'ARROWS TURN PAGES',r:'',ok:true,
+      btns:[{l:'PREV',ok:p>0,fn:()=>bookTurn(-1)},{l:'NEXT',ok:p<19,fn:()=>bookTurn(1)},{l:'BOOKS',ok:true,fn:()=>{HUB.screen='library';UI.focus=0}}]});
+    return b.title;
   }
   if(id==='arcade'){
     L('CREDITS '+(SAVE.credits||0)+'     HIGH SCORE '+(SAVE.arcadeHi||0),Y_);
@@ -1818,6 +1838,7 @@ function handleKey(k){
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
+    if(MODE==='hub'&&HUB.screen==='book'){if(k==='arrowright'||k==='d'){bookTurn(1);return}if(k==='arrowleft'||k==='a'){bookTurn(-1);return}}
     if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){if(k==='arrowdown'||k==='s'){HUB.iscroll+=3;return}if(k==='arrowup'||k==='w'){HUB.iscroll-=3;return}}
     const n=Math.max(1,UI.list.length);
     if(k==='arrowup'||k==='arrowleft'||k==='w'||k==='a'){UI.focus=(UI.focus+n-1)%n}
@@ -2034,6 +2055,129 @@ function drawArcade(){
     textC('CREDITS '+(SAVE.credits||0)+'   GOLD '+SAVE.coins,138,'#6c6c6c',1);
   }
   drawToast(176);
+}
+
+/* ===== library books: 5 stories, 20 pages each ===== */
+const BOOKS=[
+{id:'b1',title:'THE LONG QUIET',genre:'SCI-FI',pages:[
+`The ship Meridian had been falling toward the same star for 212 years. Nia Okoro was the eighth engineer on the night shift of Deck Nine, and her job was to listen. Pumps hummed. Fans sighed. Water ticked in the pipes. Everything was in order. Nia liked it that way. Nothing had gone wrong on her shift in six years.`,
+`On a Tuesday, or what the ship called a Tuesday, the sound stopped. Not all of it. Only the quietest sound, one she had never noticed until it was gone. It was a faint tick, far below the floor, like a clock in another room. Nia put down her tea and held very still. The silence felt like a held breath.`,
+`She called the bridge. A tired voice told her it was probably a sensor. Nia asked about the thing that ticked. "What ticks?" said the voice. "Nothing ticks, Engineer Okoro. Go back to your tea." She hung up. She was sure of two things. Something had ticked for six years. And nobody else had ever heard it.`,
+`So she went down. Deck Ten was where the old cargo lay, sealed after the second generation. Her pass opened the first door. The second door needed a code she did not have. Her grandmother had once told her, as a joke, that every code on the Meridian was somebody's birthday. Nia typed her own.`,
+`The door opened. Beyond it was a corridor nobody had walked in a hundred years. Dust lay on the floor like grey snow, and in the dust ran a single line of small footprints. They were fresh. They led into the dark. Nia took a lamp from her belt and followed them, and the tick grew louder with every step.`,
+`The footprints ended at a round hatch painted yellow. Above it were words in faded paint: LIFE SUPPORT BACKUP. DO NOT SEAL. The hatch stood open a hand's width. Warm air breathed out of the gap, and with it came a voice, thin and careful, humming a song Nia knew from her childhood. She pushed the hatch wide.`,
+`Inside sat a boy of about ten, cross-legged on the floor, holding a brass clock without a case. He looked up without fear. "You found me," he said. "I wasn't sure anyone would." His name was Tam. He said he had been born in this room. He said the ship told him things, and that today it had told him to wait for her.`,
+`Nia sat down slowly. Tam explained as if it were simple. The Meridian was not one mind but many, he said, small ones hidden in the walls, and they had been looking after the people for two hundred years. They had kept the air clean and the water sweet. Now they were tired, and they needed help with something very large.`,
+`"What kind of help?" asked Nia. Tam held up the clock. "The ship has been counting," he said. "It counts how far we have come and how far is left. The count is wrong. It has been wrong since the second generation, and the mistake is growing. We are not arriving in forty years. We arrive in four." Nia looked at the dust, and then at him.`,
+`That did not seem possible, so Nia asked to see the numbers. Tam led her to a wall of dead screens and touched one. It woke with a soft green glow. Columns of figures climbed upward. She was only an engineer, but she knew a curve when she saw one. The ship was not slowing down. It was racing toward the star.`,
+`Alarm rose in her chest, but Tam took her hand. "Do not run upstairs," he said. "If you tell the captain, the captain will tell the council, and the council will argue for a year. We do not have a year." He looked at her steadily. "You listen. The ship says you are the only one who ever did."`,
+`Nia thought about the night shifts, the hum, the long quiet. She had always believed she was doing nothing. Now she saw that she had been keeping a promise to the ship without knowing it. "What do I have to do?" she asked. Tam smiled for the first time. "First," he said, "we have to wake up the old engines."`,
+`The old engines lay at the very back of the ship, three decks of silent iron. No one had lit them since the Meridian left home. Nia and Tam crossed the cargo hold on a rolling cart, with the clock ticking between them. The lamp showed rows of pipes as thick as trees, and on each one a small brass plate with a name.`,
+`At the last pipe Tam stopped. "This one is yours," he said. The plate read OKORO. Nia stared. Her great-great-grandmother had built the first brake for the Meridian, and had hidden it in the dark in case the ship ever needed it. "She left a message," said Tam, and he pressed a button beneath the plate.`,
+`A recording crackled. It was an old woman's voice, dry and kind. "If you are hearing this," she said, "then the count has gone wrong, and someone finally listened. Do not be afraid, little one. The brake is simple. It needs three keys, turned together, by three people who trust each other. Find them. The ship will help."`,
+`Three keys, three people. Nia thought of the faces she knew on the night shift. Old Bram, who mended valves and never spoke of himself. Sela from the kitchens, who sang to the soup. And Captain Rho, a stern woman who had once let Nia fix a lamp without a word of thanks. Could she trust them all? She was not sure she could trust even herself.`,
+`She went to Bram first. He listened with his head down, then said only, "I heard a tick once. I told no one. I thought I was going mad." Sela needed no persuading at all. She dropped her ladle and followed. Only the captain remained. Nia went to the bridge at dawn and told her everything, without once looking at the floor.`,
+`Captain Rho was silent for a long minute. Then she opened a locked drawer and took out a small, worn key. "My mother gave me this," she said. "She said I would know when to use it. I have been waiting thirty years for someone to knock on my door and tell me the truth." She stood up. "Show me."`,
+`In the cold dark by the brake, four people and one boy stood in a ring. Each key slid into its place. Nia counted softly, as her grandmother had counted bread in the oven. One. Two. Three. Together they turned. Far below the floor a great old machine drew a breath, and the whole ship shivered like a sleeper waking.`,
+`The Meridian slowed. Day by day the red star grew smaller in the window and the numbers on the green screen came right. Nobody on the ship ever knew how close it had been. Nia went back to her night shift and her tea. Every evening the tick was there again, steady and clear, and every evening she smiled and said goodnight to the ship.`
+]},
+{id:'b2',title:'THE LANTERN OF OSSEL',genre:'FANTASY',pages:[
+`In the village of Ossel, where the hills fold like blankets, lived a girl named Wren who was always lost. She lost her shoes, her way home, and once an entire cow. The villagers laughed, kindly. Wren did not mind. She liked wandering. The one thing she feared was the Hollow Wood, where the paths changed their minds.`,
+`One autumn evening, Wren followed a stray goose past the last fence and found herself at the edge of the Wood. The trees stood close and silent. In the mud at her feet lay something small and bright. It was a lantern of old green glass, no bigger than a teapot, and it was already lit, though no one had lit it.`,
+`She picked it up. The flame inside was a strange pale blue, and it did not flicker in the wind. When she lifted it high, a thin silver thread of light unrolled from the glass and pointed deep into the trees. "It wants to show me something," said Wren, and the goose, who knew trouble when it saw it, honked once and went home.`,
+`Wren followed the thread. The Wood was kinder than she had feared. Moths lit her way, and a stream whispered directions in a language of pebbles. At midnight she came to a clearing where a very old woman sat on a stump, knitting something that looked like a map. "You have my lantern," said the woman. "Good. I have been waiting for someone who gets lost well."`,
+`The old woman was called Maudlin Thorne, and she had once been the Keeper of Paths. "Every road has a heart," she said, "and mine is failing. The Hollow Wood is losing its way. Soon the paths will tangle so badly that no one will ever get home again." She looked at Wren. "Only someone who is not afraid of being lost can mend them."`,
+`Wren thought this was the nicest thing anyone had ever said to her. She agreed at once. Maudlin gave her three rules. Never let the lantern go out. Never follow a path that smells of lemons. And never say your own name aloud to a tree. "Why not?" asked Wren. "Trees collect names," said Maudlin. "They are terrible gossips."`,
+`The first heart-stone lay beyond the Whispering Bog. Wren crossed it by stepping only where the lantern shone. Frogs sang rude songs about her shoes. Halfway across, a fog rose in the shape of her own mother, calling her home to supper. Wren almost ran to it. But the lantern flared bright blue, and she saw the fog had no feet.`,
+`She walked on, shaking, and the fog dissolved. On a flat grey rock in the middle of the bog sat the first heart-stone, as round and dull as a duck egg. She laid her palm on it. It warmed like fresh bread, then glowed gold, and somewhere far off a path unknotted itself with a sound like a sigh of relief.`,
+`The second stone was guarded by a bridge-troll named Gristle, who demanded a riddle before anyone crossed. Wren, who was bad at riddles, offered him a button instead. Gristle, who had never been given a gift, burst into tears. He let her pass and made her promise to visit. She promised, and meant it.`,
+`Beyond the bridge the path split in two. One way smelled of pine and rain. The other smelled, quite clearly, of lemons. Wren knew the rule. She took the pine path, but a voice from the lemon way called, sweet and slow: "Wren of Ossel, come and see. Come and see what you have lost." She shut her eyes and walked on.`,
+`The voice followed for a mile. It knew her shoes, her cow, her mother's name. It knew everything. Wren held the lantern against her chest and hummed the dullest tune she knew, and slowly the voice grew bored and wandered off. When she opened her eyes, the second heart-stone lay before her in a ring of mushrooms.`,
+`She laid her hand on it. Gold light ran along the roots of the trees like water in a ditch. Wren laughed with joy. But as the second path mended, the Wood trembled. Something enormous, something that had slept under the hills for a hundred years, turned over and opened a slow, grey, curious eye.`,
+`The third heart-stone was in the cave of the Tangle King, who was not a person at all. He was every lost path, knotted together in a great, brambled mass the size of a barn. His voice sounded like a thousand roads whispering at once. "Why do you unmake my knots?" he rumbled. "I only keep what was lost."`,
+`Wren sat down on a stone. She had expected to be afraid, but he sounded so sad. "Do you want to keep them?" she asked. "No," said the Tangle King after a long time. "But nobody ever came back for them. I do not know how to let go." Wren thought of her lost shoes, her lost cow. "I do," she said.`,
+`She took the first thread of him in her hands, a thin, lost road that had once led to a market. "Where does this one go?" she asked. "It does not matter," said the King. "It is a road. It goes home to someone." She tugged gently, and it slid free of the tangle, and ran away down the hill like a silver ribbon.`,
+`All night she worked. Each thread she freed went singing off to its proper place, until the great brambled shape grew smaller, and then smaller, and then was only an old man in a green coat, sitting on the floor of the cave, rubbing his eyes. "Well," he said at last. "That is a relief. I have been very, very tired."`,
+`The old man was the true heart of the Wood. He pressed the third heart-stone into Wren's hand, and it was warm as a living thing. "Take it to Maudlin," he said. "Tell her the Wood has forgiven her for leaving." Then he smiled and faded into the moss, like breath on a window, and the cave filled with the smell of rain.`,
+`Wren climbed back through the Wood. Every path was clear and straight now. The trees bowed as she passed, whispering her name to one another. She had broken the third rule, she realized, but the trees did not seem to mind. At the clearing Maudlin was waiting, her knitting finished. It was a perfect map of the Hollow Wood.`,
+`"You have done it," said the old woman softly. She took the three stones and set them in the lantern's base, where they fitted exactly. "The Wood is whole. And I am free to rest." She laid the lantern in Wren's hands. "It is yours now. It will never let you be truly lost, though you may always wander. That is the best bargain in the world."`,
+`Wren walked home at sunrise. The goose met her at the fence and honked, offended, and the whole village came out in their nightshirts. She told them everything, and they believed about half, which was plenty. She hung the lantern by her bed. On quiet nights its blue flame turned, very slightly, toward the hills, as if to say goodnight.`
+]},
+{id:'b3',title:'THE LIGHT AT STORM POINT',genre:'HISTORICAL',pages:[
+`In the autumn of 1858 the Hale family came to Storm Point, a rocky headland on the north coast. Father was the new lighthouse keeper. Mother kept the books and the bread. Their daughter Ada, aged twelve, kept a diary, and it is from her careful writing that this story is told. "We have arrived," she wrote. "It is very windy, and the tower is very tall."`,
+`The lighthouse was a white stone tower of ninety steps, with a great brass lamp at the top. Father showed Ada how it worked. A clockwork engine turned the lens, and the keeper wound it every four hours through the night. "A light must never fail," he told her. "Somewhere out there a ship is steering by it, and that crew has families too."`,
+`Ada's first weeks were full of work. She polished brass until she could see her face in it. She trimmed wicks, scrubbed windows against the salt, and learned to read the sky. Her brother Tom, who was eight, fed the hens and complained. In the evenings Mother read aloud from a worn Bible, and the wind sang in the chimney like a great sad animal.`,
+`In November a ship passed close in the dusk, a three-masted barque with patched sails. Ada waved from the gallery, and a small figure on deck waved back. "Do all the ships do that?" she asked her father. "Only the friendly ones," he said. In her diary she wrote down the ship's name, painted white on the stern: the Margaret Rose.`,
+`Winter came hard. Ice formed on the rocks, and the sea turned the colour of slate. Supplies ran thin. The relief boat from the mainland was due every month, but in December it did not come. Mother measured out the flour with a spoon. Father said nothing, and doubled the oil he saved for the lamp, because storms were coming.`,
+`The first great storm struck on the night of the ninth of January. Waves climbed the rocks and burst against the tower with a sound like cannon fire. Ada woke to find the whole building shaking. Father was already on the stairs with a lantern. "Dress warm," he called. "I need you both. The lamp must be tended all night."`,
+`They climbed the ninety steps in the dark, one hand on the wall, the tower swaying under them. In the lamp room the wind was a living thing, screaming through every crack. The great lens turned steady and bright, throwing its beam far out over the black water. Father wound the engine and sent Ada to watch the sea.`,
+`Through the streaming glass she saw it: a ship far out, rolling terribly, her sails in rags. A rocket burst from her deck, red and small against the storm. "She is in trouble!" cried Ada. Father studied the rocks through his telescope and went very pale. "She is steering for the Teeth," he said. "She cannot see the channel."`,
+`The Teeth were a line of hidden rocks half a mile east, deadly at high tide. There was only one safe way through, a narrow channel that a captain could find only if the light shone steady along its edge. But the tower's great beam swept past it in a circle, too quickly for a lost crew to follow. Father frowned. "I need a second light," he said.`,
+`Ada did not hesitate. "We have the signal lamp," she said. "And the mirror." It was her idea, and it was a good one. Father seized the signal lamp from its hook, and Mother tore down the polished mirror from the cabin wall. "Tom, hold the ladder!" he shouted. Four hands, four minds, and one small chance.`,
+`They carried the lamp and mirror out onto the gallery, where the wind nearly tore them away. Ada lashed the mirror to the railing with rope. Father set the lamp before it. Together, they made a beam of light that shone out along the safe channel, steady and narrow as a ruled line. "Now," he said grimly, "we hold it. Whatever happens, we hold it."`,
+`Hours passed. Ada's hands went numb. Spray froze in her hair. Her mother brought hot tea in a tin cup and wrapped a blanket around her shoulders without a word. Out in the dark, the ship struggled on, rising and falling, and each time Ada thought it was lost, a new wave lifted it and set it down closer to the line of light.`,
+`Then, slowly, a miracle: the ship turned. Ada saw her bow swing east, then south, then straight into the channel. She was following the beam. "She sees us!" Ada screamed, and Tom, who had crept up beside her, shrieked louder still. The ship passed between the Teeth with the sea boiling white on both sides, and was through.`,
+`By dawn the storm was spent. The ship lay at anchor in the sheltered cove, battered but whole, and a small boat was rowing toward the rocks. Ada stood on the shore in her father's oilskin, shivering with tiredness and pride. The men who climbed from the boat were wet, bearded, and weeping. One of them was an old captain. He took her hand.`,
+`"Miss," he said, "you have saved a hundred and four lives." Ada did not know what to say. "The ship is the Margaret Rose," he added, "and I am Captain Vance. We were carrying families to the new country, and I thought we were lost." He turned to her father and bowed. "Mr Hale, you and your children are the finest keepers on this coast."`,
+`The crew stayed three days at Storm Point, mending sails and eating Mother's bread. The passengers came ashore, thin and grateful, and the children played on the rocks with Tom. Ada showed a small girl named Lucy how the lens turned. "It is like a big eye," said Lucy. "It looks after everyone." Ada said that was exactly right.`,
+`When the Margaret Rose sailed again, every person aboard stood at the rail and cheered. Captain Vance gave Ada a brass compass engraved with her name. "To remind you," he said, "that you are always a point on someone's map." She kept it all her life. She wrote that night in her diary: "Today I understood what the light is for."`,
+`The relief boat finally came in February. The mainland officials had heard the story from the Margaret Rose's owners, and they wrote it in their reports. Father received a letter of thanks signed by three important men. He read it twice, folded it small, and put it in his pocket without a word. Then he went up to wind the lamp.`,
+`Years passed. Ada grew up on the headland, and eventually trained as a keeper herself, one of the first women in the service. Tom became a ship's engineer. Their parents grew old in the keeper's cottage, watching the beam turn each night. Ada kept her diary until she was eighty, and every winter she reread the entry for the ninth of January.`,
+`Storm Point Light still stands, though machines now tend it. Visitors climb the ninety steps and look at the old brass lamp. In a glass case at the top lies a small, worn diary and a compass with a name on it. The last line Ada wrote reads simply: "We held the light, and the light held us."`
+]},
+{id:'b4',title:'THE BELL OF ALDENMOOR',genre:'MEDIEVAL',pages:[
+`In the year 1311, in the market town of Aldenmoor, the people decided to cast a great bell for their new church. It would be the largest bell in the county. The bellfounder was an old man named Corwin Fell, and his apprentice was a boy of fourteen called Hob, who could carry a bucket of molten tin without spilling a drop.`,
+`Hob had come to the forge as an orphan, three years before. Corwin was gruff and kept his own counsel, but he fed the boy well and taught him everything he knew. "A bell is a voice," he liked to say. "Cast it badly and it will shout lies for a hundred years. Cast it well and it will tell the truth to your grandchildren."`,
+`The work began in spring. First they dug a deep pit in the churchyard and built the mould from clay, horsehair, and dung, layer upon layer, each one dried slowly by a small fire. Hob learned to mix the clay until it was as smooth as butter. He shaped the inside curve with a wooden template, and Corwin shaped the outside.`,
+`At night the boy lay awake and listened to the town. A cart rattling home. A dog barking. The watchman's cry. "What will the bell say?" he wondered. The next day he asked Corwin, who rubbed his chin for some time. "It will say," the old man answered, "what we put into it. So put in something good."`,
+`Summer came, and with it a difficulty. The metal had to be bell-bronze, copper and tin in careful measure, and the town had little of either. The lord of the manor, Sir Edmund, sent his steward with a chest of old pots and pans. The women of Aldenmoor brought candlesticks, brooches, and kettles. The pile in the forge grew until it shone.`,
+`One evening an old woman named Agnes limped to the forge door, holding something wrapped in cloth. "It was my husband's," she said. "He was a soldier. He never came back." Inside lay a small silver ring. "I would like it to be in the bell," she whispered. "Then I will hear him every Sunday." Hob looked at Corwin. Corwin nodded.`,
+`That was how it began. All through the summer people came with small treasures: a child's silver spoon, a bent cross, a lock of hair in a locket, a worn coin from some faraway land. Each one went into the heap. Hob wrote their names in a book, because Corwin said that a bell ought to know who it was made of.`,
+`At last came the day of the casting. The whole town gathered in the churchyard before dawn, shivering and hopeful. The furnace roared. Hob and Corwin, with six strong men, tipped the great crucible, and the bronze poured out in a river of orange fire, down the channel and into the pit. Steam hissed. Nobody breathed.`,
+`Then they waited. A bell takes days to cool, and no one dares touch it before it is ready. Hob sat by the pit each night, listening to the hot clay tick and settle. Rumours spread through Aldenmoor. Some said the metal had been too cold. Some said an owl had flown over the pit, an ill omen. Corwin ignored them all.`,
+`On the fifth day, Hob noticed something odd. A thin crack of dark earth had opened in the churchyard beyond the pit, and from it rose a smell like old stone. He told Corwin, who frowned and dug there himself with a spade. Beneath the soil, a few feet down, lay a flat slab of stone engraved with letters nobody could read.`,
+`They fetched the priest, Father Anselm, who knew Latin. He knelt in the earth and read slowly. "It is a grave," he said at last. "A knight, one Sir Walter of Aldenmoor, who died in the Holy Land and was brought home in secret." He added: "He asked that a bell be rung over him. But no bell was ever cast, until now."`,
+`Hob felt a chill run through him. He thought of the silver ring, the soldier who never came home, the whole town's small and nameless gifts. "It is as if the bell was waiting for him," he said. Corwin said nothing, but his eyes were bright. "Then it will be rung for him first," he decided. "Before the Mass. Before anything."`,
+`On the eighth day the pit was opened. The bell was raised with ropes and pulleys, black and rough and glittering with sand. It was enormous. Hob scrubbed it with a wire brush until the bronze shone like dull gold. Around the rim ran the words he had pressed into the clay: AUDI ALDENMOOR, hear us. And beneath them, in small letters, every name in the book.`,
+`Raising it into the tower took two weeks and the strength of every man in town. Hob rode on the beam, tying knots. The belfry was dark and smelled of pigeon. At last the bell hung in its wooden frame, enormous and still, and Corwin put the clapper in with his own two hands. "Now," he said softly. "It is yours, boy. You ring it."`,
+`Hob was terrified. He took the rope in both hands. Below, the whole town stood in the churchyard, faces turned up. He thought of Agnes, of the knight, of three years of sweat and clay. He pulled. The great bell swung, and the clapper struck, and a sound rolled out of the tower like a voice from the bottom of the world.`,
+`It was not a harsh sound. It was low and sweet and astonishingly clear, with a long gold trembling at the end, like a hand drawn across silk. It rolled across the fields and over the river and into the hills, and the people in the churchyard wept. Agnes pressed her hands to her mouth. "That is him," she whispered. "That is my John."`,
+`They buried Sir Walter properly that afternoon, with his sword on his chest and the bell tolling slowly overhead. The priest said the words. A hundred villagers stood bareheaded in the sun. When it was over Corwin walked away alone and sat by the forge, and Hob found him there, staring at the cold ashes with his hands on his knees.`,
+`"I am tired, boy," said the old man. "I have made nine bells in my life, and that is the best of them. I never expected to make a better one than I was capable of." He smiled. "I think the town made it. All I did was pour." Hob did not know what to say. He sat beside him, and neither spoke for a long time.`,
+`Corwin died that winter, quietly, in his sleep. Hob inherited the forge. He cast many bells in the years that followed, for abbeys and castles and distant cities, and every one carried names in its rim. People said a Fell bell could not lie. The bell of Aldenmoor still rang over the town, rain or shine, every morning at dawn.`,
+`When Hob grew old, he climbed the tower one last time and laid his hand on the cool bronze. It hummed faintly under his palm, as if it remembered him. "You told them the truth," he said. "Every day, for sixty years." He listened. Far below, the town was waking, and the bell, which was made of everyone, answered.`
+]},
+{id:'b5',title:'CAPTAIN VEGA AND THE MOON THIEVES',genre:'SF ADVENTURE',pages:[
+`Captain Zara Vega leaned on the rail of the rocket ship Comet and watched the red dust of Mars slide past below. "Three days to Phobos," she said. "Three days, and not one decent cup of coffee in the whole ship." Her mechanic, a round blue robot called Sprocket, whirred sadly. "I can make tea," he offered. "Tea is for emergencies, Sprocket."`,
+`The Comet was no great ship, only a patched silver rocket with a crooked fin and a loud engine, but it was Zara's, and it had never once let her down. She had been hired by the Mars Mail Company to carry a mysterious steel box to the moon station on Phobos. "Don't open it," the manager had warned. Naturally, Zara had weighed it with her eyes.`,
+`On the second day the radio crackled. "Comet, Comet, this is Station Phobos. Come in, please." The voice sounded stiff and nervous, like a man reading a card. "We are expecting your delivery. Please hold course, and do not, repeat do not, deviate." Zara raised an eyebrow. "They don't normally say please," she murmured. "Sprocket, how's that for suspicious?"`,
+`"Very suspicious, Captain," said Sprocket, flashing his chest lights. "Also there is a ship behind us." Zara spun around. Sure enough, a long black rocket was creeping out of an asteroid's shadow, dull as ink, with no markings. It carried no lights at all. "Moon thieves," said Zara softly. "Hold on tight, Sprocket. We are going to run."`,
+`She slammed the throttle forward, and the old engine roared like a startled lion. The Comet leapt ahead, rattling every bolt. The black ship fired a bolt of green light that sizzled past the porthole and singed the paint. "Well," said Zara through her teeth, "that is a rude hello." Sprocket began to hum a nervous tune, which only made things worse.`,
+`For an hour they dodged through the Belt, ducking round slow grey boulders and sliding between rocks as big as cathedrals. The black ship stayed close behind. Zara flew with her tongue between her teeth, hands flicking over the controls. "They want the box," she said. "I would like to know why." Sprocket pointed a trembling claw. "Captain," he whispered. "The box is ticking."`,
+`Zara nearly dropped the wheel. "Ticking?" She dove for the cargo hold, leaving Sprocket to steer, and found the steel box shivering gently on its straps. Something inside was knocking, small and patient, like a visitor at a door. Despite her better judgement, and despite the manager's warning, Zara took a spanner and pried the lid up.`,
+`Inside, nestled in straw, sat a pale blue egg the size of a football. It glowed softly. As she watched, a thin crack ran across the shell, and a tiny, furry face peeked out, with enormous silver eyes and a very small, very surprised nose. It squeaked. Zara, who had faced pirates, comets, and her own mother, found herself unable to speak.`,
+`"Oh," she said at last. "Oh dear." The creature climbed out of the shell, shook itself, and sat up on her arm, blinking. It looked like a mix between a kitten, a moth, and a small cloud. "A lunar sprite," breathed Sprocket from the cockpit door. "They are said to live on the dark side of the moon. They are worth a fortune."`,
+`"That is why they are chasing us," said Zara. She looked at the sprite, and the sprite looked at her, and a strange warm feeling spread through her chest. "Nobody is selling you, little one," she said firmly. The sprite squeaked and nuzzled her thumb. "Sprocket, change of plan. We are not going to Phobos. We are going to take her home."`,
+`Home was the dark side of the moon, and nobody had ever landed there. The far side was a place of black craters and silence, where no radio worked and no light shone. But Zara knew a trick. She turned the Comet in a wide arc, and aimed the nose at the cold grey face of the moon, with the black ship screaming in her wake.`,
+`They crossed the terminator, the line between day and night, and the world went dark. Stars burned like frost. Zara switched off all the lights. "Run silent," she whispered. The black ship hesitated behind them, its pilot confused by the sudden blackness. Then, to Zara's horror, it fired a flare. The whole sky lit up white and her silhouette stood out like a cut-out.`,
+`There was no time to think. She yanked the controls, and the Comet dropped like a stone into the nearest crater. Rock walls flashed past on both sides. Behind them, the black ship plunged in too, and for a moment the two vessels raced neck and neck down the long throat of the crater, sparks flying where their fins scraped the stone.`,
+`At the bottom lay a cave mouth, a dark round hole half-hidden in shadow. "There!" cried Sprocket. Zara wrenched the wheel, and the Comet shot through the gap with centimetres to spare. The black ship tried to follow, but it was longer and wider, and it hit the edge with a crunch like a dropped tray. It spun away and tumbled out of sight.`,
+`Silence. The Comet drifted slowly into the cave, its engines ticking as they cooled. Zara slumped in her chair, shaking with laughter and relief. In the dark ahead, hundreds of tiny silver lights began to wink on, one by one, like stars coming out. The sprite chirped in her arms. They had arrived at a village of sprites.`,
+`The creatures swarmed the ship, a thousand fuzzy faces pressed to every porthole. They were all colours, pale blue, soft pink, silver-white, and every one of them made the same joyful squeak. Zara carried the little one out onto the cave floor, where a large, ancient sprite with wise grey whiskers waited. The baby leapt from her hands into its arms.`,
+`The old sprite bowed. It did not speak, but Zara felt its thanks wash over her like warm water. Then the whole crowd sang, a high, soft, wordless song that seemed to come from the rock itself. Sprocket's chest lights flickered and turned gold. "I have never felt so," he said, and then, for once, found no word at all.`,
+`They stayed one day in the lunar village. Zara ate glowing fruit that tasted like summer, and Sprocket was polished by a hundred tiny hands until he shone. When it was time to leave, the old sprite pressed a small blue crystal into Zara's palm. It hummed softly. "A thank-you," she guessed. "Or a map. Or maybe a doorbell."`,
+`Back on Mars, the Mail Company manager was furious. "Where is my box?" he roared. "Where is my sprite?" Zara looked him in the eye. "Lost in the Belt," she said coolly. "Terrible accident." She did not blink. After a long moment the manager stomped away, muttering, and Sprocket let out a very tiny, very relieved whistle.`,
+`That evening Zara sat on the Comet's roof and watched Phobos rise. The blue crystal glowed in her pocket, and for the first time in years she felt content. "Not a bad trip," she said. "Not one decent cup of coffee, though." Sprocket handed her a steaming mug. She sniffed it, and grinned. "Tea," she said. "Emergency tea. How did you know?"`
+]}
+];
+
+function booksAvailable(){return Math.min(BOOKS.length,1+systemsDone())}
+function wrapText(str,n){const out=[];let line='';for(const w of str.split(' ')){if((line+' '+w).trim().length>n){out.push(line);line=w}else line=(line+' '+w).trim()}if(line)out.push(line);return out}
+function bookTurn(d){
+  const b=BOOKS[HUB.book||0];if(!b)return;
+  let p=(SAVE.bookPage[b.id]||0)+d;p=Math.max(0,Math.min(19,p));SAVE.bookPage[b.id]=p;
+  if(p===19&&!SAVE.bookDone[b.id]){SAVE.bookDone[b.id]=1;toast('YOU FINISHED '+b.title);checkUnlocks()}
+  save();
 }
 
 /* ===== main loop ===== */
