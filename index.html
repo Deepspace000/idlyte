@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Idlyte v0.02</title>
+<title>Idlyte v0.03</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -100,34 +100,48 @@ function shaded(w,h,mask,bands,extra){
 
 /* ===== player ship (hand drawn, chrome, nose to the right) ===== */
 const HALF=[
-"...kkkkkk...................",
-"...kLwwwlk.........kkkk.....",
-"..kkdLwwgkk.......kBBBckk...",
-"..kddgLwllkkkkkkkkBBBcwwkk..",
-".kkdggkgllwwwwllllkkBBcwwwk.",
-"kdddgglkgllLwwwwwllkdkkcwwwk",
-"krdgggldgkLLwwwwwlllldkkwwwk",
-"korggggldgkllLLwwwwwwwwwwwwwk"
+"....kkkkkkkkkkkkkkk.....",
+"....kLwwwwwwwwwwwlgk....",
+"....kdgggggggggkkkk.....",
+"...kkdgLwlgkk...........",
+"..kddgLwwlllgkk.........",
+".kddgLwwwwlllgkkkk......",
+"kddgLwwwwwlkBBBcwgkkk...",
+"krdgLLwwwwwwkBBcwwwwwlkk",
+"kordgggLLwwwwwwwwwwwwwwk"
 ];
 function buildShip(){
-  const half=HALF.map(r=>r.padEnd(30,'.').slice(0,30));
-  const rows=[...half,...half.slice(0,7).reverse()];
+  const half=HALF.map(r=>r.padEnd(24,'.').slice(0,24));
+  const rows=[...half,...half.slice(0,8).reverse()];
   const dark={w:'l',l:'g',g:'d',B:'g',c:'l',b:'d'};
   return fromRows(rows,(ch,i,j)=>{
-    if(j>7){const m=dark[ch];return PAL[m||ch]}
+    if(j>8){const m=dark[ch];return PAL[m||ch]}
     return PAL[ch];
   });
 }
 const SPR={};
 SPR.ship=buildShip();
 SPR.shipW=whiteOf(SPR.ship);
-/* wing guns + engine pod accents added on top */
+/* accents, then roll frames: squash about the long axis, flip past 90 degrees */
 (function(){
   const x=SPR.ship.getContext('2d');
-  x.fillStyle='#9a6759';x.fillRect(0,5,2,1);x.fillRect(0,9,2,1);
-  x.fillStyle='#68372b';x.fillRect(0,4,2,1);x.fillRect(0,10,2,1);
-  x.fillStyle='#ffffff';x.fillRect(13,7,2,1);x.fillStyle='#70a4b2';x.fillRect(9,3,1,1);x.fillRect(9,11,1,1);
-  SPR.shipW=whiteOf(SPR.ship);
+  x.fillStyle='#9a6759';x.fillRect(0,7,2,1);x.fillRect(0,9,2,1);
+  x.fillStyle='#ffffff';x.fillRect(10,8,2,1);
+  x.fillStyle='#70a4b2';x.fillRect(7,1,1,1);x.fillRect(7,15,1,1);
+  const w=SPR.ship.width,h=SPR.ship.height,src=x.getImageData(0,0,w,h),N=16;
+  SPR.shipRoll=[];
+  for(let f=0;f<N;f++){
+    const c=Math.cos(f/N*Math.PI*2),ac=Math.max(.14,Math.abs(c));
+    const o=mk(w,h),ox=o.getContext('2d'),od=ox.createImageData(w,h);
+    for(let j=0;j<h;j++){
+      const dy=j-8;let sj=Math.round(8+(c<0?-dy:dy)/ac);
+      if(ac<.3&&Math.abs(dy)===1)sj=8;
+      if(sj<0||sj>=h)continue;
+      for(let i=0;i<w;i++){const k=(sj*w+i)*4,q=(j*w+i)*4;
+        od.data[q]=src.data[k];od.data[q+1]=src.data[k+1];od.data[q+2]=src.data[k+2];od.data[q+3]=src.data[k+3]}
+    }
+    ox.putImageData(od,0,0);SPR.shipRoll.push(o);
+  }
 })();
 
 /* ===== enemies (procedural chrome, rolling frames) ===== */
@@ -569,14 +583,14 @@ function drawShip(){
   const x=P.x|0,y=P.y|0;
   // engine flames
   const fl=3+Math.floor(Math.random()*6);
-  const rows=[[-3,0],[0,2],[3,0]];
+  const rows=[[-2,0],[0,2],[2,0]];
   for(const r of rows){
     const len=fl+r[1]+(G.state==='clear'&&G.timer<3?10:0);
-    ctx.fillStyle='#68372b';ctx.fillRect(x-15-len,y+r[0],len,1);
-    ctx.fillStyle='#9a6759';ctx.fillRect(x-15-(len>>1)-1,y+r[0],(len>>1)+1,1);
-    ctx.fillStyle='#fff';ctx.fillRect(x-16-(len>>2),y+r[0],(len>>2)+1,1);
+    ctx.fillStyle='#68372b';ctx.fillRect(x-12-len,y+r[0],len,1);
+    ctx.fillStyle='#9a6759';ctx.fillRect(x-12-(len>>1)-1,y+r[0],(len>>1)+1,1);
+    ctx.fillStyle='#fff';ctx.fillRect(x-13-(len>>2),y+r[0],(len>>2)+1,1);
   }
-  ctx.drawImage(SPR.ship,x-15,y-7);
+  ctx.drawImage(SPR.shipRoll[Math.floor(P.anim*6.5)%16],x-12,y-8);
   if(P.shield>0&&(P.shield>2||Math.floor(P.shield*8)%2)){
     ctx.strokeStyle=Math.floor(P.anim*12)%2?'#70a4b2':'#ffffff';ctx.lineWidth=1;
     ctx.beginPath();ctx.ellipse(x+1,y,20,11,0,0,6.28);ctx.stroke();
@@ -637,7 +651,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.02';
+const VERSION='0.03';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -678,8 +692,8 @@ function drawTitle(now){
   textC('IDLE SPACE SHOOTER',90,'#70a4b2',1);
   // ship flying across the lower half
   const sx=((titleT*40)%(W+80))-40,sy=130+Math.sin(titleT*1.7)*14;
-  for(const r of [-3,0,3]){const len=4+Math.floor(Math.random()*6);ctx.fillStyle='#68372b';ctx.fillRect(sx-15-len|0,sy+r|0,len,1);ctx.fillStyle='#fff';ctx.fillRect(sx-16|0,sy+r|0,2,1)}
-  ctx.drawImage(SPR.ship,(sx-15)|0,(sy-7)|0);
+  for(const r of [-3,0,3]){const len=4+Math.floor(Math.random()*6);ctx.fillStyle='#68372b';ctx.fillRect(sx-12-len|0,sy+r|0,len,1);ctx.fillStyle='#fff';ctx.fillRect(sx-13|0,sy+r|0,2,1)}
+  ctx.drawImage(SPR.shipRoll[Math.floor(titleT*6.5)%16],(sx-12)|0,(sy-8)|0);
   if(Math.floor(titleT*2)%2)textC('PRESS ANY KEY OR CLICK TO START',160,'#fff',1);
   textC('COINS '+SAVE.coins+'   BEST '+SAVE.best,175,'#b8c76f',1);
   textC('V'+VERSION,189,'#6c6c6c',1);
