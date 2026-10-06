@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.67</title>
+<title>Idlyte v0.70</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -988,7 +988,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.67';
+const VERSION='0.70';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1604,17 +1604,47 @@ function addFit(p){
   SAVE.fitPts=(SAVE.fitPts||0)+p;
   while(SAVE.fitPts>=fitNeed()&&(SAVE.fitLv||0)<10){SAVE.fitPts-=fitNeed();SAVE.fitLv=(SAVE.fitLv||0)+1;toast('FITNESS LEVEL '+SAVE.fitLv+'. YOU WALK A BIT FASTER.');save()}
 }
-const GYMR={last:null,iv:0,streak:0,dbg:''};
+function pxLine(x0,y0,x1,y1,col){ctx.fillStyle=col;x0|=0;y0|=0;x1|=0;y1|=0;const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;for(;;){ctx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+function drawGymBike(){
+  const nw=tapNow(),dt=Math.min(.1,Math.max(0,nw-(GYMR.bt||nw)));GYMR.bt=nw;
+  const live=GYMR.last!=null&&nw-GYMR.last<gymHold(),target=(live?2.5+GYMR.g*14+Math.min(6,GYMR.streak*.6):0);
+  GYMR.w=(GYMR.w||0)+(target-(GYMR.w||0))*Math.min(1,dt*2.2);GYMR.ang=((GYMR.ang||0)+GYMR.w*dt)%6.2832;
+  const bx=228,by=34,wy=by+24,w1=bx+10,w2=bx+44,r=8;
+  ctx.fillStyle='#000';ctx.fillRect(bx-4,by-2,74,38);ctx.fillStyle='#352879';ctx.fillRect(bx-4,by-2,74,1);ctx.fillRect(bx-4,by+35,74,1);
+  ctx.fillStyle='#444444';ctx.fillRect(bx-2,wy+r+1,70,1);
+  const wheel=(cx)=>{for(let k=0;k<28;k++){const a=k/28*6.2832;ctx.fillStyle='#bbbbbb';ctx.fillRect((cx+Math.cos(a)*r)|0,(wy+Math.sin(a)*r)|0,1,1)}
+    const fast=GYMR.w>9;
+    for(let k=0;k<4;k++){const a=GYMR.ang+k*1.5708;pxLine(cx,wy,cx+Math.cos(a)*(r-1),wy+Math.sin(a)*(r-1),fast?'#444444':'#ffffff')}
+    if(fast){ctx.fillStyle='#6c5eb5';for(let k=0;k<20;k++){const a=k/20*6.2832;ctx.fillRect((cx+Math.cos(a)*(r-3))|0,(wy+Math.sin(a)*(r-3))|0,1,1)}}
+    ctx.fillStyle='#ffffff';ctx.fillRect(cx-1,wy-1,3,3);ctx.fillStyle='#000';ctx.fillRect(cx,wy,1,1)};
+  wheel(w1);wheel(w2);
+  pxLine(w1,wy,bx+24,by+14,'#ff7777');pxLine(bx+24,by+14,w2,wy,'#ff7777');pxLine(w1,wy,w2,wy,'#9a3a3a');
+  pxLine(bx+24,by+14,bx+22,by+7,'#bbbbbb');ctx.fillStyle='#ffffff';ctx.fillRect(bx+19,by+6,7,2);
+  pxLine(w2,wy,w2-2,by+9,'#bbbbbb');ctx.fillStyle='#ffffff';ctx.fillRect(w2-5,by+7,7,2);
+  const pa=GYMR.ang*.5;ctx.fillStyle='#b8c76f';ctx.fillRect((bx+24+Math.cos(pa)*5)|0,(by+19+Math.sin(pa)*4)|0,3,2);
+  ctx.fillStyle='#6c6c6c';ctx.fillRect(bx+24,by+18,2,2);
+  if(GYMR.w>6){ctx.fillStyle='#444444';for(let k=0;k<3;k++)ctx.fillRect(bx-3-((nw*60+k*7)%12|0),wy-8+k*7,5+k,1)}
+}
+const GYMR={last:null,iv:0,streak:0,g:0,gt:0,ready:0,dbg:'',w:0,ang:0};
+function gymHold(){return Math.max(1.5,1.8*(GYMR.iv||0))}
+function gymGauge(){
+  const nw=tapNow(),st=GYMR;
+  if(st.last!=null){const from=Math.max(st.gt||0,st.last+gymHold());if(nw>from)st.g=Math.max(0,st.g-.25*(nw-from))}
+  st.gt=nw;return st.g;
+}
 function gymTap(){
   if((SAVE.fitLv||0)>=10){toast('YOU ARE AS FIT AS YOU CAN GET.');return}
   const st=GYMR,nw=tapNow(),iv=nw-(st.last==null?-99:st.last);
   if(iv<.12)return;
-  st.last=nw;const tp=st.iv||0,dev=tp&&iv<5?Math.abs(iv-tp)/tp:9;let m;
-  if(dev<=.4){st.streak++;st.iv=tp*.6+iv*.4;m=1}
-  else if(dev<=.75){st.streak=Math.max(0,st.streak-1);st.iv=tp*.8+iv*.2;m=.4}
-  else{st.streak=0;st.iv=iv<5?iv:0;m=.15}
-  st.dbg=iv.toFixed(2)+'S';
-  SAVE.taps=(SAVE.taps||0)+1;addFit((SAVE.fed>0?1:.5)*m*Math.min(1,iv/.6));
+  gymGauge();
+  st.last=nw;const tp=st.iv||0,dev=tp&&iv<5?Math.abs(iv-tp)/tp:9;let add;
+  if(dev<=.4){st.streak++;st.iv=tp*.6+iv*.4;add=.08+Math.min(.04,st.streak*.01)}
+  else if(dev<=.75){st.streak=Math.max(0,st.streak-1);st.iv=tp*.8+iv*.2;add=.03}
+  else{st.streak=0;st.iv=iv<5?iv:0;add=.01}
+  st.dbg=iv.toFixed(2)+'S +'+Math.round(add*100);
+  SAVE.taps=(SAVE.taps||0)+1;
+  st.g=Math.min(1,st.g+add);st.gt=nw;
+  if(st.g>=1){st.g=0;st.streak=0;st.iv=0;st.last=null;st.ready=nw+3.5;addFit(10*(SAVE.fed>0?1:.5));toast('GAUGE FULL. FITNESS UP.')}
 }
 function tapNow(){return performance.now()/1000}
 function tapFire(){
@@ -2293,7 +2323,9 @@ function extraScreen(id,rows,info){
   }
   if(id==='gym'){
     const lv=SAVE.fitLv||0,mx=lv>=10,need=fitNeed();
-    rows.push({n:'TAP TO TRAIN   FITNESS '+lv+' OF 10',d:mx?'MAXIMUM FITNESS':'PROGRESS '+Math.floor(SAVE.fitPts||0)+' OF '+need+' TAPS. TAP STEADILY.'+(SAVE.fed>0?'':'  (HUNGRY: HALF)')+(GYMR.streak>=2&&tapNow()-GYMR.last<Math.max(1.5,1.8*GYMR.iv)?'  STEADY X'+GYMR.streak:(GYMR.last&&tapNow()-GYMR.last<2.5?'  '+GYMR.dbg:'')),r:'',ok:true,bar:mx?1:(SAVE.fitPts||0)/need,tap:1,fn:gymTap});
+    HUB.screenDraw=drawGymBike;
+    {const gg=mx?1:gymGauge(),nw=tapNow(),live=GYMR.last!=null&&nw-GYMR.last<gymHold(),rdy=nw<GYMR.ready;
+      rows.push({n:'TAP TO TRAIN   FITNESS '+lv+' OF 10',d:mx?'MAXIMUM FITNESS':(rdy&&!live?'READY: TAP AGAIN.  ':'')+'FITNESS '+Math.floor(SAVE.fitPts||0)+' OF '+need+'.  FILL THE GAUGE WITH STEADY TAPS.'+(SAVE.fed>0?'':'  (HUNGRY: HALF)')+(GYMR.streak>=2&&live?'  STEADY X'+GYMR.streak:(live&&GYMR.dbg?'  '+GYMR.dbg:'')),r:'',ok:true,bar:gg,tap:1,fn:gymTap})}
     L('TAPPING BUILDS YOUR FITNESS VERY SLOWLY.','#9ad284');
     L('FITNESS MAKES YOU WALK FASTER AROUND THE STATION.');
     L('WALKING SPEED +'+(lv*2)+'% NOW. EACH LEVEL ADDS 2%.','#fff');
