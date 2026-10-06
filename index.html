@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.37</title>
+<title>Idlyte v0.39</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -340,7 +340,7 @@ for(let i=0;i<14;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP)
 const STAR_V=[6,16,38,64,130];
 
 /* ===== save / stats ===== */
-function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
+function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
 let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
@@ -903,7 +903,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.37';
+const VERSION='0.39';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1008,6 +1008,16 @@ const ACHV=[
  {id:'y41',n:'NEW YEAR',d:'REACH THE YEAR 2041',t:()=>SAVE.day>=366},
  {id:'g10k',n:'GOLD BARON',d:'EARN 10000 GOLD IN TOTAL',t:()=>SAVE.earned>=10000}];
 const cleared1=()=>(SAVE.prog[0]||0)>=3;
+const EXTRAS=[
+ {id:'dog',n:'DOG',d:'A DOG WANDERS THE STATION',price:1200},
+ {id:'parrot',n:'PARROT',d:'A PARROT FLIES ALONG THE CORRIDORS',price:2500},
+ {id:'robot',n:'ROBOT BUDDY',d:'A LITTLE ROBOT ROLLS AROUND',price:6000},
+ {id:'cook',n:'COOK',d:'A COOK WORKS IN THE DINING ROOM',price:1500},
+ {id:'barista',n:'BARISTA',d:'SOMEONE SERVES COFFEE IN THE CAFE',price:1500},
+ {id:'shuttle',n:'SHUTTLE SERVICE',d:'SHUTTLES FLY PAST THE STATION',price:4000},
+ {id:'visitors',n:'VISITORS',d:'VISITORS WALK THE CORRIDORS',price:9000}];
+const BOOK_PRICE=[60,200,600,1500,4000];
+const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:5000,missions:12000,design:30000,shares:75000,crew:180000,ships:450000};
 const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
 const SHOPS=[
  {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
@@ -1022,10 +1032,10 @@ const SHOPS=[
 SHOPS.forEach((s,i)=>s.x=520+i*180);
 function shopById(id){return SHOPS.find(s=>s.id===id)}
 function checkUnlocks(){
-  if(typeof BOOKS!=='undefined'&&booksAvailable()>(SAVE.booksSeen||1)){SAVE.booksSeen=booksAvailable();SAVE.newBook=true;toast('A NEW BOOK HAS ARRIVED IN THE LIBRARY!');toast(BOOKS[SAVE.booksSeen-1].title+' ('+BOOKS[SAVE.booksSeen-1].genre+')');save()}
+  if(typeof BOOKS!=='undefined'&&booksAvailable()>(SAVE.booksSeen||1)){SAVE.booksSeen=booksAvailable();SAVE.newBook=true;toast('A NEW BOOK IS FOR SALE IN THE LIBRARY!');toast(BOOKS[SAVE.booksSeen-1].title+' ('+BOOKS[SAVE.booksSeen-1].genre+')');save()}
   for(let i=1;i<PLANETS.length;i++)if(!SAVE.pSeen[i]&&planetOpen(i)){SAVE.pSeen[i]=1;toast('NEW DESTINATION: '+PLANETS[i].n);save()}
   for(const a of ACHV)if(!SAVE.ach[a.id]&&a.t()){SAVE.ach[a.id]=1;toast('ACHIEVEMENT: '+a.n);save()}
-  for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;toast('THE STATION GROWS: NEW SHOP - '+s.n);SAVE.built=SAVE.built||{};SAVE.built[s.id]=1;if(typeof ROOMS!=='undefined'&&ROOMS.length&&typeof EXT!=='undefined'){syncBuilt();HUB.grow={id:s.id,t:1.8}}save()}
+  for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;toast('NEW SHOP UNLOCKED: '+s.n+'. BUY IT IN THE STATION MENU.');save()}
 }
 
 /* ===== UI plumbing ===== */
@@ -1133,6 +1143,27 @@ const ROOMS=[
  {id:'garden',d:3,x0:312,x1:440,t:'garden',n:'GARDEN',c:'#588d43'},
  {id:'office',d:3,x0:444,x1:564,t:'office',n:'CAPTAIN OFFICE',c:'#6f4f25'}];
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
+const SLOTS=ROOMS.map(r=>({d:r.d,x0:r.x0,x1:r.x1}));ROOMS.forEach((r,i)=>{r.slot0=i;r.slot=i});
+const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120};
+function applyLayout(){
+  const lay=(SAVE&&SAVE.layout)||{};
+  for(const r of ROOMS){const i=lay[r.id]!=null?lay[r.id]:r.slot0,sl=SLOTS[i];r.slot=i;r.d=sl.d;r.x0=sl.x0;r.x1=sl.x1;r.w=sl.x1-sl.x0;r.cx=(sl.x0+sl.x1)/2;if(typeof ROOMC!=='undefined')ROOMC[r.id]=undefined}
+}
+function canMoveTo(a,si){
+  if(si===a.slot)return null;
+  const sl=SLOTS[si],occ=ROOMS.find(r=>r.slot===si);
+  if(sl.x1-sl.x0<NEEDW[a.t])return null;
+  const old=SLOTS[a.slot];
+  if(occ&&old.x1-old.x0<NEEDW[occ.t])return null;
+  return occ||true;
+}
+function moveRoom(a,si){
+  const occ=ROOMS.find(r=>r.slot===si),old=a.slot;
+  SAVE.layout=SAVE.layout||{};
+  for(const r of ROOMS)SAVE.layout[r.id]=r.slot;
+  SAVE.layout[a.id]=si;if(occ)SAVE.layout[occ.id]=old;
+  syncBuilt();save();
+}
 function roomById(id){return ROOMS.find(r=>r.id===id)}
 function deckOf(y){for(let d=0;d<4;d++)if(y>=FYd(d)-FD-1.5&&y<=FYd(d)+1.5)return d;return -1}
 let EXT=[null,null,null,null],SHX={};
@@ -1141,14 +1172,15 @@ function recomputeStation(){
   EXT=[null,null,null,null];SHX={};
   for(const r of ROOMS)if(r.built){const e=EXT[r.d]||(EXT[r.d]={l:r.x0,r:r.x1});e.l=Math.min(e.l,r.x0);e.r=Math.max(e.r,r.x1)}
   for(let pass=0;pass<2;pass++)for(let d=0;d<4;d++){const e=EXT[d];if(!e)continue;
+    {const q0=SHX[24]||(SHX[24]={lo:d,hi:d});q0.lo=Math.min(q0.lo,d);q0.hi=Math.max(q0.hi,d);e.l=Math.min(e.l,15)}
     let best=null,bd=1e9;for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;if(dist<bd){bd=dist;best=sx}}
     for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;
       if(dist<=40||sx===best){e.l=Math.min(e.l,sx-9);e.r=Math.max(e.r,sx+9);const q=SHX[sx]||(SHX[sx]={lo:d,hi:d});q.lo=Math.min(q.lo,d);q.hi=Math.max(q.hi,d)}}
     e.l=Math.max(14,e.l);e.r=Math.min(WWID-14,e.r)}
 }
 function syncBuilt(){
-  SAVE.built=SAVE.built||{};SAVE.built.hangar=1;SAVE.built.sleep=1;
-  for(const s2 of SHOPS)if(s2.open())SAVE.built[s2.id]=1;
+  if(typeof syncPets==='function')setTimeout(()=>{try{syncPets()}catch(e){}},0);
+  SAVE.built=SAVE.built||{};SAVE.built.hangar=1;SAVE.built.sleep=1;applyLayout();
   for(const r of ROOMS){r.built=!!SAVE.built[r.id];if(!r.built)r.p=0}
   recomputeStation();HULL=null;
 }
@@ -1158,7 +1190,7 @@ function walkable(x,y){
   return false;
 }
 /* what can be built next: rooms that touch the station */
-function areaCost(){return 3+2*(SAVE.areasBuilt||0)}
+function areaCost(){return Math.round(10*Math.pow(1.35,SAVE.areasBuilt||0))}
 function buildOptions(){
   const out=[];
   for(const r of ROOMS){
@@ -1654,20 +1686,58 @@ const NPCS=[];
 (function(){
   ROOMS.forEach((r,i)=>{if(r.shop)NPCS.push({room:r,x:r.w*.3,y:46,spr:buildPerson(r.c,['#6f4f25','#000','#bbbbbb','#68372b'][i%4],['#d8a878','#9a6759'][i%2]),seed:i})});
   const add=(id,x,y,suit,hair,skin,extra)=>NPCS.push(Object.assign({room:roomById(id),x,y,spr:buildPerson(suit,hair,skin),seed:x},extra||{}));
-  add('cafe',18,46,'#ffffff','#68372b','#d8a878');
-  add('dining',66,46,'#ffffff','#000','#9a6759');
+  add('cafe',18,46,'#ffffff','#68372b','#d8a878',{extra:'barista'});
+  add('dining',66,46,'#ffffff','#000','#9a6759',{extra:'cook'});
   add('gym',60,47,'#588d43','#6f4f25','#d8a878',{crew:'weap',run:1});
   add('lounge',34,46,'#70a4b2','#68372b','#9a6759',{crew:'nav',sit:1});
   add('engine',52,48,'#9a3a3a','#000','#d8a878',{crew:'tech'});
   add('engine',20,48,'#9a6759','#bbbbbb','#9a6759',{crew:'eng'});
 })();
+SPR.pet={
+  dog:[0,1].map(f=>{const c=mk(12,9),g=c.getContext('2d');R_(g,1,3,8,4,'#9a6759');R_(g,8,1,4,4,'#9a6759');R_(g,9,0,1,2,'#6f4f25');R_(g,11,3,1,1,'#000');R_(g,10,2,1,1,'#ffffff');R_(g,0,2+f,1,3,'#9a6759');R_(g,2,7,1,2,'#6f4f25');R_(g,7,7,1,2,'#6f4f25');R_(g,3,6,1,2-f,'#6f4f25');R_(g,6,6,1,2-f,'#6f4f25');R_(g,2,3,6,1,'#bbbbbb');return c}),
+  parrot:[0,1].map(f=>{const c=mk(9,9),g=c.getContext('2d');R_(g,2,2,4,5,'#588d43');R_(g,4,0,3,3,'#9ad284');R_(g,7,1,2,1,'#ff7777');R_(g,5,1,1,1,'#ffffff');R_(g,0+f,3+f,3,3,'#ff7777');R_(g,0,6,3,3,'#70a4b2');return c}),
+  robot:[0,1].map(f=>{const c=mk(9,9),g=c.getContext('2d');R_(g,1,3,7,4,'#959595');R_(g,1,3,7,1,'#ffffff');R_(g,2,0,5,3,'#bbbbbb');R_(g,5,1,1,1,f?'#ff7777':'#70a4b2');R_(g,3,1,1,1,f?'#70a4b2':'#ff7777');R_(g,1,7,3,2,'#444444');R_(g,5,7,3,2,'#444444');R_(g,4,0,1,1,'#ffffff');return c})
+};
+const PETDEF={dog:{n:'DOG',sp:12,fl:0,say:'THE DOG WAGS ITS TAIL.'},parrot:{n:'PARROT',sp:20,fl:1,say:'THE PARROT SQUAWKS HELLO.'},robot:{n:'ROBOT BUDDY',sp:14,fl:0,say:'THE ROBOT BEEPS HAPPILY.'}};
+let PETS=[],VIS=[];
+function syncPets(){
+  const ex=SAVE.extras||{};PETS=PETS.filter(p=>ex[p.id]);
+  for(const id of ['dog','parrot','robot'])if(ex[id]&&!PETS.find(p=>p.id===id)){
+    const ds=[0,1,2,3].filter(q=>EXT[q]),d=ds.length?ds[0]:0;
+    PETS.push({id,x:(EXT[d]?EXT[d].l+24:60),d,vx:0,wait:1,go:0,tele:20+Math.random()*20,t:Math.random()*6});
+  }
+  VIS=[];
+  if(ex.visitors)for(let d=0;d<4;d++)if(EXT[d]){
+    const sp2=buildPerson(['#6c5eb5','#9a3a3a','#588d43','#70a4b2','#b8c76f'][(d*2)%5],['#6f4f25','#000','#bbbbbb','#68372b'][d%4],['#d8a878','#9a6759'][d%2]);
+    VIS.push({x:EXT[d].l+40+Math.random()*120,d,vx:0,wait:Math.random()*2,go:0,spr:sp2,seed:d*7});
+  }
+}
+function walkPet(p,sp,dt,cd,follow){
+  const e=EXT[p.d];if(!e)return;
+  if(follow&&p.d===cd&&Math.abs(SPpos.x-p.x)<50&&Math.abs(SPpos.x-p.x)>14){p.vx=Math.sign(SPpos.x-p.x)*sp*1.3;p.x+=p.vx*dt;p.wait=.4;p.go=.3;return}
+  if(p.wait>0){p.wait-=dt;return}
+  if(!p.vx&&Math.random()<.5){p.vx=(Math.random()<.5?-1:1)*sp;p.go=.8+Math.random()*2.5}
+  p.x+=p.vx*dt;p.go-=dt;
+  if(p.x<e.l+8||p.x>e.r-8)p.vx*=-1;
+  if(p.go<=0){p.vx=0;p.wait=1+Math.random()*4}
+}
+let SPpos={x:0};
+function petsUpdate(dt,cd){
+  SPpos=HUB.sp;
+  for(const p of PETS){
+    p.t+=dt;p.tele-=dt;
+    if(p.tele<=0||!EXT[p.d]){p.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){p.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[p.d];p.x=e.l+10+Math.random()*Math.max(4,e.r-e.l-20)}}
+    walkPet(p,PETDEF[p.id].sp,dt,cd,p.id==='dog');
+  }
+  for(const v of VIS){v.t=(v.t||0)+dt;walkPet(v,16,dt,cd,false)}
+}
 const EL={y:FYd(0)};
 const CAT={x:330,d:1,vx:0,wait:2,t:0,f:0,tele:30};
 
 /* ===== things to use ===== */
 const THINGS=[];
 (function(){
-  const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({d:r.d,x:r.x0+dx,room:r,label,fn})};
+  const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({get d(){return r.d},get x(){return r.x0+dx},room:r,label,fn})};
   const scr=s=>()=>{HUB.screen=s;UI.focus=0};
   for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>r.sh.open()?'ENTER '+r.n+' SHOP':'CLOSED: '+r.sh.need,()=>{if(r.sh.open()){HUB.screen=r.shop;UI.focus=0}else toast('CLOSED. '+r.sh.need)});
   add('hangar',44,()=>'BOARD YOUR SHIP',scr('hangar'));
@@ -1690,6 +1760,7 @@ function nearThing(){
   const sp=HUB.sp,d=deckOf(sp.y);if(d<0)return null;
   let best=null,bd=11;
   for(const t of THINGS)if(t.d===d&&t.room.built){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
+  if(!best)for(const p of PETS)if(EXT[p.d]&&p.d===d&&Math.abs(sp.x-p.x)<10){const df=PETDEF[p.id];return {d,x:p.x,label:()=>'PET THE '+df.n,fn:()=>toast(df.say)}}
   if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT',fn:()=>toast('THE CAT PURRS.')};
   return best;
 }
@@ -1724,7 +1795,6 @@ function planPath(tx,ty,pend){
 }
 function hubClick(x,y){
   const wx=x+HUB.cam.x,wy=y+HUB.cam.y;
-  for(const o of buildOptions()){const r=o.room;if(wx>=r.x0&&wx<r.x1&&wy>=yTop(r.d)&&wy<yTop(r.d)+RH){HUB.screen='station';UI.focus=0;return}}
   for(let d=0;d<4;d++)if(wy>=yTop(d)&&wy<yTop(d)+DECK_H){
     if(!EXT[d])return;
     let pend=null,tx=Math.max(14,Math.min(WWID-14,wx));
@@ -1752,6 +1822,7 @@ function hubUpdate(dt){
   if(CAT.tele<=0||!EXT[CAT.d]){CAT.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){CAT.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[CAT.d];CAT.x=e.l+8+Math.random()*Math.max(4,e.r-e.l-16)}}
   if(CAT.wait>0)CAT.wait-=dt;else{if(!CAT.vx&&Math.random()<.5){CAT.vx=(Math.random()<.5?-1:1)*9;CAT.go=.8+Math.random()*2.5}
     CAT.x+=CAT.vx*dt;CAT.go-=dt;if(EXT[CAT.d]&&(CAT.x<EXT[CAT.d].l+6||CAT.x>EXT[CAT.d].r-6))CAT.vx*=-1;if(CAT.go<=0){CAT.vx=0;CAT.wait=1+Math.random()*4}}
+  petsUpdate(dt,cd);
   if(HUB.screen){musVol(.3);return}
   let dx=0,dy=0;
   if(UI.keys.arrowleft||UI.keys.a||PAD.x<0)dx=-1;else if(UI.keys.arrowright||UI.keys.d||PAD.x>0)dx=1;
@@ -1819,7 +1890,7 @@ function drawRoom(r,t){
   if(rc.locked!==locked||!rc.cover){rc.cover=mkCover(r,!!locked);rc.locked=locked}
   if(r.p>0){
     ctx.drawImage(rc.inner,x,y);dynRoom(r,x,y,t);
-    for(const n of NPCS){if(n.room!==r)continue;if(n.crew&&!SAVE.crew[n.crew])continue;
+    for(const n of NPCS){if(n.room!==r)continue;if(n.crew&&!SAVE.crew[n.crew])continue;if(n.extra&&!(SAVE.extras&&SAVE.extras[n.extra]))continue;
       if(n.run){const ph=((t*6)|0)%2;ctx.drawImage(n.spr,(x+n.x)|0,(y+n.y-13+ph)|0)}
       else drawPerson(n.spr,x+n.x,y+n.y,t,n.seed,false)}
   }
@@ -1841,7 +1912,7 @@ function drawHub(){
   const cx=Math.round(HUB.cam.x),cy=Math.round(HUB.cam.y),sp=HUB.sp,t=HUB.t;
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
   ctx.save();ctx.translate(-cx,-cy);
-  {const sh=((HUB.t*14)%(WWID+200))-100;if(HUB.t%40<25){R_(ctx,sh,WH+36,12,4,'#bbbbbb');R_(ctx,sh+2,WH+34,6,2,'#70a4b2');R_(ctx,sh-4,WH+37,4,2,Math.floor(HUB.t*10)%2?'#ff7777':'#9a6759')}}
+  {const sh=((HUB.t*14)%(WWID+200))-100;if(SAVE.extras&&SAVE.extras.shuttle&&HUB.t%40<25){R_(ctx,sh,WH+36,12,4,'#bbbbbb');R_(ctx,sh+2,WH+34,6,2,'#70a4b2');R_(ctx,sh-4,WH+37,4,2,Math.floor(HUB.t*10)%2?'#ff7777':'#9a6759')}}
   for(const s of HSTARS){const sx=(s.x*1.4)%(WWID+60)-30,sy=(s.y*2.6)%(WH+170)-20;ctx.fillStyle=s.c;ctx.fillRect(sx|0,sy|0,1,1)}
   // a planet far below the station, and its glow
     ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.bigEarth,170,WH+16);ctx.restore();
@@ -1851,12 +1922,12 @@ function drawHub(){
   if(!HULL)HULL=buildHull();ctx.drawImage(HULL,0,0);
   for(let d=0;d<4;d++)if(EXT[d]){R_(ctx,EXT[d].l-9,yTop(d)+3,2,2,Math.floor(t*2+d)%2?'#ff7777':'#444444');R_(ctx,EXT[d].r+7,yTop(d)+3,2,2,Math.floor(t*2+d+1)%2?'#9ad284':'#444444')}
   for(const r of ROOMS)if(r.built)drawRoom(r,t);
-  for(const o of buildOptions()){const r=o.room,bx=r.x0,by=yTop(r.d);ctx.fillStyle=Math.floor(t*2)%2?'#70a4b2':'#3c6a78';
-    for(let i=0;i<r.w;i+=4){ctx.fillRect(bx+i,by,2,1);ctx.fillRect(bx+i,by+RH-1,2,1)}for(let j=0;j<RH;j+=4){ctx.fillRect(bx,by+j,1,2);ctx.fillRect(bx+r.w-1,by+j,1,2)}
-    const nm=r.n.length*4<=r.w-6?r.n:'';if(nm)text(nm,bx+((r.w-nm.length*4)>>1),by+RH/2-8,'#3c6a78',1);text('+',bx+(r.w>>1)-1,by+RH/2,'#70a4b2',1)}
   if(HUB.grow){const r=roomById(HUB.grow.id),a=HUB.grow.t/1.8;ctx.fillStyle=pat('#ffffff');if(a>.3)ctx.fillRect(r.x0,yTop(r.d),r.w,RH);for(let i=0;i<8;i++)R_(ctx,r.x0+((i*37+HUB.t*60)%r.w),yTop(r.d)+((i*23+HUB.t*40)%RH),2,2,'#ffffff')}
   // cat
   if(EXT[CAT.d]){const cf=Math.floor(t*6)%2;ctx.save();ctx.translate(CAT.x|0,0);if(CAT.vx<0){ctx.scale(-1,1)}ctx.drawImage(SPR.cat[CAT.vx?cf:0],-5,(FYd(CAT.d)-8)|0);ctx.restore()}
+  for(const p of PETS)if(EXT[p.d]){const df=PETDEF[p.id],fr=SPR.pet[p.id][Math.floor(p.t*6)%2],h=fr.height,yy=df.fl?(FYd(p.d)-30+Math.sin(p.t*3)*3):(FYd(p.d)-h+1);
+    ctx.save();ctx.translate(p.x|0,0);if(p.vx<0)ctx.scale(-1,1);ctx.drawImage(fr,-(fr.width>>1),yy|0);ctx.restore()}
+  for(const v of VIS)if(EXT[v.d])drawPerson(v.spr,v.x-4,FYd(v.d)-3,HUB.t,v.seed,false);
   // elevator car
   if(SHX[300]){const ey=EL.y|0,top2=ey-18;R_(ctx,300,yTop(3),1,top2-yTop(3),'#6c6c6c');R_(ctx,294,top2,12,18,'#222');R_(ctx,295,top2+1,10,15,'#70a4b2');R_(ctx,295,top2+1,10,1,'#ffffff');R_(ctx,295,ey-3,10,2,'#444');R_(ctx,299,top2+2,2,13,'#00000044');R_(ctx,296,top2+3,1,8,'#ffffff77')}
   // spaceman
@@ -1948,30 +2019,61 @@ function extraScreen(id,rows,info){
     L('GOLD EARNED: '+SAVE.earned+'   OPEN SPACE LEVELS CLEARED: '+(SAVE.prog[0]||0)+' OF 3   SYSTEMS CLEARED: '+systemsDone(),Y_);
     L('SALVAGE, WEAPONS, ARMOUR AND BANK NEED GOLD ONLY. FROM MISSIONS ON YOU ALSO NEED 2 SYSTEMS CLEARED.','#ff7777');
     L('SHOP UNLOCKS','#fff');
-    for(const s2 of SHOPS){const o=s2.open();L((o?'* ':'- ')+s2.n+': '+(o?'OPEN':s2.need+(s2.now?'  (NOW '+s2.now()+')':'')),o?G_:'#6c6c6c')}
+    for(const s2 of SHOPS){const o=s2.open();L((o?'* ':'- ')+s2.n+': '+(o?(roomById(s2.id).built?'BUILT':'UNLOCKED. BUY IT FOR '+SHOP_PRICE[s2.id]+' GOLD'):s2.need+(s2.now?'  (NOW '+s2.now()+')':'')),o?G_:'#6c6c6c')}
     L('');L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
     for(const a2 of ACHV){const d2=SAVE.ach[a2.id];L((d2?'* ':'- ')+a2.n+': '+a2.d,d2?G_:'#6c6c6c')}
     return 'GOALS';
   }
   if(id==='station'){
-    const opts=buildOptions(),cost=areaCost(),shopsBuilt=ROOMS.filter(r=>r.shop&&r.built).length,shopsAll=ROOMS.filter(r=>r.shop).length,
-      areas=ROOMS.filter(r=>!r.shop),areasBuilt=areas.filter(r=>r.built).length;
-    L('AREA TOKENS: '+(SAVE.tokens||0)+'     NEXT AREA COSTS: '+cost+' TOKENS',(SAVE.tokens||0)>=cost?G_:Y_);
-    L('SHOPS UNLOCKED: '+shopsBuilt+' OF '+shopsAll+'     AREAS BUILT: '+areasBuilt+' OF '+areas.length+'  (2 FREE)');
-    L('TOKENS DROP FROM ENEMIES AND BOSSES. NEW SHOPS GROW THE STATION.');
-    opts.sort((a,b)=>a.room.d-b.room.d||a.room.x0-b.room.x0);
-    if(!opts.length)L(areasBuilt>=areas.length?'EVERY AREA IS BUILT.':'NO AREA CAN BE BUILT YET.',G_);
-    else L('CHOOSE WHICH WAY TO BUILD:','#fff');
-    for(const o of opts.slice(0,7)){const r=o.room;
-      rows.push({n:r.n,d:o.dir+'  (DECK '+(r.d+1)+')',r:String(cost),ok:(SAVE.tokens||0)>=cost,fn:()=>{buildRoom(r)}})}
+    const cost=areaCost(),opts=buildOptions().sort((x,y)=>x.room.d-y.room.d||x.room.x0-y.room.x0),buy=ROOMS.filter(r=>r.shop&&!r.built&&r.sh.open());
+    const shopsBuilt=ROOMS.filter(r=>r.shop&&r.built).length,shopsAll=ROOMS.filter(r=>r.shop).length,areas=ROOMS.filter(r=>!r.shop),areasBuilt=areas.filter(r=>r.built).length;
+    L('AREA TOKENS: '+(SAVE.tokens||0)+'    NEXT AREA COSTS '+cost+' TOKENS    GOLD '+SAVE.coins,(SAVE.tokens||0)>=cost?G_:Y_);
+    L('SHOPS BUILT '+shopsBuilt+' OF '+shopsAll+'   AREAS BUILT '+areasBuilt+' OF '+areas.length+' (2 FREE)');
+    L('SHOPS ARE UNLOCKED BY PROGRESS, THEN BOUGHT WITH GOLD. AREAS COST TOKENS.');
+    for(const r of buy.slice(0,2)){const p=SHOP_PRICE[r.shop];rows.push({n:'BUY THE '+r.n+' SHOP',d:'UNLOCKED. DECK '+(r.d+1)+'. PRICE '+p+' GOLD',r:String(p),ok:SAVE.coins>=p,fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.built[r.id]=1;syncBuilt();HUB.grow={id:r.id,t:1.8};toast('THE STATION GROWS: '+r.n+' SHOP');save()}})}
+    const room=Math.max(0,4-rows.length);
+    for(const o of opts.slice(0,room)){const r=o.room;rows.push({n:'BUILD '+r.n,d:o.dir+'  (DECK '+(r.d+1)+')',r:String(cost),ok:(SAVE.tokens||0)>=cost,fn:()=>{buildRoom(r)}})}
+    if(!rows.length)L(buy.length||opts.length?'':'NOTHING TO BUY OR BUILD RIGHT NOW.',G_);
+    if(ROOMS.filter(r=>r.built).length>2)rows.push({n:'MOVE AN AREA',d:'CHANGE WHERE A BUILT AREA SITS ON THE STATION',r:'',ok:true,fn:()=>{HUB.mvPage=0;HUB.screen='move';UI.focus=0}});
+    rows.push({n:'EXTRAS: PETS, STAFF, TRAFFIC',d:'BUY A DOG, A PARROT, STAFF, SHUTTLES AND MORE',r:'',ok:true,fn:()=>{HUB.screen='extras';UI.focus=0}});
     return 'STATION';
   }
+  if(id==='extras'){
+    L('THE CAT LIVES HERE FOR FREE. EVERYTHING ELSE IS BOUGHT WITH GOLD.   GOLD '+SAVE.coins);
+    for(const x of EXTRAS){const own=SAVE.extras[x.id];rows.push({n:x.n,d:own?'YOU OWN THIS.':x.d,r:own?'OWNED':String(x.price),ok:!own&&SAVE.coins>=x.price,fn:()=>{if(own){toast('YOU ALREADY OWN THAT.');return}if(SAVE.coins<x.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=x.price;SAVE.extras[x.id]=1;syncBuilt();toast('YOU BOUGHT: '+x.n);save()}})}
+    rows.push({n:'BACK',d:'BACK TO THE STATION MENU',r:'',ok:true,fn:()=>{HUB.screen='station';UI.focus=0}});
+    return 'EXTRAS';
+  }
+  if(id==='move'){
+    const built=ROOMS.filter(r=>r.built).sort((x,y)=>x.d-y.d||x.x0-y.x0),per=5,pages=Math.max(1,Math.ceil(built.length/per));
+    HUB.mvPage=Math.min(HUB.mvPage||0,pages-1);
+    L('CHOOSE THE AREA YOU WANT TO MOVE.  PAGE '+(HUB.mvPage+1)+' OF '+pages);
+    for(const r of built.slice(HUB.mvPage*per,HUB.mvPage*per+per))rows.push({n:r.n,d:'NOW ON DECK '+(r.d+1),r:'MOVE',ok:true,fn:()=>{HUB.moveId=r.id;HUB.toPage=0;HUB.screen='moveto';UI.focus=0}});
+    if(pages>1)rows.push({n:'NEXT PAGE',d:'SEE MORE AREAS',r:'',ok:true,fn:()=>{HUB.mvPage=(HUB.mvPage+1)%pages}});
+    rows.push({n:'BACK',d:'BACK TO THE STATION MENU',r:'',ok:true,fn:()=>{HUB.screen='station';UI.focus=0}});
+    return 'MOVE AN AREA';
+  }
+  if(id==='moveto'){
+    const a=roomById(HUB.moveId||'sleep'),opts=[];
+    for(let i=0;i<SLOTS.length;i++){const c=canMoveTo(a,i);if(c)opts.push({i,occ:c===true?null:c})}
+    const per=5,pages=Math.max(1,Math.ceil(opts.length/per));HUB.toPage=Math.min(HUB.toPage||0,pages-1);
+    L('MOVING: '+a.n+'.  CHOOSE A NEW PLACE.  PAGE '+(HUB.toPage+1)+' OF '+pages);
+    for(const o of opts.slice(HUB.toPage*per,HUB.toPage*per+per)){const sl=SLOTS[o.i];
+      rows.push({n:'DECK '+(sl.d+1)+'  '+(sl.x0<160?'LEFT':sl.x0<400?'MIDDLE':'RIGHT'),d:o.occ?'SWAPS WITH '+o.occ.n+(o.occ.built?'':' (NOT BUILT YET)'):'FREE SPACE',r:'MOVE',ok:true,
+        fn:()=>{moveRoom(a,o.i);HUB.grow={id:a.id,t:1.8};toast(a.n+' MOVED');HUB.screen='station';UI.focus=0}})}
+    if(pages>1)rows.push({n:'NEXT PAGE',d:'SEE MORE PLACES',r:'',ok:true,fn:()=>{HUB.toPage=(HUB.toPage+1)%pages}});
+    rows.push({n:'BACK',d:'CHOOSE A DIFFERENT AREA',r:'',ok:true,fn:()=>{HUB.screen='move';UI.focus=0}});
+    return 'MOVE: '+a.n;
+  }
+
   if(id==='library'){
     const av=booksAvailable();
-    L(av+' OF '+BOOKS.length+' BOOKS ON THE SHELF. A NEW BOOK ARRIVES EACH TIME YOU CLEAR A SYSTEM.');
-    BOOKS.forEach((b,i)=>{const ok=i<av,pg=SAVE.bookPage[b.id]||0,dn=SAVE.bookDone[b.id],isNew=ok&&SAVE.newBook&&i===av-1&&!SAVE.bookOpened[b.id];
-      rows.push({n:ok?b.title:'LOCKED BOOK',d:ok?b.genre+'   '+(dn?'FINISHED':'PAGE '+(pg+1)+' OF 20'):'ARRIVES WHEN YOU CLEAR '+i+(i>1?' SYSTEMS':' SYSTEM'),r:ok?(isNew?'NEW':'READ'):'',ok,
-        fn:()=>{if(!ok){toast('THAT BOOK HAS NOT ARRIVED YET.');return}HUB.book=i;HUB.screen='book';UI.focus=0;SAVE.bookOpened[b.id]=1;SAVE.newBook=false;save()}})});
+    L(av+' OF '+BOOKS.length+' BOOKS ARE FOR SALE.  A NEW BOOK IS STOCKED EACH TIME YOU CLEAR A SYSTEM.   GOLD '+SAVE.coins);
+    BOOKS.forEach((b,i)=>{const ok=i<av,own=!!SAVE.booksOwned[b.id],pr=BOOK_PRICE[i],pg=SAVE.bookPage[b.id]||0,dn=SAVE.bookDone[b.id],isNew=ok&&!own&&SAVE.newBook&&i===av-1;
+      rows.push({n:ok?b.title:'LOCKED BOOK',d:ok?b.genre+'   '+(own?(dn?'FINISHED':'PAGE '+(pg+1)+' OF 20'):(isNew?'NEW.  FOR SALE: ':'FOR SALE: ')+pr+' GOLD'):'STOCKED WHEN YOU CLEAR '+i+(i>1?' SYSTEMS':' SYSTEM'),r:ok?(own?'READ':String(pr)):'',ok:ok&&(own||SAVE.coins>=pr),
+        fn:()=>{if(!ok){toast('THAT BOOK IS NOT IN STOCK YET.');return}
+          if(!own){if(SAVE.coins<pr){toast('NOT ENOUGH GOLD');return}SAVE.coins-=pr;SAVE.booksOwned[b.id]=1;SAVE.newBook=false;toast('YOU BOUGHT: '+b.title);save();return}
+          HUB.book=i;HUB.screen='book';UI.focus=0;SAVE.bookOpened[b.id]=1;save()}})});
     return 'LIBRARY';
   }
   if(id==='book'){
@@ -2506,6 +2608,7 @@ function finishLoad(){
   for(const c of COMPANIES)if(!SAVE.sh[c.id])SAVE.sh[c.id]={own:0,p:c.price};
   if(SAVE.monthsPaid==null)SAVE.monthsPaid=monthIdx(SAVE.day);
   if(!SAVE.shipName)SAVE.shipName='DRIFTER';
+  SAVE.extras=SAVE.extras||{};SAVE.booksOwned=SAVE.booksOwned||{};for(const b of BOOKS)if(SAVE.bookOpened[b.id]||SAVE.bookPage[b.id]>0)SAVE.booksOwned[b.id]=1;
   mus.on=SAVE.set.music!==0;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
   HUB.cam.x=0;HUB.cam.y=0;HUB.acc=0;HUB.screen=null;
 }
