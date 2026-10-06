@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.46</title>
+<title>Idlyte v0.47</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.46';
+const VERSION='0.47';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1600,7 +1600,7 @@ const SLOT_SYMS=['P','S','M','H','O','R','B','C','X1','X2'],SLOT_PW=['P','S','M'
 function slotImg(k){if(k==='C')return SPR.coin[0];if(k[0]==='X')return SPR.crate[k==='X1'?0:3];return SPR.pw[k]}
 function slotPick(){return SLOT_SYMS[Math.floor(Math.random()*SLOT_SYMS.length)]}
 function startSlot(){
-  const win=Math.random()<.35;let r=Math.random(),type=r<.25?'P':r<.42?'S':r<.55?'M':r<.68?'H':r<.8?'O':r<.92?'R':'B';if(type==='H'&&P.hp>=G.stats.hp)type='S';
+  const win=Math.random()<.5;let r=Math.random(),type=r<.25?'P':r<.42?'S':r<.55?'M':r<.68?'H':r<.8?'O':r<.92?'R':'B';if(type==='H'&&P.hp>=G.stats.hp)type='S';
   let fin;
   if(win)fin=[type,type,type];
   else{
