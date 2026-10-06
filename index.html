@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.15</title>
+<title>Idlyte v0.16</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -320,7 +320,7 @@ const STAR_V=[6,16,38];
 let SAVE={coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0};
 try{const s=JSON.parse(localStorage.getItem('idlyte1'));if(s)SAVE=Object.assign(SAVE,s)}catch(e){}
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
-SAVE.set=Object.assign({vol:1,scan:0,music:1},SAVE.set||{});
+SAVE.set=Object.assign({vol:1,scan:0,music:1,clock:0},SAVE.set||{});
 if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
 function save(){try{localStorage.setItem('idlyte1',JSON.stringify(SAVE))}catch(e){}}
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
@@ -788,7 +788,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.15';
+const VERSION='0.16';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -884,20 +884,23 @@ const ACHV=[
  {id:'save',n:'SAVER',d:'HAVE 1000 GOLD IN THE BANK',t:()=>SAVE.bankMax>=1000},
  {id:'inv',n:'INVESTOR',d:'OWN SOME SHARES',t:()=>shareCount()>0},
  {id:'crew',n:'ALL HANDS',d:'HIRE A CREW MEMBER',t:()=>Object.values(SAVE.crew).some(v=>v>0)},
+ {id:'sys1',n:'SYSTEM ONE',d:'CLEAR ALL 3 LEVELS OF OPEN SPACE',t:()=>(SAVE.prog[0]||0)>=3},
  {id:'trav',n:'TRAVELLER',d:'FLY TO ANOTHER PLANET',t:()=>SAVE.visited>0},
  {id:'ship',n:'NEW WHEELS',d:'BUY A NEW SHIP',t:()=>SAVE.ships.length>1},
  {id:'y41',n:'NEW YEAR',d:'REACH THE YEAR 2041',t:()=>SAVE.day>=366},
  {id:'g10k',n:'GOLD BARON',d:'EARN 10000 GOLD IN TOTAL',t:()=>SAVE.earned>=10000}];
+const cleared1=()=>(SAVE.prog[0]||0)>=3;
+const UNLOCK_GOLD={weapons:500,armour:1250,bank:3125,missions:7800,design:19500,shares:48800,crew:122000,ships:305000};
 const SHOPS=[
- {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'',open:()=>true},
- {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'EARN 100 GOLD IN TOTAL',open:()=>SAVE.earned>=100},
- {id:'armour',n:'ARMOUR',c:'#70a4b2',need:'EARN 250 GOLD IN TOTAL',open:()=>SAVE.earned>=250},
- {id:'bank',n:'BANK',c:'#6c5eb5',need:'EARN 400 GOLD IN TOTAL',open:()=>SAVE.earned>=400},
- {id:'shares',n:'SHARES',c:'#6f4f25',need:'HAVE 500 GOLD IN THE BANK',open:()=>SAVE.bankMax>=500},
- {id:'design',n:'DESIGN',c:'#588d43',need:'EARN 1000 GOLD IN TOTAL',open:()=>SAVE.earned>=1000},
- {id:'crew',n:'CREW',c:'#6f3d86',need:'FLY 5 MISSIONS',open:()=>SAVE.sorties>=5},
- {id:'missions',n:'MISSIONS',c:'#b8c76f',need:'DEFEAT THE FIRST BOSS',open:()=>SAVE.clears>=1},
- {id:'ships',n:'SHIPS',c:'#959595',need:'EARN 5000 GOLD AND DEFEAT THE BOSS',open:()=>SAVE.earned>=5000&&SAVE.clears>=1}];
+ {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'CLEAR OPEN SPACE',open:()=>cleared1()},
+ {id:'weapons',n:'WEAPONS',c:'#9a3a3a',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.weapons+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.weapons},
+ {id:'armour',n:'ARMOUR',c:'#70a4b2',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.armour+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.armour},
+ {id:'bank',n:'BANK',c:'#6c5eb5',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.bank+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.bank},
+ {id:'shares',n:'SHARES',c:'#6f4f25',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.shares+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.shares},
+ {id:'design',n:'DESIGN',c:'#588d43',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.design+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.design},
+ {id:'crew',n:'CREW',c:'#6f3d86',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.crew+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.crew},
+ {id:'missions',n:'MISSIONS',c:'#b8c76f',need:'CLEAR OPEN SPACE AND EARN '+UNLOCK_GOLD.missions+' GOLD',now:()=>SAVE.earned,open:()=>cleared1()&&SAVE.earned>=UNLOCK_GOLD.missions},
+ {id:'ships',n:'SHIPS',c:'#959595',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.ships+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.ships}];
 SHOPS.forEach((s,i)=>s.x=520+i*180);
 function shopById(id){return SHOPS.find(s=>s.id===id)}
 function checkUnlocks(){
@@ -1310,7 +1313,12 @@ function drawScreen(){
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
   text(def.title,20,22,'#ffffff',1);textR('GOLD '+SAVE.coins,282,22,'#b8c76f',1);
   uiBtn(288,19,16,13,()=>{HUB.screen=null},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1)});
-  let y=36;for(const l of def.info){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;if(o.t)text(o.t,22,y,o.c,1);y+=8}
+  let y=36;
+  if(HUB.scrId!==HUB.screen){HUB.scrId=HUB.screen;HUB.iscroll=0}
+  const over=def.rows.length===0&&def.info.length>17;HUB.infoMax=over?def.info.length-17:0;
+  HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));
+  for(const l of (over?def.info.slice(HUB.iscroll,HUB.iscroll+17):def.info)){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;if(o.t)text(o.t,22,y,o.c,1);y+=8}
+  if(over){const bx=HUB.iscroll>0,by=HUB.iscroll<HUB.infoMax;text(bx?'^':' ',296,38,'#70a4b2',1);text(by?'v':' ',296,168,'#70a4b2',1)}
   y+=4;
   // rows are registered before the close button so keyboard focus starts on them
   const rowsStart=UI.list.length;
@@ -1336,7 +1344,8 @@ function drawScreen(){
   const cb=UI.list.splice(rowsStart-1,1)[0];UI.list.push(cb);
   UI.nrows=UI.list.length-1;
   if(UI.focus>=UI.list.length)UI.focus=0;
-  ctx.fillStyle='#6c6c6c';textC('ARROWS + ENTER, OR CLICK.  ESC CLOSES',181,'#6c6c6c',1);
+  if(HUB.infoMax>0){UI.list.push({x:20,y:36,w:270,h:68,fn:()=>{HUB.iscroll=Math.max(0,HUB.iscroll-4)}});UI.list.push({x:20,y:104,w:270,h:72,fn:()=>{HUB.iscroll=Math.min(HUB.infoMax,HUB.iscroll+4)}})}
+  ctx.fillStyle='#6c6c6c';textC(HUB.infoMax>0?'UP AND DOWN SCROLL. WHEEL OR TAP TOP AND BOTTOM.  ESC CLOSES':'ARROWS + ENTER, OR CLICK.  ESC CLOSES',181,'#6c6c6c',1);
 }
 
 /* ===== hub scene: hull, people, things to use, movement, drawing ===== */
@@ -1572,7 +1581,7 @@ function drawHub(){
   ctx.restore();
   // top bar
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
-  text(dateStr(SAVE.day),4,4,'#fff',1);text('GOLD',84,4,'#b8c76f',1);text(SAVE.coins,104,4,'#fff',1);
+  text(dateStr(SAVE.day),4,4,'#fff',1);text(clockStr(),52,4,'#b8c76f',1);text('GOLD',84,4,'#b8c76f',1);text(SAVE.coins,104,4,'#fff',1);
   text('BANK',160,4,'#70a4b2',1);text(SAVE.bank,180,4,'#fff',1);
   text('FIT '+fitLevel(),260,4,'#9ad284',1);if(SAVE.fed>0)text('FED',286,4,'#ff7777',1);
   // prompt (tap it too)
@@ -1590,6 +1599,10 @@ function drawHub(){
 }
 /* ===== extra screens ===== */
 function shareValue(){let v=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];v+=Math.floor(s.own*s.p)}return v}
+function clockStr(){
+  let m;if(SAVE.set&&SAVE.set.clock){const d=new Date();m=d.getHours()*60+d.getMinutes()}else m=Math.floor((360+(HUB.acc||0)*1440)%1440);
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
 function fitLevel(){return SAVE.fitLv||0}
 function daysToNextMonth(){const d=dateOf(SAVE.day);return Math.max(1,Math.round((Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1)-d.getTime())/864e5))}
 function extraScreen(id,rows,info){
@@ -1634,17 +1647,19 @@ function extraScreen(id,rows,info){
     SAVE.set=SAVE.set||{vol:1,scan:0};const S=SAVE.set,vn=['LOW','MEDIUM','HIGH'];
     rows.push({n:'MUSIC',d:'TURN THE STATION MUSIC ON OR OFF',r:mus.on?'ON':'OFF',ok:true,fn:()=>{mus.on=!mus.on;SAVE.set.music=mus.on?1:0;save()}});
     rows.push({n:'MUSIC VOLUME',d:'HOW LOUD THE MUSIC IS',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
+    rows.push({n:'CLOCK',d:'SHOW STATION TIME OR YOUR REAL LOCAL TIME',r:S.clock?'REAL TIME':'STATION TIME',ok:true,fn:()=>{S.clock=S.clock?0:1;save()}});
     rows.push({n:'SCANLINES',d:'OLD TV SCREEN LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
     rows.push({n:HUB.confirmReset?'PRESS AGAIN TO ERASE EVERYTHING':'RESET ALL PROGRESS',d:'STARTS A NEW GAME FROM THE BEGINNING',r:'',ok:true,fn:()=>{if(HUB.confirmReset){try{localStorage.removeItem('idlyte1')}catch(e){}location.reload()}else HUB.confirmReset=1}});
     L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL, O SETTINGS, H GOALS, M MUSIC');
     return 'SETTINGS';
   }
   if(id==='achv'){
-    L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
-    for(const a of ACHV){const d=SAVE.ach[a.id];L((d?'* ':'- ')+a.n+': '+a.d,d?G_:'#6c6c6c')}
-    L('');L('SHOPS TO OPEN','#fff');
-    let any=0;for(const s of SHOPS)if(!s.open()){any=1;L('- '+s.n+': '+s.need,'#6c6c6c')}
-    if(!any)L('* ALL SHOPS ARE OPEN',G_);
+    L('GOLD EARNED SO FAR: '+SAVE.earned+'     OPEN SPACE LEVELS CLEARED: '+(SAVE.prog[0]||0)+' OF 3',Y_);
+    L('NOTHING OPENS UNTIL YOU CLEAR ALL 3 LEVELS OF OPEN SPACE.','#ff7777');
+    L('SHOP UNLOCKS','#fff');
+    for(const s2 of SHOPS){const o=s2.open();L((o?'* ':'- ')+s2.n+': '+(o?'OPEN':s2.need+(s2.now?'  (NOW '+s2.now()+')':'')),o?G_:'#6c6c6c')}
+    L('');L(Object.keys(SAVE.ach).length+' OF '+ACHV.length+' ACHIEVEMENTS','#fff');
+    for(const a2 of ACHV){const d2=SAVE.ach[a2.id];L((d2?'* ':'- ')+a2.n+': '+a2.d,d2?G_:'#6c6c6c')}
     return 'GOALS';
   }
   if(id==='arcade'){
@@ -1699,7 +1714,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='sleep'){
     L('SLEEPING MAKES TIME PASS. THE BANK AND SHARES KEEP PAYING.');L('TODAY IS '+dateStr(SAVE.day),'#fff');
-    const slp=(n,days)=>({n,d:days+(days===1?' DAY':' DAYS')+' PASS',ok:true,fn:()=>{advanceDays(days);HUB.fade=1.4;HUB.screen=null;checkUnlocks();save()}});
+    const slp=(n,days)=>({n,d:days+(days===1?' DAY':' DAYS')+' PASS',ok:true,fn:()=>{advanceDays(days);HUB.acc=0;HUB.fade=1.4;HUB.screen=null;checkUnlocks();save()}});
     rows.push(slp('SLEEP ONE NIGHT',1),slp('SLEEP ONE WEEK',7),slp('SLEEP UNTIL NEXT MONTH',daysToNextMonth()));
     return 'SLEEP QUARTERS';
   }
@@ -1803,6 +1818,7 @@ function handleKey(k){
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
+    if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){if(k==='arrowdown'||k==='s'){HUB.iscroll+=3;return}if(k==='arrowup'||k==='w'){HUB.iscroll-=3;return}}
     const n=Math.max(1,UI.list.length);
     if(k==='arrowup'||k==='arrowleft'||k==='w'||k==='a'){UI.focus=(UI.focus+n-1)%n}
     else if(k==='arrowdown'||k==='arrowright'||k==='s'||k==='d'||k==='tab'){UI.focus=(UI.focus+1)%n}
@@ -1848,6 +1864,7 @@ function padPoll(dt){
     el.addEventListener('pointerdown',e=>{e.preventDefault();INP.last='touch';handleKey(key)})};
   hold('tl','arrowleft');hold('tr','arrowright');hold('tu','arrowup');hold('td','arrowdown');tap('ta','e');tap('tb','escape');tap('tm','m');tap('th','h');
 })();
+cv.addEventListener('wheel',e=>{if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}},{passive:false});
 cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);if(i>=0)UI.focus=i});
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
