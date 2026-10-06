@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.45</title>
+<title>Idlyte v0.46</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -984,7 +984,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.45';
+const VERSION='0.46';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1979,6 +1979,28 @@ function dynRoom(r,x,y,t){
     const p=(t*.4)%1;R_(ctx,x+96+Math.sin(t*3)*3,y+24-p*16,1,3,'#ffffffaa');R_(ctx,x+97+Math.sin(t*3)*3,y+23-p*16,2,1,'#ffffffaa');
   }else if(ty==='office'){R_(ctx,x+r.w-17,y+22,8,3,Math.sin(t*6)>.5?'#fff':'#70a4b2')}
 }
+const TRADE={};
+function roomTradeId(r){return r.shop||({cafe:'cafe',dining:'dining',library:'library',arcade:'arcade',sleep:'foodm'})[r.t]||null}
+function canTrade(r){
+  const id=roomTradeId(r);if(!id)return null;
+  const c=TRADE[r.id]||(TRADE[r.id]={t:-9,v:false});
+  if(HUB.t-c.t>.5||HUB.t<c.t){
+    c.t=HUB.t;const sd=HUB.screenDraw;
+    try{const d=screenDef(id);c.v=d.rows.some(q=>q.ok&&((q.r&&q.r!=='GO'&&q.r!=='MOVE')||(q.btns&&q.btns.some(b=>b.ok&&/^BUY/.test(b.l)))))}catch(e){c.v=false}
+    HUB.screenDraw=sd;
+  }
+  return c.v;
+}
+function drawTradeBadge(r,x,y){
+  if(r.sh&&!r.sh.open())return;
+  const v=canTrade(r);if(v===null)return;
+  const bx=x+r.w-13,by=y+14;
+  ctx.fillStyle='#000';ctx.fillRect(bx-1,by-1,11,11);
+  if(v){ctx.fillStyle=Math.floor(HUB.t*2)%2?'#ffffff':'#b8c76f';ctx.fillRect(bx+2,by,5,9);ctx.fillRect(bx,by+2,9,5);ctx.fillRect(bx+1,by+1,7,7);
+    ctx.fillStyle='#6f4f25';ctx.fillRect(bx+4,by+2,1,5);ctx.fillRect(bx+3,by+3,3,1);ctx.fillRect(bx+3,by+5,3,1)}
+  else{ctx.fillStyle='#444444';ctx.fillRect(bx+2,by,5,9);ctx.fillRect(bx,by+2,9,5);ctx.fillRect(bx+1,by+1,7,7);
+    ctx.fillStyle='#ff7777';for(let k=2;k<7;k++){ctx.fillRect(bx+k,by+k,1,1);ctx.fillRect(bx+8-k,by+k,1,1)}}
+}
 function drawRoom(r,t){
   const x=r.x0,y=yTop(r.d),locked=r.sh&&!r.sh.open(),rc=ROOMC[r.id]||(ROOMC[r.id]={});
   if(r.p>0&&!rc.inner)rc.inner=mkInterior(r);
@@ -1993,6 +2015,7 @@ function drawRoom(r,t){
   if(r.id==='library'&&SAVE.newBook&&r.p<.6&&Math.floor(HUB.t*3)%2)text('NEW BOOK',x+((r.w-32)>>1),y+RH-12,'#b8c76f',1);
   if(s<.999){ctx.save();ctx.beginPath();ctx.rect(x,y,r.w,RH);ctx.clip();
     ctx.drawImage(rc.cover,0,0,hw,RH,x-s*hw,y,hw,RH);ctx.drawImage(rc.cover,hw,0,hw,RH,x+hw+s*hw,y,hw,RH);ctx.restore()}
+  drawTradeBadge(r,x,y);
 }
 function drawHubMenu(){
   const items=[['INV','inv'],['SHIP','shipstats'],['CREW','personnel'],['SET','settings'],['BUILD','station'],['GOALS','achv']];
