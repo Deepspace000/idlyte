@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.29</title>
+<title>Idlyte v1.30</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1224,7 +1224,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.29';
+const VERSION='1.30';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3232,8 +3232,109 @@ function tone(t,m,dur,type,vol,att,rel){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setTargetAtTime(0,t+dur,rel/3);
   o.connect(g);g.connect(mus.in);o.start(t);o.stop(t+dur+rel+.3);
 }
+
+
+/* ===== mission music: an endless 70s space arpeggio sequencer.
+   It walks the circle of fifths to the left (a full revolution), then to the right (a full revolution), then makes distant
+   modulations through pivot chords, then hard modulations with no preparation, then starts again with the arpeggio sizes shuffled.
+   Arpeggios run over 1 to 4 octaves in sixteenths, sixteenth triplets or eighths. Used only while the player is on a mission. ===== */
+const ARP={ready:false,out:null,bpm:104,barT:0,bar:0,pi:0,plan:[],cyc:0,octs:[],oi:0,ai:0,sub:16,startKey:0,log:[]};
+const MAJ=[0,2,4,5,7,9,11],KEYN=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+const arpPick=a=>a[Math.floor(Math.random()*a.length)];
+function arpChord(key,deg){
+  const o=i=>MAJ[(deg+i)%7]+((deg+i)>=7?12:0),b=o(0);
+  return {root:(key+MAJ[deg])%12,tones:[0,o(2)-b,o(4)-b,o(6)-b]};
+}
+function arpPivots(A,B){
+  const inB=new Set(MAJ.map(x=>(B+x)%12)),out=[];
+  for(let d=0;d<6;d++){const pcs=[0,2,4].map(i=>(A+MAJ[(d+i)%7])%12);if(pcs.every(q=>inB.has(q)))out.push(d)}
+  return out;
+}
+function arpCycle(k){
+  const L=[],push=(kind,iv)=>{L.push({key:k,kind,next:(k+iv)%12});k=(k+iv)%12};
+  for(let i=0;i<12;i++)push('left',5);                       // C F Bb Eb ... one revolution to the left
+  for(let i=0;i<12;i++)push('right',7);                      // and one to the right
+  let last=-1;
+  for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,4,6,8,9,10])}while(iv===last);last=iv;push('distant',iv)}   // distant keys, pivot or dim7
+  for(let i=0;i<6;i++){let iv;do{iv=arpPick([1,2,3,6,11])}while(iv===last);last=iv;push('hard',iv)}        // no preparation at all
+  return L;
+}
+function arpNewCycle(){
+  ARP.cyc++;
+  const a=[];for(let i=0;i<9;i++)a.push(1+(i%4));
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  ARP.octs=a;ARP.oi=0;
+  const start=ARP.plan.length?ARP.plan[ARP.plan.length-1].next:0;
+  ARP.plan=arpCycle(start);ARP.pi=0;ARP.bar=0;
+}
+function arpPrep(sec){
+  if(sec.ready)return;sec.ready=true;
+  const POOL=[[0,5,3,4],[0,3,5,4],[0,2,3,4],[0,5,1,4],[0,3,1,4],[0,4,5,3]];
+  sec.prog=arpPick(POOL).map(d=>arpChord(sec.key,d));
+  let oct=ARP.octs[ARP.oi++%ARP.octs.length];if(sec.last===oct)oct=1+(oct%4);sec.oct=oct;
+  const A=sec.key,B=sec.next,nextV=arpChord(B,4);
+  if(sec.kind==='left'||sec.kind==='right'||sec.kind==='distant'){
+    const pv=arpPivots(A,B);
+    if(pv.length){const d=arpPick(pv.filter(x=>x!==0).concat(pv.length>1?[]:pv));sec.prog[2]=arpChord(A,d);sec.prog[3]=nextV;sec.how='pivot'}
+    else{sec.prog[2]=arpChord(A,3);sec.prog[3]={root:(B+11)%12,tones:[0,3,6,9]};sec.how='dim7'}   // diminished seventh pivot to the new leading note
+  }else{sec.prog[3]=arpChord(A,4);sec.how='hard'}
+}
+function arpSetup(){
+  if(ARP.ready||!AC||!mus.in)return;
+  ARP.out=AC.createGain();ARP.out.gain.value=0;
+  const dl=AC.createDelay(2);dl.delayTime.value=60/ARP.bpm*.75;
+  const fb=AC.createGain(),wet=AC.createGain();fb.gain.value=.36;wet.gain.value=.3;
+  ARP.out.connect(mus.in);ARP.out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(mus.in);
+  ARP.ready=true;arpNewCycle();
+}
+function arpNote(t,m,dur,vol){
+  const f=mtof(m),g=AC.createGain(),lp=AC.createBiquadFilter();
+  lp.type='lowpass';lp.Q.value=2.2;
+  const base=900+700*(.5+.5*Math.sin(t*.21));
+  lp.frequency.setValueAtTime(base+1800,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*.55,dur*.3);
+  for(const dt of [-6,6]){const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt;o.connect(lp);o.start(t);o.stop(t+dur*2.2+.1)}
+  lp.connect(g);g.connect(ARP.out);
+}
+function arpPad(t,m,dur,vol){
+  const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mtof(m);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.5);g.gain.setTargetAtTime(0,t+dur,.35);
+  o.connect(g);g.connect(ARP.out);o.start(t);o.stop(t+dur+1.6);
+}
+function arpBar(t){
+  if(ARP.pi>=ARP.plan.length)arpNewCycle();
+  const sec=ARP.plan[ARP.pi];arpPrep(sec);
+  const ch=sec.prog[ARP.bar],beat=60/ARP.bpm,bar=beat*4;
+  if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+' '+sec.kind+' '+sec.oct+'oct '+sec.how);
+  if(ARP.log.length>40)ARP.log.shift();
+  // one subdivision per bar, usually the same as the last
+  if(Math.random()>.62){const r=Math.random();ARP.sub=r<.55?16:r<.8?24:8}
+  const n=ARP.sub,step=bar/n;
+  // chord tones across the chosen number of octaves, up and down
+  const oc=sec.oct,start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
+  const note=i=>root+ch.tones[i%4]+12*Math.floor(i/4);
+  for(let k=0;k<n;k++){
+    const q=ARP.ai++%(2*(L-1)),i=q<L?q:2*(L-1)-q,acc=(k%(n/4))===0?1:.75;
+    arpNote(t+k*step,note(i),step*1.6,.05*acc);
+  }
+  // pad chord and bass
+  const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
+  const bm=36+(((ch.root-36)%12)+12)%12;
+  arpPad(t,bm,beat*3.6,.05);arpNote(t+beat*2,bm,beat*1.2,.035);
+  ARP.bar++;if(ARP.bar>=4){ARP.bar=0;sec.last=sec.oct;ARP.pi++}
+}
+function arpTick(){while(ARP.barT<AC.currentTime+1.6){arpBar(ARP.barT);ARP.barT+=60/ARP.bpm*4}}
+/* switch between the hub's gentle muzak and the mission arpeggio */
+function musMode(m){
+  if(m===mus.mode)return;mus.mode=m;
+  if(!AC)return;arpSetup();if(!ARP.out)return;
+  if(m==='arp'){ARP.barT=AC.currentTime+.35;ARP.out.gain.cancelScheduledValues(AC.currentTime);ARP.out.gain.setTargetAtTime(1,AC.currentTime,.4)}
+  else{ARP.out.gain.setTargetAtTime(0,AC.currentTime,.25);mus.next=AC.currentTime+.3}
+}
+
 function musTick(){
   if(!AC)return;if(AC.state==='suspended'){AC.resume();return}
+  if(mus.mode==='arp'){if(!ARP.ready){arpSetup();if(ARP.out){ARP.barT=AC.currentTime+.35;ARP.out.gain.value=1}}if(ARP.ready){arpTick();return}}
   const eighth=60/74/2;
   while(mus.next<AC.currentTime+.5){
     const st=mus.step++,t=mus.next,sub=st%8,ch=MCH[Math.floor(st/8)%4];
@@ -3806,13 +3907,14 @@ function initSaves(){
 let last=performance.now(),acc=0,barShown=null;
 function frame(now){
   if(DEV.hold){last=now;requestAnimationFrame(frame);return}
+  if(MODE!=='game')musMode('hub');
   const dt=Math.min(.1,Math.max(0,(now-last)/1000))||0;last=now;
   UI.list=[];UI.mouseOnly=null;padPoll(dt);
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
   else if(MODE==='tset'){drawTSettings()}else if(MODE==='slots'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawSlots()}else if(MODE==='game'){
     acc+=dt*SPEED;let n=0;while(acc>=1/60&&n<600){update(1/60);acc-=1/60;n++}
     bankAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;
-    musVol(0);draw();
+    musMode('arp');musVol(.5);draw();
   }else if(MODE==='loot'){lootTick(dt);musVol(.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
   else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
@@ -3830,7 +3932,7 @@ document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   const sp=+b.dataset.sp,need=SPEED_NEED[sp];if(systemsDone()<need){if(MODE==='game'&&G){G.msg='X'+sp+' LOCKED. CLEAR '+need+(need>1?' SYSTEMS':' SYSTEM')+' FIRST';G.msgT=2.5}return}
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
 });
-window.__g={tellStory,checkStory,get STY(){return STY},storyNext,newGameInSlot,loadSlot,continueGame,slotsUsed,readSlot,get CURSLOT(){return CURSLOT},arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
+window.__g={ARP,arpBar,musMode,tellStory,checkStory,get STY(){return STY},storyNext,newGameInSlot,loadSlot,continueGame,slotsUsed,readSlot,get CURSLOT(){return CURSLOT},arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
 
 /* ===== boss viewer: open index.html?bosses. Left/right change boss, Tab (or B/M) swaps boss and mini boss, up/down or 1 to 4 change damage, space shows the hit flash ===== */
 if(/[?&]bosses\b/.test(location.search)){setTimeout(()=>{
