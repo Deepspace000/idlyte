@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.14</title>
+<title>Idlyte v1.15</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1201,7 +1201,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.14';
+const VERSION='1.15';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2323,7 +2323,7 @@ function hubClick(x,y){
 }
 function hubUpdate(dt){
   const sp=HUB.sp;HUB.t+=dt;
-  HUB.acc+=dt/6;while(HUB.acc>=1){HUB.acc--;SAVE.day++;dayTick()}
+  // time no longer passes by itself on the station: it moves only on missions, sleeping and gym work
   if(HUB.bankFlash>0)HUB.bankFlash-=dt; // the bank only earns interest during missions
   if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}
   if(HUB.fade>0)HUB.fade-=dt;
