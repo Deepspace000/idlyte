@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.92</title>
+<title>Idlyte v0.93</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -1066,7 +1066,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.92';
+const VERSION='0.93';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2308,7 +2308,7 @@ function drawHub(){
       ctx.fillStyle='#000';ctx.fillRect(px,py,w,11);ctx.fillStyle='#70a4b2';ctx.fillRect(px,py,w,1);text(label,px+4,py+3,'#fff',1);
       UI.list.push({x:px,y:py,w,h:11,fn:()=>interactWith(nt)});}
     if(HUB.t<14){ctx.fillStyle='#000';ctx.fillRect(30,186,260,10);ctx.fillStyle='#6c5eb5';ctx.fillRect(30,186,260,1);ctx.fillRect(30,186,1,10);ctx.fillStyle='#1c1840';ctx.fillRect(30,195,260,1);ctx.fillRect(289,186,1,10)}
-    if(HUB.t<14)textC(INP.last==='touch'?'ARROWS TO WALK, TAP A ROOM':INP.last==='pad'?'STICK TO WALK. A TO USE':'WASD TO WALK. E TO USE. CLICK TO GO',190,'#ffffff',1);
+    if(HUB.t<14)textC(INP.last==='touch'?'ARROWS TO WALK, TAP A ROOM':INP.last==='pad'?'STICK TO WALK. A TO USE':'WASD TO WALK. E TO USE. CLICK TO GO. ESC FOR SETTINGS',190,'#ffffff',1);
   }
   if(HUB.fade>0){ctx.fillStyle=HUB.fade>.7?'#000000':pat('#000000');ctx.fillRect(0,0,W,H);if(HUB.fade>.4)textC('ZZZ...',96,'#ffffff',2)}
   if(HUB.screen)drawScreen();
@@ -2365,13 +2365,14 @@ function extraScreen(id,rows,info){
   }
   if(id==='settings'){
     SAVE.set=SAVE.set||{vol:1,scan:0};const S=SAVE.set,vn=['LOW','MEDIUM','HIGH'];
+    rows.push({n:'MUTE ALL SOUND',d:'SILENCES THE MUSIC AND EVERY SOUND EFFECT. KEY: M',r:mus.mute?'MUTED':'SOUND ON',ok:true,fn:()=>{setMute(!mus.mute)}});
     rows.push({n:'MUSIC',d:'TURN THE STATION MUSIC ON OR OFF',r:mus.on?'ON':'OFF',ok:true,fn:()=>{mus.on=!mus.on;SAVE.set.music=mus.on?1:0;save()}});
-    rows.push({n:'MUSIC VOLUME',d:'HOW LOUD THE MUSIC IS',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
+    rows.push({n:'VOLUME',d:'HOW LOUD THE MUSIC AND SOUNDS ARE',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
     rows.push({n:'CLOCK',d:'SHOW STATION TIME OR YOUR REAL LOCAL TIME',r:S.clock?'REAL TIME':'STATION TIME',ok:true,fn:()=>{S.clock=S.clock?0:1;save()}});
     rows.push({n:'SHIP NAME',d:'CHANGE THE NAME OF YOUR SHIP',r:SAVE.shipName||'',ok:true,fn:()=>{SAVE.shipName=askShipName(SAVE.shipName||'DRIFTER');save()}});
     rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
     rows.push({n:HUB.confirmReset?'PRESS AGAIN TO ERASE EVERYTHING':'RESET ALL PROGRESS',d:'STARTS A NEW GAME FROM THE BEGINNING',r:'',ok:true,fn:()=>{if(HUB.confirmReset){try{localStorage.removeItem('idlyte_slot_'+CURSLOT)}catch(e){}location.reload()}else HUB.confirmReset=1}});
-    L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL, O SETTINGS, H GOALS, M MUSIC');
+    L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL');L('ESC OR O SETTINGS, H GOALS, M MUTES ALL SOUND');
     return 'SETTINGS';
   }
   if(id==='achv'){
@@ -2583,7 +2584,7 @@ function endSortie(result){
 }
 
 /* ===== soft muzak (generated) ===== */
-let AC=null;const mus={on:true,step:0,next:0,in:null,gain:null,noise:null};
+let AC=null;const mus={on:true,mute:false,step:0,next:0,in:null,gain:null,noise:null};
 function musInit(){
   if(AC){if(AC.state==='suspended')AC.resume();return}
   try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null;return}
@@ -2595,7 +2596,7 @@ function musInit(){
   const nb=AC.createBuffer(1,AC.sampleRate*.1,AC.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;mus.noise=nb;
   mus.next=AC.currentTime+.2;setInterval(musTick,100);
 }
-function musVol(v){if(AC&&mus.gain)mus.gain.gain.setTargetAtTime(mus.on?v*.55*(mus.vol||1):0,AC.currentTime,.4)}
+function musVol(v){if(AC&&mus.gain)mus.gain.gain.setTargetAtTime((mus.on&&!mus.mute)?v*.55*(mus.vol||1):0,AC.currentTime,.4)}
 const MCH=[[48,52,55,59,62],[45,48,52,55,59],[50,53,57,60,64],[43,47,53,57,64]],PENT=[64,67,69,72,74,76,79];
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function tone(t,m,dur,type,vol,att,rel){
@@ -2624,7 +2625,10 @@ addEventListener('blur',()=>{UI.keys={}});
 const INP={last:'key'},PAD={x:0,y:0,prev:{},rep:{}};
 const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'ontouchstart' in window;
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
+/* master mute: works from anywhere, including during a mission */
+function setMute(m){mus.mute=!!m;if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND MUTED':'SOUND ON')}
 function handleKey(k){
+  if(k==='m'&&MODE!=='slots'){if(!INP.repeat)setMute(!mus.mute);return}
   if(MODE==='title'||MODE==='slots'){
     musInit();
     const n=Math.max(1,UI.list.length);
@@ -2637,7 +2641,6 @@ function handleKey(k){
   if(AC&&AC.state==='suspended')AC.resume();
   if(MODE==='game'){if(G&&G.slot&&(k==='1'||k==='2'||k==='3')){slotRespin(+k-1);return}if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
   if(MODE==='arcade'){arcadeKey(k);return}
-  if(k==='m'){mus.on=!mus.on;toast(mus.on?'MUSIC ON':'MUSIC OFF');return}
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv',b:'station'};
   if(MODE==='hub'&&hs[k]){HUB.screen=HUB.screen===hs[k]?null:hs[k];UI.focus=0;return}
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
@@ -2652,6 +2655,7 @@ function handleKey(k){
   }
   if(MODE==='hub'){
     if(k==='enter'||k==='e'||k===' ')interactWith(nearThing());
+    else if(k==='escape'){HUB.screen='settings';UI.focus=0}
   }
 }
 addEventListener('keydown',e=>{
@@ -2722,14 +2726,14 @@ const AS={iv:{},cannon:fromRows(['......#......','.....###.....','.###########.'
 for(const k in IVA)AS.iv[k]=IVA[k].map(r=>fromRows(r,()=>IVCOL[k]));
 let AR=null;
 function beep(f,d,type,v){
-  if(!AC||AC.state!=='running'||!mus.on)return;
+  if(!AC||AC.state!=='running'||mus.mute)return;
   const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=v||.035;
   g.gain.setTargetAtTime(0,AC.currentTime+d*.5,d*.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d+.15);
 }
 /* ===== soft sound effects: lasers, explosions, the pokie machine. generated, and they follow the music switch and volume ===== */
 let SFXNB=null;const SFXT={};
 function sfxOn(name,gap){
-  if(!AC||AC.state!=='running'||!mus.on)return false;
+  if(!AC||AC.state!=='running'||mus.mute)return false;
   const n=AC.currentTime;if(SFXT[name]!==undefined&&n-SFXT[name]<gap)return false;SFXT[name]=n;return true;
 }
 const sfxV=()=>.6+.4*(mus.vol||1);
@@ -2768,17 +2772,17 @@ function sfxTick(){
   if(!sfxOn('tick',.03))return;
   sfxNoise(.022,.05,3800,2200,'bandpass',{att:.002,q:2});sfxTone(1500+Math.random()*120,900,.03,'square',.012,{att:.002,lp:2800});
 }
-function sfxReelStop(){if(!AC||AC.state!=='running'||!mus.on)return;sfxTone(190,85,.14,'sine',.13,{att:.004,lp:700});sfxNoise(.04,.06,2400,900,'bandpass',{att:.003})}
-function sfxSlotStart(){if(!AC||AC.state!=='running'||!mus.on)return;sfxTone(330,620,.14,'triangle',.05);sfxNoise(.12,.04,900,2400,'bandpass',{att:.02})}
-function sfxDing(){if(!AC||AC.state!=='running'||!mus.on)return;sfxTone(1318,1318,.45,'sine',.05,{att:.005,lp:4000});sfxTone(2637,2637,.3,'sine',.015,{att:.005,lp:5000})}
+function sfxReelStop(){if(!AC||AC.state!=='running'||mus.mute)return;sfxTone(190,85,.14,'sine',.13,{att:.004,lp:700});sfxNoise(.04,.06,2400,900,'bandpass',{att:.003})}
+function sfxSlotStart(){if(!AC||AC.state!=='running'||mus.mute)return;sfxTone(330,620,.14,'triangle',.05);sfxNoise(.12,.04,900,2400,'bandpass',{att:.02})}
+function sfxDing(){if(!AC||AC.state!=='running'||mus.mute)return;sfxTone(1318,1318,.45,'sine',.05,{att:.005,lp:4000});sfxTone(2637,2637,.3,'sine',.015,{att:.005,lp:5000})}
 function sfxSlotWin(){
-  if(!AC||AC.state!=='running'||!mus.on)return;
+  if(!AC||AC.state!=='running'||mus.mute)return;
   [523.25,659.25,783.99,1046.5,1318.5,1568,2093].forEach((f,i)=>{const at=i*.085;
     sfxTone(f,f,.5,'sine',.07,{att:.004,at,lp:5000});sfxTone(f*2,f*2,.3,'sine',.02,{att:.004,at,lp:6000})});
   for(let i=0;i<14;i++){const at=.3+i*.06+Math.random()*.03;sfxNoise(.05,.04,6000,3500,'highpass',{att:.002,at});sfxTone(3000+Math.random()*1500,2600,.07,'sine',.014,{att:.002,at,lp:6000})}
   [523.25,659.25,783.99,1046.5].forEach(f=>sfxTone(f,f,.9,'triangle',.035,{att:.01,at:.62,lp:3500}));
 }
-function sfxSlotLose(){if(!AC||AC.state!=='running'||!mus.on)return;sfxTone(230,120,.45,'sine',.06,{lp:900});sfxTone(180,90,.5,'sine',.05,{at:.22,lp:700})}
+function sfxSlotLose(){if(!AC||AC.state!=='running'||mus.mute)return;sfxTone(230,120,.45,'sine',.06,{lp:900});sfxTone(180,90,.5,'sine',.05,{at:.22,lp:700})}
 function mkBunker(x){
   const w=22,h=16,d=new Uint8Array(w*h),c=mk(w,h),g=c.getContext('2d');g.fillStyle='#9ad284';
   for(let y=0;y<h;y++)for(let i=0;i<w;i++){let ok=true;if(y<3)ok=i>=3-y&&i<w-3+y;if(y>=11&&i>=7&&i<15)ok=false;d[y*w+i]=ok?1:0;if(ok)g.fillRect(i,y,1,1)}
@@ -3067,7 +3071,7 @@ function finishLoad(){
   if(!SAVE.shipName)SAVE.shipName='DRIFTER';
   SAVE.paint=Object.assign({color:'chrome',pattern:'none',accent:'lime',canopy:'cyan'},SAVE.paint||{});SAVE.paint.own=SAVE.paint.own||{};if(SAVE.paint.accent==='orange'&&!SAVE.paint.own['accent:orange'])SAVE.paint.accent='lime';rebuildShip();
   SAVE.extras=SAVE.extras||{};SAVE.booksOwned=SAVE.booksOwned||{};for(const b of BOOKS)if(SAVE.bookOpened[b.id]||SAVE.bookPage[b.id]>0)SAVE.booksOwned[b.id]=1;
-  mus.on=SAVE.set.music!==0;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
+  mus.on=SAVE.set.music!==0;mus.mute=!!SAVE.set.mute;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
   HUB.cam.x=0;HUB.cam.y=0;HUB.acc=0;HUB.screen=null;
 }
 function newGameInSlot(i,name){
@@ -3143,7 +3147,7 @@ function frame(now){
 }
 
 document.querySelectorAll('#menu button').forEach(b=>b.addEventListener('click',()=>{if(MODE!=='hub')return;const id=b.dataset.m;HUB.screen=HUB.screen===id?null:id;UI.focus=0}));
-initSaves();mus.on=SAVE.set.music!==0;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();
+initSaves();mus.on=SAVE.set.music!==0;mus.mute=!!SAVE.set.mute;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();
 refreshSpeedBtns();
 requestAnimationFrame(frame);
 setInterval(save,5000);
