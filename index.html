@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.24</title>
+<title>Idlyte v1.25</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -60,7 +60,7 @@
 const W=320,H=200,TOP=14,BOT=192;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
-const DISP=(()=>{const d={ratio:0,size:0,sharp:0,scan:1};try{Object.assign(d,JSON.parse(localStorage.getItem('idlyte_display')||'{}'))}catch(e){}return d})();
+const DISP=(()=>{const d={ratio:0,size:0,sharp:0,scan:1,manual:0};try{Object.assign(d,JSON.parse(localStorage.getItem('idlyte_display')||'{}'))}catch(e){}return d})();
 function setDisp(k,v){DISP[k]=v;try{localStorage.setItem('idlyte_display',JSON.stringify(DISP))}catch(e){}applySettings()}
 const FIT={ratio:DISP.ratio|0,size:DISP.size|0,sharp:DISP.sharp?1:0};
 function fit(){
@@ -868,8 +868,15 @@ function update(dt){
   }
   // autopilot
   G.ai.next-=dt;if(G.ai.next<=0){aiThink();G.ai.next=.09}
-  const st=G.stats,dx=G.ai.tx-P.x,dy=G.ai.ty-P.y,dl=Math.hypot(dx,dy);
-  if(dl>1){const m=Math.min(dl,st.speed*dt*(dl>6?1:dl/6+.2));P.x+=dx/dl*m;P.y+=dy/dl*m}
+  const st=G.stats;
+  if(DISP.manual){
+    let mx=(UI.keys.arrowright||UI.keys.d||PAD.x>0?1:0)-(UI.keys.arrowleft||UI.keys.a||PAD.x<0?1:0),my=(UI.keys.arrowdown||UI.keys.s||PAD.y>0?1:0)-(UI.keys.arrowup||UI.keys.w||PAD.y<0?1:0);
+    if(mx&&my){mx*=.72;my*=.72}
+    const v=st.speed*1.25;P.x+=mx*v*dt;P.y+=my*v*dt;G.ai.tx=P.x;G.ai.ty=P.y;
+  }else{
+    const dx=G.ai.tx-P.x,dy=G.ai.ty-P.y,dl=Math.hypot(dx,dy);
+    if(dl>1){const m=Math.min(dl,st.speed*dt*(dl>6?1:dl/6+.2));P.x+=dx/dl*m;P.y+=dy/dl*m}
+  }
   P.x=Math.max(SHIP_HW+2,Math.min(150,P.x));P.y=Math.max(TOP+SHIP_N+1,Math.min(BOT-SHIP_N-1,P.y));
   P.anim+=dt;P.trail.push(P.x,P.y);if(P.trail.length>160)P.trail.splice(0,2);
   if(G.stats.repair){P.rep=(P.rep||0)+dt;if(P.rep>=25){P.rep=0;if(P.hp<G.stats.hp){P.hp++;G.msg='REPAIRED';G.msgT=1;powerFx('H')}}}if(P.inv>0)P.inv-=dt;
@@ -1213,7 +1220,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.24';
+const VERSION='1.25';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2760,7 +2767,8 @@ function extraScreen(id,rows,info){
     const S=SAVE.set;
     L('CHANGE HOW BIG THE GAME IS AND WHAT SHAPE IT HAS ON YOUR SCREEN.');L('A PHONE HELD SIDEWAYS FILLS THE SCREEN ON AUTO.');
     {const RN=['AUTO','ORIGINAL 16:10','4:3','16:9','FILL SCREEN'],SN=['FULL','LARGE','MEDIUM','SMALL'];
-     rows.push({n:'SCREEN SHAPE',d:'AUTO FILLS A PHONE HELD SIDEWAYS. FILL STRETCHES TO THE EDGES',r:RN[DISP.ratio|0],ok:true,fn:()=>setDisp('ratio',((DISP.ratio|0)+1)%RN.length)});
+     rows.push({n:'SHIP CONTROL',d:'AUTOPILOT FLIES THE SHIP. MANUAL LETS YOU STEER WITH ARROWS OR WASD. GUNS AND POWER-UPS STAY AUTOMATIC',r:DISP.manual?'MANUAL':'AUTOPILOT',ok:true,fn:()=>setDisp('manual',DISP.manual?0:1)});
+    rows.push({n:'SCREEN SHAPE',d:'AUTO FILLS A PHONE HELD SIDEWAYS. FILL STRETCHES TO THE EDGES',r:RN[DISP.ratio|0],ok:true,fn:()=>setDisp('ratio',((DISP.ratio|0)+1)%RN.length)});
      rows.push({n:'SCREEN SIZE',d:'HOW MUCH OF THE WINDOW THE GAME USES',r:SN[DISP.size|0],ok:true,fn:()=>setDisp('size',((DISP.size|0)+1)%SN.length)});
      rows.push({n:'SHARP PIXELS',d:'WHOLE PIXEL SIZES FOR A CLEANER PICTURE. MAY LEAVE BORDERS',r:DISP.sharp?'ON':'OFF',ok:true,fn:()=>setDisp('sharp',DISP.sharp?0:1)})}
     rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:DISP.scan?'ON':'OFF',ok:true,fn:()=>setDisp('scan',DISP.scan?0:1)});
@@ -3577,15 +3585,16 @@ function drawTSettings(){
   textC('SETTINGS',14,'#ffffff',1);
   const RN=['AUTO','ORIGINAL 16:10','4:3','16:9','FILL SCREEN'],SN=['FULL','LARGE','MEDIUM','SMALL'];
   const rows=[
+   ['SHIP CONTROL',DISP.manual?'MANUAL':'AUTOPILOT',()=>setDisp('manual',DISP.manual?0:1)],
    ['SCREEN SHAPE',RN[DISP.ratio|0],()=>setDisp('ratio',((DISP.ratio|0)+1)%RN.length)],
    ['SCREEN SIZE',SN[DISP.size|0],()=>setDisp('size',((DISP.size|0)+1)%SN.length)],
    ['SHARP PIXELS',DISP.sharp?'ON':'OFF',()=>setDisp('sharp',DISP.sharp?0:1)],
    ['CRT SCREEN',DISP.scan?'ON':'OFF',()=>setDisp('scan',DISP.scan?0:1)],
    ['SOUND',mus.mute?'MUTED':'ON',()=>setMute(!mus.mute)]];
-  rows.forEach((r,i)=>{const y=32+i*22;
-    uiBtn(26,y,268,19,r[2],(f)=>{ctx.fillStyle=f?'#352879':'#111111';ctx.fillRect(26,y,268,19);if(f){ctx.fillStyle='#70a4b2';ctx.fillRect(26,y,2,19)}
+  rows.forEach((r,i)=>{const y=30+i*20;
+    uiBtn(26,y,268,18,r[2],(f)=>{ctx.fillStyle=f?'#352879':'#111111';ctx.fillRect(26,y,268,18);if(f){ctx.fillStyle='#70a4b2';ctx.fillRect(26,y,2,18)}
       text(r[0],36,y+6,'#ffffff',1);textR(r[1],286,y+6,'#9ad284',1)})});
-  text('AUTO FILLS A PHONE HELD SIDEWAYS',28,148,'#70a4b2',1);
+  text('AUTOPILOT FLIES FOR YOU. MANUAL: YOU STEER, GUNS STILL FIRE BY THEMSELVES.',28,152,'#70a4b2',1);
   uiBtn(26,166,268,18,()=>{MODE='title';UI.focus=0},(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(26,166,268,18);textC2('BACK',160,172,'#ffffff')});
 }
 function drawSlots(){
@@ -3631,7 +3640,7 @@ function frame(now){
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
   else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
   else if(MODE==='story'){musVol(.25);drawStory(dt)}
-  const show=MODE==='game',tshow=isTouch&&(MODE==='hub'||MODE==='arcade'),mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display='none';fit()}
+  const show=MODE==='game',tshow=isTouch&&(MODE==='hub'||MODE==='arcade'||(MODE==='game'&&DISP.manual)),mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display='none';fit()}
   requestAnimationFrame(frame);
 }
 
