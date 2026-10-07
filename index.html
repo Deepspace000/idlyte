@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.13</title>
+<title>Idlyte v1.14</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -60,7 +60,9 @@
 const W=320,H=200,TOP=14,BOT=192;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
-const FIT={ratio:0,size:0,sharp:0};
+const DISP=(()=>{const d={ratio:0,size:0,sharp:0,scan:1};try{Object.assign(d,JSON.parse(localStorage.getItem('idlyte_display')||'{}'))}catch(e){}return d})();
+function setDisp(k,v){DISP[k]=v;try{localStorage.setItem('idlyte_display',JSON.stringify(DISP))}catch(e){}applySettings()}
+const FIT={ratio:DISP.ratio|0,size:DISP.size|0,sharp:DISP.sharp?1:0};
 function fit(){
   const ls=innerWidth>innerHeight*1.45&&innerHeight<600;
   document.body.classList.toggle('ls',ls);
@@ -1199,7 +1201,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.13';
+const VERSION='1.14';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2555,10 +2557,10 @@ function extraScreen(id,rows,info){
     const S=SAVE.set;
     L('CHANGE HOW BIG THE GAME IS AND WHAT SHAPE IT HAS ON YOUR SCREEN.');L('A PHONE HELD SIDEWAYS FILLS THE SCREEN ON AUTO.');
     {const RN=['AUTO','ORIGINAL 16:10','4:3','16:9','FILL SCREEN'],SN=['FULL','LARGE','MEDIUM','SMALL'];
-     rows.push({n:'SCREEN SHAPE',d:'AUTO FILLS A PHONE HELD SIDEWAYS. FILL STRETCHES TO THE EDGES',r:RN[S.ratio|0],ok:true,fn:()=>{S.ratio=((S.ratio|0)+1)%RN.length;applySettings();save()}});
-     rows.push({n:'SCREEN SIZE',d:'HOW MUCH OF THE WINDOW THE GAME USES',r:SN[S.size|0],ok:true,fn:()=>{S.size=((S.size|0)+1)%SN.length;applySettings();save()}});
-     rows.push({n:'SHARP PIXELS',d:'WHOLE PIXEL SIZES FOR A CLEANER PICTURE. MAY LEAVE BORDERS',r:S.sharp?'ON':'OFF',ok:true,fn:()=>{S.sharp=S.sharp?0:1;applySettings();save()}})}
-    rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
+     rows.push({n:'SCREEN SHAPE',d:'AUTO FILLS A PHONE HELD SIDEWAYS. FILL STRETCHES TO THE EDGES',r:RN[DISP.ratio|0],ok:true,fn:()=>setDisp('ratio',((DISP.ratio|0)+1)%RN.length)});
+     rows.push({n:'SCREEN SIZE',d:'HOW MUCH OF THE WINDOW THE GAME USES',r:SN[DISP.size|0],ok:true,fn:()=>setDisp('size',((DISP.size|0)+1)%SN.length)});
+     rows.push({n:'SHARP PIXELS',d:'WHOLE PIXEL SIZES FOR A CLEANER PICTURE. MAY LEAVE BORDERS',r:DISP.sharp?'ON':'OFF',ok:true,fn:()=>setDisp('sharp',DISP.sharp?0:1)})}
+    rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:DISP.scan?'ON':'OFF',ok:true,fn:()=>setDisp('scan',DISP.scan?0:1)});
     rows.push({n:'BACK',d:'BACK TO SETTINGS',r:'',ok:true,fn:()=>{HUB.screen='settings';UI.focus=0}});
     return 'DISPLAY';
   }
@@ -2736,7 +2738,7 @@ function extraScreen(id,rows,info){
   }
   return 'MENU';
 }
-function applySettings(){const sc=document.getElementById('scan'),on=!!(SAVE.set&&SAVE.set.scan);if(SAVE.set){FIT.ratio=SAVE.set.ratio|0;FIT.size=SAVE.set.size|0;FIT.sharp=SAVE.set.sharp?1:0;fit()}if(sc)sc.style.display=on?'block':'none';const w=document.getElementById('wrap');if(w)w.classList.toggle('crt',on)}
+function applySettings(){const sc=document.getElementById('scan'),on=!!DISP.scan;FIT.ratio=DISP.ratio|0;FIT.size=DISP.size|0;FIT.sharp=DISP.sharp?1:0;fit();if(sc)sc.style.display=on?'block':'none';const w=document.getElementById('wrap');if(w)w.classList.toggle('crt',on)}
 
 function textC2(s,cx,y,col){text(s,(cx-textW(s,1)/2)|0,y,col,1)}
 function drawToast(y){
@@ -2831,13 +2833,13 @@ function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute
 function handleKey(k){
   if(k==='m'){if(!INP.repeat)setMute(!mus.mute);return}
   if(MODE==='story'){if(!STY)return;if(k==='escape'||k==='backspace'||k==='q')storySkip();else if(k==='enter'||k===' '||k==='e'||k==='z'||k==='x'||k==='arrowright'||k==='d')storyNext();return}
-  if(MODE==='title'||MODE==='slots'){
+  if(MODE==='title'||MODE==='slots'||MODE==='tset'){
     musInit();
     const n=Math.max(1,UI.list.length);
     if(k==='arrowup'||k==='arrowleft'||k==='w'||k==='a')UI.focus=(UI.focus+n-1)%n;
     else if(k==='arrowdown'||k==='arrowright'||k==='s'||k==='d'||k==='tab')UI.focus=(UI.focus+1)%n;
     else if(k==='enter'||k===' '||k==='e'){const b=UI.list[UI.focus];if(b)b.fn()}
-    else if((k==='escape'||k==='backspace'||k==='q')&&MODE==='slots'){MODE='title';UI.focus=0}
+    else if((k==='escape'||k==='backspace'||k==='q')&&(MODE==='slots'||MODE==='tset')){MODE='title';UI.focus=0}
     return;
   }
   if(AC&&AC.state==='suspended')AC.resume();
@@ -3294,14 +3296,32 @@ function slotClick(i){
 function titleMenu(){
   const has=slotsUsed()>0;
   if(!TITLE_INIT){TITLE_INIT=true;UI.focus=has?0:1}
-  const items=[['CONTINUE',has,continueGame],['NEW GAME',true,()=>{SLOTMODE='new';MODE='slots';UI.focus=0}],['LOAD GAME',has,()=>{SLOTMODE='load';MODE='slots';UI.focus=0}]];
-  items.forEach((it,k)=>{const y=118+k*19;
-    uiBtn(90,y,140,16,()=>{if(it[1])it[2]();else toast('NO SAVED GAMES YET')},(f)=>{
-      ctx.fillStyle=!it[1]?'#222222':f?'#6c5eb5':'#352879';ctx.fillRect(90,y,140,16);ctx.fillStyle=!it[1]?'#1a1a1a':f?'#4f43a0':'#2a1f66';ctx.fillRect(91,y+8,138,7);
-      ctx.fillStyle=f?'#9a8fe0':'#6c5eb5';ctx.fillRect(90,y,140,1);ctx.fillRect(90,y,1,16);ctx.fillStyle='#1c1840';ctx.fillRect(90,y+15,140,1);ctx.fillRect(229,y,1,16);
-      if(f&&it[1]&&Math.floor(titleT*4)%2){text('>',96,y+5,'#ffffff',1);text('<',221,y+5,'#ffffff',1)}
-      textC2(it[0],160,y+5,it[1]?'#ffffff':'#666666')})});
+  const items=[['CONTINUE',has,continueGame],['NEW GAME',true,()=>{SLOTMODE='new';MODE='slots';UI.focus=0}],['LOAD GAME',has,()=>{SLOTMODE='load';MODE='slots';UI.focus=0}],['SETTINGS',true,()=>{MODE='tset';UI.focus=0}]];
+  items.forEach((it,k)=>{const y=106+k*17;
+    uiBtn(90,y,140,15,()=>{if(it[1])it[2]();else toast('NO SAVED GAMES YET')},(f)=>{
+      ctx.fillStyle=!it[1]?'#222222':f?'#6c5eb5':'#352879';ctx.fillRect(90,y,140,15);ctx.fillStyle=!it[1]?'#1a1a1a':f?'#4f43a0':'#2a1f66';ctx.fillRect(91,y+8,138,6);
+      ctx.fillStyle=f?'#9a8fe0':'#6c5eb5';ctx.fillRect(90,y,140,1);ctx.fillRect(90,y,1,15);ctx.fillStyle='#1c1840';ctx.fillRect(90,y+14,140,1);ctx.fillRect(229,y,1,15);
+      if(f&&it[1]&&Math.floor(titleT*4)%2){text('>',96,y+4,'#ffffff',1);text('<',221,y+4,'#ffffff',1)}
+      textC2(it[0],160,y+4,it[1]?'#ffffff':'#666666')})});
   drawToast(176);
+}
+function drawTSettings(){
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  for(const s2 of STARS){ctx.fillStyle=s2.c;ctx.fillRect(s2.x|0,s2.y|0,1,1)}
+  box(20,8,280,184,'#000','#6c5eb5');ctx.fillStyle='#352879';ctx.fillRect(21,9,278,16);
+  textC('SETTINGS',14,'#ffffff',1);
+  const RN=['AUTO','ORIGINAL 16:10','4:3','16:9','FILL SCREEN'],SN=['FULL','LARGE','MEDIUM','SMALL'];
+  const rows=[
+   ['SCREEN SHAPE',RN[DISP.ratio|0],()=>setDisp('ratio',((DISP.ratio|0)+1)%RN.length)],
+   ['SCREEN SIZE',SN[DISP.size|0],()=>setDisp('size',((DISP.size|0)+1)%SN.length)],
+   ['SHARP PIXELS',DISP.sharp?'ON':'OFF',()=>setDisp('sharp',DISP.sharp?0:1)],
+   ['CRT SCREEN',DISP.scan?'ON':'OFF',()=>setDisp('scan',DISP.scan?0:1)],
+   ['SOUND',mus.mute?'MUTED':'ON',()=>setMute(!mus.mute)]];
+  rows.forEach((r,i)=>{const y=32+i*22;
+    uiBtn(26,y,268,19,r[2],(f)=>{ctx.fillStyle=f?'#352879':'#111111';ctx.fillRect(26,y,268,19);if(f){ctx.fillStyle='#70a4b2';ctx.fillRect(26,y,2,19)}
+      text(r[0],36,y+6,'#ffffff',1);textR(r[1],286,y+6,'#9ad284',1)})});
+  text('AUTO FILLS A PHONE HELD SIDEWAYS',28,148,'#70a4b2',1);
+  uiBtn(26,166,268,18,()=>{MODE='title';UI.focus=0},(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(26,166,268,18);textC2('BACK',160,172,'#ffffff')});
 }
 function drawSlots(){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
@@ -3338,7 +3358,7 @@ function frame(now){
   const dt=Math.min(.1,Math.max(0,(now-last)/1000))||0;last=now;
   UI.list=[];UI.mouseOnly=null;padPoll(dt);
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
-  else if(MODE==='slots'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawSlots()}else if(MODE==='game'){
+  else if(MODE==='tset'){drawTSettings()}else if(MODE==='slots'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawSlots()}else if(MODE==='game'){
     acc+=dt*SPEED;let n=0;while(acc>=1/60&&n<600){update(1/60);acc-=1/60;n++}
     bankAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;
     musVol(0);draw();
