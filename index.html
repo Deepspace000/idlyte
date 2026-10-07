@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.93</title>
+<title>Idlyte v0.94</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -131,27 +131,27 @@ function shaded(w,h,mask,bands,extra){
 }
 
 /* ===== player ship (hand drawn, chrome, nose to the right) ===== */
-/* player ship, designed in ship_designer.html (48x33). rows are the upper half including the centre line; the lower half is the same, mirrored and darker */
+/* player ship, designed in ship_designer.html (scaled to 41x29). rows are the upper half including the centre line; the lower half is the same, mirrored and darker */
 const SHIP_ROWS=[
-"........................kkkkk...................",
-".......................kddddk...................",
-".....................kkddddddkkkk...............",
-"...................kk3ddggggg3333kk.............",
-"..................k333dggggg3333333k............",
-"................kk333ggggggggggg3333k...........",
-"................k333gggglllllggggg333k..........",
-"...............k333ggllllllllllllgg333k.........",
-".....kkkkkk...k333gllllllllllllllllg333k........",
-"...kkAABAddk.k333ddlllllLLLLLllllllll33k........",
-"kkkCCCCACgggk333lggggLLLLLLLLLLLLllll333k.......",
-"kDDDDDDEDllggg33lggLLllllllllLLFFFLLll33k.......",
-"kkkCCCCECllllllLLllLLllllllllFFGGGFFLL33k.......",
-"...kkkkCkHLLlLLLLLLggwwwwwwwwwGIIIGGFLL33k......",
-".......k.kJLLLLwwLwwwwwwwwwwwwwMMMIIIww33k......",
-".........kNNwwwwwwwwwwwwwwwwwwwwOOOOMww33k......",
-".......k.kPP3wwwwwwwwwwwwwwwwwwwOOOOOww33k......"
+".....................kkkk................",
+"....................kddddk...............",
+".................kkkddddd3kk.............",
+"................k33dgggg3333kk...........",
+"..............kk33gggggggg3333k..........",
+".............k3333gggllllggg333k.........",
+".............k33ggggllllllgggg33k........",
+".....kkkk...k33gllllllllllllllg33k.......",
+"..kkkAAggk.k33ldlllllLLLLllllll33k.......",
+"kkCCCCAgggk333lggggggggLLLLLllll33k......",
+"kDCCCDEkllgl3LLlwwwwwwwwwLFFFFLLl3k......",
+".kkkkCk.klllLLLlgggggggwwFGGGGFLL33k.....",
+".....kk.kLLLLwwLwwwwwwwwwwIIIIIGL33k.....",
+"........kNwwwwwwwwwwwwwwwwwOOOMMw33k.....",
+"......k.kP3wwwwwwwwwwwwwwwwwOOOOw33k....."
 ];
 const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHIP_HW=SHIP_W>>1;
+/* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
+const SHIP_K=SHIP_W/48,shk=n=>Math.round(n*SHIP_K);
 /* ramps for the parts that keep their own colours (bright to dark) */
 const SHIP_RAMP={flame:['#ffffff','#ffffaa','#ff9966','#ff7777','#9a3a3a'],glass:['#ffffff','#9ad2e0','#70a4b2','#6c5eb5','#352879'],shadow:['#bbbbbb','#6c6c6c','#444444','#222222','#000000']};
 /* char -> [ramp, shade]. hull chars follow the paint shop colour, accent digits follow the accent colour, glass follows the canopy colour */
@@ -599,7 +599,7 @@ function lootDrop(e){
 }
 function optPos(i){
   const L=P.trail.length;let k=L-2*(i+1)*12-2;if(k<0)k=0;
-  return L?[P.trail[k]-6,P.trail[k+1]+(i%2?20:-20)*(1+(i>>1))]:[P.x,P.y];
+  return L?[P.trail[k]-shk(6),P.trail[k+1]+(i%2?shk(20):-shk(20))*(1+(i>>1))]:[P.x,P.y];
 }
 /* ===== spawning ===== */
 function spawn(o){
@@ -641,10 +641,10 @@ function aiThink(){
       const rx=gx-b.x,ry=gy-b.y,v2=b.vx*b.vx+b.vy*b.vy;
       let tc=v2?(rx*b.vx+ry*b.vy)/v2:0;if(tc<0||tc>2.5)continue;
       const d=Math.hypot(rx-b.vx*tc,ry-b.vy*tc);
-      if(d<21)c+=(21-d)*(3.2-tc);
+      if(d<shk(21))c+=(shk(21)-d)*(3.2-tc);
     }
     for(const e of E){
-      const hw=e.w/2+12,hh=e.h/2+11;
+      const hw=e.w/2+shk(12),hh=e.h/2+shk(11);
       // where the enemy will be by the time we get there
       const t=Math.min(1.2,Math.hypot(gx-P.x,gy-P.y)/st.speed);
       const ex=e.x+e.vx*t,ey=e.y+(e.vy||0)*t;
@@ -720,12 +720,12 @@ function killEnemy(e){
 function fireShots(){
   sfxLaser();
   const w=P.wpn,rate=G.stats.fire*(w===3?1.25:1)*(1+.35*(G.tap||0)),d=G.stats.dmg;
-  const sh=(dy,vy)=>PB.push({x:P.x+16,y:P.y+dy,vx:230,vy:vy||0,dmg:d,lv:w});
-  sh(0);FX.push({x:P.x+19,y:P.y,vx:0,vy:0,life:.05,l0:.05,c:'#ffffff',s:3});
+  const sh=(dy,vy)=>PB.push({x:P.x+shk(16),y:P.y+dy,vx:230,vy:vy||0,dmg:d,lv:w});
+  sh(0);FX.push({x:P.x+shk(19),y:P.y,vx:0,vy:0,life:.05,l0:.05,c:'#ffffff',s:3});
   for(let i=0;i<G.stats.opts;i++){const o=optPos(i);PB.push({x:o[0]+4,y:o[1],vx:230,vy:0,dmg:d*.6})}
-  if(w>=2){sh(-6,-6);sh(6,6)}
-  if(w>=3){sh(-10,-24);sh(10,24)}
-  if(w>=4){sh(-14,-48);sh(14,48)}
+  if(w>=2){sh(-shk(6),-6);sh(shk(6),6)}
+  if(w>=3){sh(-shk(10),-24);sh(shk(10),24)}
+  if(w>=4){sh(-shk(14),-48);sh(shk(14),48)}
   P.fireT=1/rate;
 }
 function update(dt){
@@ -769,19 +769,19 @@ function update(dt){
   if(P.twinT>0){
     P.twinT-=dt;P.twinFire=(P.twinFire||0)-dt;
     if(P.twinFire<=0&&E.length){P.twinFire=.45;
-      for(const sg of [-1,1]){const ox=P.x+6,oy=P.y+sg*26;let tg=null,bd=170;
+      for(const sg of [-1,1]){const ox=P.x+shk(6),oy=P.y+sg*shk(26);let tg=null,bd=170;
         for(const e of E){const d=Math.hypot(e.x-ox,e.y-oy);if(e.x>ox-20&&d<bd){bd=d;tg=e}}
         if(tg){const d=Math.hypot(tg.x-ox,tg.y-oy)||1;PB.push({x:ox,y:oy,vx:(tg.x-ox)/d*210,vy:(tg.y-oy)/d*210,dmg:G.stats.dmg*.8})}}}
   }
   if(P.guardT>0){
-    P.guardT-=dt;P.gAng=(P.gAng||0)+4.5*dt;P.gx=P.x+Math.cos(P.gAng)*34;P.gy=P.y+Math.sin(P.gAng)*34;
+    P.guardT-=dt;P.gAng=(P.gAng||0)+4.5*dt;P.gx=P.x+Math.cos(P.gAng)*shk(34);P.gy=P.y+Math.sin(P.gAng)*shk(34);
     for(const e of E){
       if(e.gcd>0)e.gcd-=dt;
       else if(Math.abs(e.x-P.gx)<e.w/2+5&&Math.abs(e.y-P.gy)<e.h/2+5){e.hp-=3*Math.max(1,G.stats.dmg);e.flash=.08;e.gcd=.15;if(e.hp<=0&&!e.dead){e.dead=1;killEnemy(e)}}
     }
     EB=EB.filter(b=>Math.hypot(b.x-P.gx,b.y-P.gy)>7);
   }
-  if(G.stats.missile){P.misT=(P.misT||0)-dt;if(P.misT<=0&&E.length){P.misT=1.8/(1+G.stats.missile*.5);PB.push({x:P.x+10,y:P.y,vx:110,vy:(Math.random()<.5?-1:1)*40,dmg:3,hm:1})}}
+  if(G.stats.missile){P.misT=(P.misT||0)-dt;if(P.misT<=0&&E.length){P.misT=1.8/(1+G.stats.missile*.5);PB.push({x:P.x+shk(10),y:P.y,vx:110,vy:(Math.random()<.5?-1:1)*40,dmg:3,hm:1})}}
   updateEntities(dt,true);
 }
 function updateEntities(dt,live){
@@ -823,12 +823,12 @@ function updateEntities(dt,live){
   E=E.filter(e=>!e.dead&&e.x>-40&&e.y>-30&&e.y<H+30);
   if(live&&G.state==='play'){
     for(const e of E){
-      if(Math.abs(e.x-P.x)<e.w/2+12&&Math.abs(e.y-P.y)<e.h/2+6){
+      if(Math.abs(e.x-P.x)<e.w/2+shk(12)&&Math.abs(e.y-P.y)<e.h/2+shk(6)){
         if(e.type!=='boss'&&P.inv<=0){e.hp-=3;e.flash=.1;if(e.hp<=0){e.dead=1;killEnemy(e)}}
         hurtPlayer();
       }
     }
-    for(const b of EB){if(Math.abs(b.x-P.x)<10&&Math.abs(b.y-P.y)<7){b.dead=1;hurtPlayer()}}
+    for(const b of EB){if(Math.abs(b.x-P.x)<shk(10)&&Math.abs(b.y-P.y)<shk(7)){b.dead=1;hurtPlayer()}}
     EB=EB.filter(b=>!b.dead);E=E.filter(e=>!e.dead);
   }
   // pickups
@@ -840,7 +840,7 @@ function updateEntities(dt,live){
     if(sweep&&d>0){const step=Math.min(d,(200+d*1.2)*dt);k.x+=dx/d*step;k.y+=dy/d*step}
     else if(live&&d<mr&&d>0){const pull=(k.k==='coin'?160:90)*(1-d/(mr+10))+40;k.x+=dx/d*pull*dt;k.y+=dy/d*pull*dt}
     else{k.x+=k.vx*dt;k.y+=k.vy*dt;k.vx+=(-26-k.vx)*dt*1.5;k.vy*=1-dt*2}
-    if(grab&&d<17){
+    if(grab&&d<shk(17)){
       k.dead=1;
       if(k.k==='coin'){const cm=G.stats.coinMul,v=Math.max(1,Math.floor(cm)+(Math.random()<cm%1?1:0));SAVE.coins+=v;SAVE.earned+=v;G.coinsRun+=v;G.score+=10}
       else if(k.k==='token'){SAVE.tokens=(SAVE.tokens||0)+1;G.salv.unshift({t:1.8,name:'AREA TOKEN',txt:'AREA TOKEN +1  ('+SAVE.tokens+' TOTAL)',c:'#70a4b2',ix:3});if(G.salv.length>3)G.salv.pop();save()}
@@ -930,7 +930,7 @@ function drawShip(){
   const x=P.x|0,y=P.y|0;
   // engine flames: white core, yellow, orange, red tail
   const fl=4+Math.floor(Math.random()*7);
-  const rows=[[-5,1],[5,1]];
+  const rows=[[-shk(5),1],[shk(5),1]];
   for(const r of rows){
     const len=fl+r[1]+(G.state==='clear'&&G.timer<3?10:0);
     for(let k=0;k<len;k++){
@@ -944,12 +944,12 @@ function drawShip(){
     const ph=((G.t||0)%2.6)/2.6;
     if(ph<.45){const sx=-12+ph/.45*(SHIP_W+24);tg.globalCompositeOperation='source-atop';tg.fillStyle='#ffffff';for(let r=0;r<SHIP_H;r++){const bx=sx+(SHIP_H-1-r)*.7;tg.globalAlpha=.85;tg.fillRect(bx|0,r,3,1);tg.globalAlpha=.4;tg.fillRect((bx-1)|0,r,1,1);tg.fillRect((bx+3)|0,r,1,1)}tg.globalAlpha=1;tg.globalCompositeOperation='source-over'}
     ctx.drawImage(tc,x-SHIP_HW,y-SHIP_N);
-    const sp=Math.floor((G.t||0)*5)%9;if(sp<2){ctx.fillStyle='#ffffff';const nx=x+12,ny=y-7;ctx.fillRect(nx-2,ny,5,1);ctx.fillRect(nx,ny-2,1,5);if(sp===0){ctx.fillRect(nx-1,ny-1,3,3)}}}
-  if(P.wpn>1&&(P.wpnT>3||Math.floor(P.anim*8)%2)){ctx.fillStyle=P.wpn>=4?'#ff9966':P.wpn===3?'#b8c76f':'#9ad284';for(let k=0;k<P.wpn-1;k++){ctx.fillRect(x+12-k*4,y-19,3,2);ctx.fillRect(x+12-k*4,y+18,3,2)}}
-  if((G.tap||0)>.05){ctx.fillStyle=Math.floor(P.anim*20)%2?'#ffffff':'#b8c76f';ctx.fillRect(x+16,y-18,3,1);ctx.fillRect(x+16,y+17,3,1)}
+    const sp=Math.floor((G.t||0)*5)%9;if(sp<2){ctx.fillStyle='#ffffff';const nx=x+shk(12),ny=y-shk(7);ctx.fillRect(nx-2,ny,5,1);ctx.fillRect(nx,ny-2,1,5);if(sp===0){ctx.fillRect(nx-1,ny-1,3,3)}}}
+  if(P.wpn>1&&(P.wpnT>3||Math.floor(P.anim*8)%2)){ctx.fillStyle=P.wpn>=4?'#ff9966':P.wpn===3?'#b8c76f':'#9ad284';for(let k=0;k<P.wpn-1;k++){ctx.fillRect(x+shk(12)-k*4,y-shk(19),3,2);ctx.fillRect(x+shk(12)-k*4,y+shk(18),3,2)}}
+  if((G.tap||0)>.05){ctx.fillStyle=Math.floor(P.anim*20)%2?'#ffffff':'#b8c76f';ctx.fillRect(x+shk(16),y-shk(18),3,1);ctx.fillRect(x+shk(16),y+shk(17),3,1)}
   if(P.shield>0&&(P.shield>2||Math.floor(P.shield*8)%2)){
     const n=64,rot=P.anim*2.2;
-    for(let i=0;i<n;i++){const seg=((i/n*5+rot/6.2832*5)%1+1)%1;if(seg>(P.shHit>1?.72:.5))continue;const a=i/n*6.2832,px=(x-3+Math.cos(a)*27)|0,py=(y+Math.sin(a)*22)|0;
+    for(let i=0;i<n;i++){const seg=((i/n*5+rot/6.2832*5)%1+1)%1;if(seg>(P.shHit>1?.72:.5))continue;const a=i/n*6.2832,px=(x-shk(3)+Math.cos(a)*shk(27))|0,py=(y+Math.sin(a)*shk(22))|0;
       ctx.fillStyle='#352879';ctx.fillRect(px+(Math.cos(a)>0?-1:1),py,2,2);ctx.fillStyle=seg<.2?'#ffffff':'#70a4b2';ctx.fillRect(px,py,2,2)}
   }
 }
@@ -968,8 +968,8 @@ function draw(){
   for(const e of E)drawEnemy(e);
   drawShip();
   if(G.state==='play'&&P.mag>0)drawMagnetField();
-  if(G.state==='play'&&P.twinT>0&&(P.twinT>2||Math.floor(P.twinT*8)%2))for(const sg of [-1,1]){const ox=(P.x+6)|0,oy=(P.y+sg*26+Math.sin(P.anim*5+sg)*1.5)|0;ctx.drawImage(SPR.opt,ox-3,oy-3)}
-  if(G.state==='play'&&P.guardT>0&&(P.guardT>2||Math.floor(P.guardT*8)%2)){for(let k=1;k<=4;k++){const a=(P.gAng||0)-k*.28;ctx.fillStyle=k<3?'#ff7777':'#9a6759';ctx.fillRect((P.x+Math.cos(a)*34)|0,(P.y+Math.sin(a)*34)|0,2,2)}ctx.drawImage(SPR.guard,((P.gx||P.x)-4)|0,((P.gy||P.y)-4)|0);for(const so of [1.6,3.2]){const sa=(P.gAng||0)+so,sx=((P.gx||P.x)+Math.cos(sa*2)*7)|0,sy=((P.gy||P.y)+Math.sin(sa*2)*7)|0;ctx.fillStyle='#ffffff';ctx.fillRect(sx,sy,2,2)}}
+  if(G.state==='play'&&P.twinT>0&&(P.twinT>2||Math.floor(P.twinT*8)%2))for(const sg of [-1,1]){const ox=(P.x+shk(6))|0,oy=(P.y+sg*shk(26)+Math.sin(P.anim*5+sg)*1.5)|0;ctx.drawImage(SPR.opt,ox-3,oy-3)}
+  if(G.state==='play'&&P.guardT>0&&(P.guardT>2||Math.floor(P.guardT*8)%2)){for(let k=1;k<=4;k++){const a=(P.gAng||0)-k*.28;ctx.fillStyle=k<3?'#ff7777':'#9a6759';ctx.fillRect((P.x+Math.cos(a)*shk(34))|0,(P.y+Math.sin(a)*shk(34))|0,2,2)}ctx.drawImage(SPR.guard,((P.gx||P.x)-4)|0,((P.gy||P.y)-4)|0);for(const so of [1.6,3.2]){const sa=(P.gAng||0)+so,sx=((P.gx||P.x)+Math.cos(sa*2)*7)|0,sy=((P.gy||P.y)+Math.sin(sa*2)*7)|0;ctx.fillStyle='#ffffff';ctx.fillRect(sx,sy,2,2)}}
   if(G.state==='play')for(let i=0;i<G.stats.opts;i++){const o=optPos(i);ctx.drawImage(SPR.opt,(o[0]-3)|0,(o[1]-3)|0)}
   // shots
   for(const b of PB){
@@ -1066,7 +1066,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.93';
+const VERSION='0.94';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1109,7 +1109,7 @@ function drawTitle(now){
   {const CB=['#352879','#6c5eb5','#70a4b2','#ffffff','#70a4b2','#6c5eb5','#352879','#000000'];for(let i=0;i<8;i++){ctx.fillStyle=CB[(i+Math.floor(titleT*8))%8];ctx.fillRect(0,192+i,W,1)}}
   // ship flying across the lower half
   const sx=((titleT*40)%(W+80))-40,sy=106+Math.sin(titleT*1.7)*6;
-  for(const r of [-5,5]){const len=4+Math.floor(Math.random()*6);ctx.fillStyle='#68372b';ctx.fillRect(sx-SHIP_HW-len|0,sy+r|0,len,1);ctx.fillStyle='#fff';ctx.fillRect(sx-SHIP_HW-1|0,sy+r|0,2,1)}
+  for(const r of [-shk(5),shk(5)]){const len=4+Math.floor(Math.random()*6);ctx.fillStyle='#68372b';ctx.fillRect(sx-SHIP_HW-len|0,sy+r|0,len,1);ctx.fillStyle='#fff';ctx.fillRect(sx-SHIP_HW-1|0,sy+r|0,2,1)}
   ctx.drawImage(SPR.shipSets[SAVE.ship][Math.floor(titleT*6.5)%16],(sx-SHIP_HW)|0,(sy-SHIP_N)|0);
   titleMenu();
   {const msg='   WELCOME TO IDLYTE - AN IDLE SPACE SHOOTER.  FLY MISSIONS - COLLECT SALVAGE - GROW YOUR SPACE STATION - CLEAR EVERY SYSTEM.   ',tw=msg.length*8;
@@ -1832,7 +1832,7 @@ function tapAt(gx,gy){
 }
 function drawZapFx(){
   const z=G.zapFx;if(!z)return;
-  const x0=P.x+16,y0=P.y,n=10;let px=x0,py=y0;
+  const x0=P.x+shk(16),y0=P.y,n=10;let px=x0,py=y0;
   for(let i=1;i<=n;i++){
     const t=i/n,nx=x0+(z.x-x0)*t,ny=y0+(z.y-y0)*t+(i<n?rnd(-4,4):0),steps=Math.max(1,Math.max(Math.abs(nx-px),Math.abs(ny-py))|0);
     for(let k=0;k<=steps;k++){const q=k/steps;ctx.fillStyle=Math.random()<.5?'#ffffff':'#70a4b2';ctx.fillRect((px+(nx-px)*q)|0,(py+(ny-py)*q)|0,1,1)}
@@ -2190,7 +2190,7 @@ function dynRoom(r,x,y,t){
   else if(ty==='hangar'){
     {const fl=.5+.25*Math.sin(t*3);for(let r=0;r<5;r++){ctx.fillStyle='#b8c76f';for(let px=x+18+r*3;px<x+80-r*3;px+=2){if(((px>>1)+r)&1)continue;ctx.globalAlpha=(.34-r*.05)*fl*1.6;ctx.fillRect(px,y+44+r,2,1)}}ctx.globalAlpha=1}
     R_(ctx,x+26,y+46,42,2,'#000000aa');R_(ctx,x+31,y+48,32,1,'#000000aa');
-    const fr=SPR.shipSets[SAVE.ship][0];ctx.drawImage(fr,x+22,y+13);
+    const fr=SPR.shipSets[SAVE.ship][0];ctx.drawImage(fr,x+22+((48-SHIP_W)>>1),y+13+((33-SHIP_H)>>1));
     R_(ctx,x+17,y+30+((t*3)|0)%2,5,2,Math.sin(t*9)>0?'#9a6759':'#68372b');R_(ctx,x+17,y+38,5,2,'#68372b');
     R_(ctx,x+8,y+8,3,3,Math.sin(t*4)>0?'#ff7777':'#68372b');R_(ctx,x+118+((t*8)%26|0),y+23,1,17,'#70a4b255');
   }else if(ty==='engine'){
@@ -2417,7 +2417,7 @@ function extraScreen(id,rows,info){
       if(!set){const keep=Object.keys(PREVC);if(keep.length>20)for(const q of keep)delete PREVC[q];set=PREVC[key]=buildShipSet(PAINTS[SAVE.ship]||{},sel)}
       ctx.fillStyle='#000';ctx.fillRect(112,50,96,42);ctx.fillStyle='#6c5eb5';ctx.fillRect(112,50,96,1);ctx.fillRect(112,91,96,1);ctx.fillRect(112,50,1,42);ctx.fillRect(207,50,1,42);
       for(let q=0;q<16;q++){const sx=(113+((q*47+HUB.t*8)%94))|0,sy=(52+((q*29)%38))|0;ctx.fillStyle='#444';ctx.fillRect(sx,sy,1,1)}
-      ctx.drawImage(set[Math.floor(HUB.t*4)%16],136,54);
+      ctx.drawImage(set[Math.floor(HUB.t*4)%16],160-(SHIP_W>>1),71-(SHIP_H>>1));
     };
     return 'PAINT SHOP';
   }
