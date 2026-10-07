@@ -83,6 +83,24 @@ The game handles the boss bar, hp, the explosion and loot when `b.hp<=0`. Call `
 
 Note: ordinary enemies are removed when they leave the left edge (x below -40) or the top and bottom; a boss is never culled, so it may leave the screen and return.
 
+## Mini boss (optional, used by the elite stages)
+
+Halfway through every level (at 43 s) the game spawns a mini boss, `G.mini`, with its own bar labelled ELITE. By default it is the planet's own pod or ringR sprite at double size. A pack can bring its own:
+
+```js
+mini:{ w,h,hp:1, init(e){}, update(e,dt,live){}, draw(ctx,e,flash){}, onKill(e){} }   // same contract as boss; e.type is 'mini'
+```
+Base hp is 26 x level scaling (about a quarter of a boss) times your `hp` multiplier. Like a boss it is never culled when it leaves the screen, may use `e.hitTest` and `e.touch`, and the game gives the loot when it dies. It is not tappable with zap points. Keep it a short, sharp fight of 20 to 40 seconds with its own 2 or 3 attack patterns. Dev: `g.dev.mini()` spawns it, `g.dev.sheet(pl,3,hpFraction)` shows it, and `spawnMini()` is a global.
+
+## Borrowing other packs' bosses (boss rush)
+
+`PACKS[i]` holds each planet's pack definition and `PACKA[i]` its built assets. To reuse another planet's boss: `const A2=PACKA[i]||(PACKA[i]=PACKS[i].init())`, then `A2.boss` has `w,h,hp,init,update,draw,onKill`. Create your own entity object for it (type 'boss' fields `x y hp mhp t flash in pkBoss`), call `A2.boss.init(sub)`, then drive `A2.boss.update(sub,dt,live)` and `A2.boss.draw(ctx,sub,flash)` from your own boss. Planet 0 (Open Space) has no pack: its boss is the global `bossUpdate(b,dt,live)` and `drawBoss(b)` working on an entity with `pkBoss:false`.
+
+
+## Elite stages: harder and harder, bullet hell
+
+Stages 6 to 9 (sea, desert, cave, city) are end-game and must be clearly harder than stages 1 to 5, and each one harder than the last (6 easiest, 9 the hardest). Raise difficulty with density and pattern, not with unfair surprises: spirals (`ebSpiral` called every 0.1 s with a rotating `a0`), fans (`ebFan`), curtains with a gap (`ebCurtain(x,yTop,yBot,n,vx,gapY,gapH,o)`), aimed rings, crossing lattices, rotating arms. You may have up to about 60 enemy bullets alive on elite stages (the 25 limit above is for stages 1 to 5), but the ship must always have a readable path: gaps at least 40 px high, bullets 3 to 5 px, slow (45 to 75 px/s) for the dense ones, fast only when sparse. Telegraph every big pattern. Level 1 of an elite stage is already tougher than level 3 of stage 5; levels 2 and 3 add more patterns, faster timers, more elites, and an extra boss phase or enrage. Mini bosses get 2 or 3 patterns, bosses 4 or more. A player with a fully maxed ship should be able to win but not casually.
+
 ## Level script
 
 `script(sc,h)` runs after the shared script and the planet's `waves` are built. `sc` is the spawn list (`{t,type,y,...}` sorted by `t` afterwards). `h.add(t,type,n,gap,y0,dy,opts)` adds n spawns; `h.vwave(t,type,n,cy)`; `h.level` 1 to 3; `h.LEN` is the level length (86 s, the boss comes after). You can push your own entries such as `{t:30,type:'pod',y:100,variant:1}`, or filter `sc`.
