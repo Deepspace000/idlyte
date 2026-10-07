@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.15</title>
+<title>Idlyte v1.16</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1201,7 +1201,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.15';
+const VERSION='1.16';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2323,7 +2323,7 @@ function hubClick(x,y){
 }
 function hubUpdate(dt){
   const sp=HUB.sp;HUB.t+=dt;
-  // time no longer passes by itself on the station: it moves only on missions, sleeping and gym work
+
   if(HUB.bankFlash>0)HUB.bankFlash-=dt; // the bank only earns interest during missions
   if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}
   if(HUB.fade>0)HUB.fade-=dt;
@@ -2361,6 +2361,9 @@ function hubUpdate(dt){
   if(sp.path&&Math.abs(sp.x-ox)+Math.abs(sp.y-oy)<.001&&(dx||dy)){sp.stuck=(sp.stuck||0)+dt;if(sp.stuck>.4){sp.path=null;sp.pend=null;sp.stuck=0}}else sp.stuck=0;
   if(dx)sp.face=dx;
   if(sp.x!==ox||sp.y!==oy)sp.t+=dt;else sp.t=0;
+  // station time runs while the spaceman moves, and keeps running until he has stood still for 30 seconds
+  if(sp.t>0)HUB.still=0;else HUB.still=(HUB.still||0)+dt;
+  if(HUB.still<30){HUB.acc+=dt/6;while(HUB.acc>=1){HUB.acc--;SAVE.day++;dayTick()}}
   sp.climb=deckOf(sp.y)<0;
   if(SHX[300]&&Math.abs(sp.x-300)<=5)EL.y=deckOf(sp.y)>=0?FYd(deckOf(sp.y)):sp.y+3;
   const cx=Math.max(0,Math.min(WWID-W,sp.x-W/2)),cy=Math.max(0,Math.min(WH-H+70,sp.y-125));
