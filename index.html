@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.95</title>
+<title>Idlyte v0.96</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -552,6 +552,31 @@ function baseStats(){
 /* ===== game state ===== */
 let G,P,E,PB,EB,PK,FX,SPEED=1,BORDER=BORDER_DEF,borderT=0,shake=0;
 const LEVEL_LEN=86;
+/* ===== art packs =====
+   Each planet can bring its own look and cast. packs/*.js fill PACKS[planetIndex] with
+   {init(){...return assets}, script(sc,h){...}}. init() runs once, the first time the planet is flown, and returns:
+     drawBackground(t)   replaces the default background (call drawStars() inside if you want the star layers)
+     drawMidground(t)    over the enemies, under the ship and shots (dust that hides enemies)
+     drawForeground(t)   over everything, under the HUD (snow, embers, lightning flashes)
+     noFG:true           skip the default foreground cloud strips
+     enemies:{ring,ringR,dart,cross,pod,rock}  each {frames,white,fps | draw(ctx,e,flash), w,h,hp,pts,vx, init(e,o), move(e,dt,live), update(e,dt,live), onKill(e)}
+     bullets:{name:(ctx,b)=>...}   enemy bullet styles, used by EB entries with sty:'name'
+     tick(dt,live)       once per update step: timers, eruptions, laser fences, lightning (may call hurtPlayer())
+     boss:{w,h,hp,init(b),update(b,dt,live),draw(ctx,b,flash),onKill(b)}
+   t is seconds into the level (plus a per-loop offset). */
+const PACKS={},PACKA={},DEV={hold:false};
+function pk(){
+  const i=(G&&G.planet)||0;
+  if(!PACKS[i])return null;
+  if(!PACKA[i]){try{PACKA[i]=PACKS[i].init()||{}}catch(e){console.error('art pack '+i+' failed',e);PACKS[i]=null;return null}}
+  return PACKA[i];
+}
+/* the level clock packs scroll their backgrounds and terrain by; enemies stuck to the terrain must use the same one */
+function bgT(){return G.t+(G.loop*LEVEL_LEN)}
+/* helpers for enemy fire, used by packs */
+function ebShot(x,y,vx,vy,o){const b=Object.assign({x,y,vx,vy,t:0},o||{});EB.push(b);return b}
+function ebAim(x,y,speed,ang,o){const a=Math.atan2(P.y-y,P.x-x)+(ang||0);return ebShot(x,y,Math.cos(a)*speed,Math.sin(a)*speed,o)}
+function ebRing(x,y,n,speed,a0,o){for(let i=0;i<n;i++){const a=(a0||0)+i/n*Math.PI*2;ebShot(x,y,Math.cos(a)*speed,Math.sin(a)*speed,o)}}
 function rnd(a,b){return a+Math.random()*(b-a)}
 function buildScript(pl,level){
   const sc=[];
@@ -574,6 +599,7 @@ function buildScript(pl,level){
   add(74,'ring',6,.4,100,0);add(75,'cross',3,1.2,60,40);
   const lv=level||1,wv=(pl&&pl.waves)||[['ring',5,.5],['dart',4,.5],['cross',2,1]];
   if((pl&&pl.waves)||lv>1){const ev=((pl&&pl.every)||10)*[1,.85,.65][lv-1];for(let t0=6;t0<LEVEL_LEN-6;t0+=ev)for(const w of wv)add(t0+Math.random()*2,w[0],w[1],w[2],40+Math.random()*120,0,{rand:1,ph:Math.random()*5})}
+  {const pd=PACKS[PLANETS.indexOf(pl)];if(pd&&pd.script)pd.script(sc,{add,vwave,level:lv,LEN:LEVEL_LEN})}
   sc.sort((a,b)=>a.t-b.t);return sc;
 }
 function newRun(){
@@ -611,12 +637,16 @@ function spawn(o){
   if(o.type==='dart'){if(o.rand)e.y=rnd(TOP+12,BOT-12);e.y0=e.y}
   if(o.type==='cross'){if(o.rand)e.y=rnd(TOP+14,BOT-14);e.vy=Math.random()<.5?24:-24}
   if(o.type==='pod'){const CAR=['P','P','S','M','H','O','R','B'];e.carry=CAR[Math.floor(Math.random()*CAR.length)]}
+  {const A=pk(),sk=A&&A.enemies?A.enemies[o.type]:null;
+    if(sk){if(o.type!=='rock'){if(sk.w)e.w=sk.w;if(sk.h)e.h=sk.h;if(sk.hp)e.hp=e.mhp=sk.hp*loopScale();if(sk.pts)e.pts=sk.pts;if(sk.vx)e.vx=sk.vx}if(sk.init)sk.init(e,o)}}
   E.push(e);return e;
 }
 /* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
 function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
 function spawnBoss(){
-  const b={type:'boss',x:W+90,y:100,vx:-60,vy:0,w:128,h:78,hp:90*loopScale()*bossMul(),mhp:90*loopScale()*bossMul(),pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true};
+  const A=pk(),B=A&&A.boss,hp=90*loopScale()*bossMul()*((B&&B.hp)||1);
+  const b={type:'boss',x:W+90,y:100,vx:-60,vy:0,w:B?B.w:128,h:B?B.h:78,hp,mhp:hp,pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true,pkBoss:!!B};
+  if(B&&B.init)B.init(b);
   E.push(b);G.boss=b;G.msg='WARNING';G.msgT=3;
 }
 function dropCoins(x,y,n){for(let i=0;i<n;i++)PK.push({k:'coin',x:x+rnd(-4,4),y:y+rnd(-4,4),vx:rnd(-30,10),vy:rnd(-25,25),t:Math.random()*4})}
@@ -702,6 +732,7 @@ function hurtPlayer(){
   if(P.hp<=0){G.state='dead';G.timer=3.2;boom(P.x,P.y,60,true);shake=.8;SAVE.runs++;if(G.score>SAVE.best)SAVE.best=G.score;save()}
 }
 function killEnemy(e){
+  {const A=pk();if(A){if(e.type==='boss'){if(A.boss&&A.boss.onKill)A.boss.onKill(e)}else{const sk=A.enemies&&A.enemies[e.fr];if(sk&&sk.onKill)sk.onKill(e)}}}
   G.score+=Math.round(e.pts);SAVE.kills++;lootDrop(e);
   if(e.type!=='rock'&&Math.random()<(e.type==='boss'?1:e.type==='pod'?.5:.07))PK.push({k:'chance',x:e.x,y:e.y,vx:-18,vy:rnd(-10,10),t:0});
   {const nt=e.type==='boss'?3:(e.type!=='rock'&&Math.random()<(e.type==='pod'?.3:.04))?1:0;for(let q=0;q<nt;q++)PK.push({k:'token',x:e.x+q*6,y:e.y+q*4,vx:-18,vy:rnd(-10,10),t:0})}
@@ -792,9 +823,13 @@ function updateEntities(dt,live){
     b.x+=b.vx*dt;b.y+=b.vy*dt}
   PB=PB.filter(b=>b.x<W+10&&b.y>TOP-4&&b.y<BOT+4);
   // enemies
+  const PA=pk();
+  if(PA&&PA.tick)PA.tick(dt,live);
   for(const e of E){
     e.t+=dt;if(e.flash>0)e.flash-=dt;
-    if(e.type==='ring'||e.type==='ringR'){e.x+=e.vx*dt;e.y=e.y0+Math.sin(e.t*3.2+e.ph)*30;
+    const sk=e.type!=='boss'&&PA&&PA.enemies?PA.enemies[e.fr]:null;
+    if(sk&&sk.move)sk.move(e,dt,live);
+    else if(e.type==='ring'||e.type==='ringR'){e.x+=e.vx*dt;e.y=e.y0+Math.sin(e.t*3.2+e.ph)*30;
       if(live&&e.x<W-30&&e.x>60&&(e.shootT-=dt)<=0){e.shootT=rnd(2.2,4);enemyShot(e,0)}}
     else if(e.type==='dart'){
       e.x+=e.vx*dt;if(e.t<.9&&live)e.y+=Math.sign(P.y-e.y)*Math.min(Math.abs(P.y-e.y),30*dt)}
@@ -804,31 +839,35 @@ function updateEntities(dt,live){
       if(live&&e.x<W-20&&e.x>80&&(e.shootT-=dt)<=0){e.shootT=rnd(2.2,3.2);enemyShot(e,0);enemyShot(e,.35);enemyShot(e,-.35)}}
     else if(e.type==='rock'){e.x+=e.vx*dt;e.y+=e.vy*dt}
     else if(e.type==='boss'){bossUpdate(e,dt,live)}
+    if(sk&&sk.update)sk.update(e,dt,live);
   }
   // enemy bullets
-  for(const b of EB){b.x+=b.vx*dt;b.y+=b.vy*dt;b.t+=dt}
-  EB=EB.filter(b=>b.x>-6&&b.x<W+6&&b.y>TOP-6&&b.y<BOT+6);
+  for(const b of EB){if(b.ay)b.vy+=b.ay*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.t+=dt}
+  EB=EB.filter(b=>b.x>-6&&b.x<W+6&&b.y>TOP-6&&b.y<BOT+6&&!(b.life&&b.t>b.life));
   // collisions: shots vs enemies
   for(const e of E){
     if(e.dead)continue;
     for(const b of PB){
       if(b.dead)continue;
-      if(Math.abs(b.x-e.x)<e.w/2+3&&Math.abs(b.y-e.y)<e.h/2+1){
-        b.dead=1;e.hp-=b.dmg;e.flash=.07;if(e.type==='boss'){BORDER='#70a4b2';borderT=.05}FX.push({x:b.x+3,y:b.y,vx:rnd(-20,20),vy:rnd(-20,20),life:.15,c:'#ffffff',s:1});
+      const hm=e.hitTest?e.hitTest(e,b.x,b.y):((Math.abs(b.x-e.x)<e.w/2+3&&Math.abs(b.y-e.y)<e.h/2+1)?1:0);
+      if(hm>0){
+        b.dead=1;
+        if(e.immune){FX.push({x:b.x+3,y:b.y,vx:rnd(-30,30),vy:rnd(-30,30),life:.12,c:'#bbbbbb',s:1});continue}
+        e.hp-=b.dmg*hm;e.flash=.07;if(e.type==='boss'){BORDER='#70a4b2';borderT=.05}FX.push({x:b.x+3,y:b.y,vx:rnd(-20,20),vy:rnd(-20,20),life:.15,c:'#ffffff',s:1});
         if(e.hp<=0){e.dead=1;killEnemy(e);break}
       }
     }
   }
   PB=PB.filter(b=>!b.dead);
-  E=E.filter(e=>!e.dead&&e.x>-40&&e.y>-30&&e.y<H+30);
+  E=E.filter(e=>!e.dead&&(e.type==='boss'||(e.x>-40&&e.y>-30&&e.y<H+30)));   // a boss may leave the screen and come back
   if(live&&G.state==='play'){
     for(const e of E){
-      if(Math.abs(e.x-P.x)<e.w/2+shk(12)&&Math.abs(e.y-P.y)<e.h/2+shk(6)){
+      if(e.touch?e.touch(e,P.x,P.y):(Math.abs(e.x-P.x)<e.w/2+shk(12)&&Math.abs(e.y-P.y)<e.h/2+shk(6))){
         if(e.type!=='boss'&&P.inv<=0){e.hp-=3;e.flash=.1;if(e.hp<=0){e.dead=1;killEnemy(e)}}
         hurtPlayer();
       }
     }
-    for(const b of EB){if(Math.abs(b.x-P.x)<shk(10)&&Math.abs(b.y-P.y)<shk(7)){b.dead=1;hurtPlayer()}}
+    for(const b of EB){if(Math.abs(b.x-P.x)<shk(10)+(b.hw||0)&&Math.abs(b.y-P.y)<shk(7)+(b.hh||0)){if(!b.pierce)b.dead=1;hurtPlayer()}}
     EB=EB.filter(b=>!b.dead);E=E.filter(e=>!e.dead);
   }
   // pickups
@@ -860,8 +899,17 @@ function enemyShot(e,ang){
   const sp=62+G.loop*6;
   EB.push({x:e.x-6,y:e.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:0});
 }
+/* shared boss wear: smoke at half health and a burst of debris at each damage stage; packs call this from their boss update */
+function bossWear(b,live,ox,oy,rw,rh){
+  ox=ox||0;oy=oy||0;rw=rw||b.w*.45;rh=rh||b.h*.4;
+  if(b.hp<b.mhp*.5&&live&&Math.random()<.25)FX.push({x:b.x+ox+rnd(-rw,rw),y:b.y+oy+rnd(-rh,rh),vx:rnd(-12,4),vy:rnd(-30,-12),life:.6,l0:.6,ramp:1,c:'#ffffff',s:2});
+  if(!live)return;
+  const st=b.hp<b.mhp*.25?3:b.hp<b.mhp*.5?2:b.hp<b.mhp*.75?1:0;
+  if(st>(b.dmgSt||0)){b.dmgSt=st;for(let i=0;i<14;i++)FX.push({x:b.x+ox+rnd(-rw,rw),y:b.y+oy+rnd(-rh,rh),vx:rnd(-25,10),vy:rnd(5,40),life:1.3,l0:1.3,c:i%3?'#6c6c6c':'#bbbbbb',s:3});shake=Math.max(shake,.3)}
+}
 function bossUpdate(b,dt,live){
   b.t+=dt;
+  if(b.pkBoss){const A=pk();if(A&&A.boss){A.boss.update(b,dt,live);return}}
   if(b.in){b.x+=b.vx*dt;if(b.x<=246){b.in=false;b.vx=0}return}
   b.y=103+Math.sin(b.t*.8)*(28+(b.hp<b.mhp/2?8:0));
   b.x=246+Math.sin(b.t*.5)*8;
@@ -875,10 +923,12 @@ function bossUpdate(b,dt,live){
 }
 
 /* ===== render ===== */
+function drawStars(){for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:s.l===5?5:s.l===6?7:(s.l===3?2:1),s.l===3?2:1)}}
 function drawBackground(){
+  const A=pk(),tt=G.t+(G.loop*LEVEL_LEN);
+  if(A&&A.drawBackground){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);A.drawBackground(tt);return}
   const TH=themeAssets(G.planet||0);
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-  const tt=G.t+(G.loop*LEVEL_LEN);
   // far clouds
   for(let i=0;i<3;i++){
     const w=TH.clouds[i].width+W;let x=((i*150-tt*(5+i*2))%w+w)%w-TH.clouds[i].width;
@@ -886,9 +936,10 @@ function drawBackground(){
   }
   // planet drifts across the level
   const px=400-G.t*3.4;if(px>-60&&px<W+60)ctx.drawImage(TH.planet,(px-44)|0,(70)|0);
-  for(const s of STARS){const tw=s.l===3&&Math.floor(G.t*3+s.x)%4===0;ctx.fillStyle=tw?'#70a4b2':s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:s.l===5?5:s.l===6?7:(s.l===3?2:1),s.l===3?2:1)}
+  drawStars();
 }
 function drawBoss(e){
+  if(e.pkBoss){const A=pk();if(A&&A.boss){A.boss.draw(ctx,e,e.flash>0);return}}
   const f=e.flash>0,spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss),bx=(e.x-70)|0,by=(e.y-46)|0;
   ctx.save();ctx.translate(bx,by);ctx.scale(2,2);ctx.drawImage(spr,0,0);
   if(!f){
@@ -902,9 +953,18 @@ function drawBoss(e){
   }
   ctx.restore();
 }
+function zapReticle(e){
+  if(G.zap>0&&e.fr!=='rock'&&e.type!=='boss'&&e.x>2&&e.x<W-2){
+    const hw=((e.w/2)|0)+3,hh=((e.h/2)|0)+3,x=e.x|0,y=e.y|0;ctx.fillStyle=Math.floor(G.t*6)%2?'#ffffff':'#ff9966';
+    for(const sx of [-1,1])for(const sy of [-1,1]){ctx.fillRect(sx>0?x+hw-2:x-hw,sy>0?y+hh:y-hh,3,1);ctx.fillRect(sx>0?x+hw:x-hw,sy>0?y+hh-2:y-hh,1,3)}
+  }
+}
 function drawEnemy(e){
   let spr;
   const f=e.flash>0;
+  {const A=pk(),sk=(A&&A.enemies&&e.type!=='boss')?A.enemies[e.fr]:null;
+    if(sk){if(sk.draw)sk.draw(ctx,e,f);else{const fr=(f&&sk.white)?sk.white:sk.frames,sp=fr[Math.floor(e.t*(sk.fps||10))%fr.length];ctx.drawImage(sp,(e.x-sp.width/2)|0,(e.y-sp.height/2)|0)}
+      zapReticle(e);return}}
   if(e.fr==='ring'||e.fr==='ringR'){const i=Math.floor(e.t*10)%6;spr=(f?SPR[e.fr+'W']:SPR[e.fr])[i]}
   else if(e.fr==='dart'){spr=(f?SPR.dartW:SPR.dart)[Math.floor(e.t*8)%4]}
   else if(e.fr==='cross'){spr=(f?SPR.crossW:SPR.cross)[Math.floor(e.t*10)%4]}
@@ -912,10 +972,7 @@ function drawEnemy(e){
   else if(e.fr==='rock'){spr=(e.big?SPR.rockL:SPR.rockS)[e.spr];if(f){ctx.globalAlpha=.4}}
   else if(e.fr==='boss'){drawBoss(e);return}
   ctx.drawImage(spr,(e.x-spr.width/2)|0,(e.y-spr.height/2)|0);ctx.globalAlpha=1;
-  if(G.zap>0&&e.fr!=='rock'&&e.x>2&&e.x<W-2){
-    const hw=((e.w/2)|0)+3,hh=((e.h/2)|0)+3,x=e.x|0,y=e.y|0;ctx.fillStyle=Math.floor(G.t*6)%2?'#ffffff':'#ff9966';
-    for(const sx of [-1,1])for(const sy of [-1,1]){ctx.fillRect(sx>0?x+hw-2:x-hw,sy>0?y+hh:y-hh,3,1);ctx.fillRect(sx>0?x+hw:x-hw,sy>0?y+hh-2:y-hh,1,3)}
-  }
+  zapReticle(e);
 }
 const PAT={};
 function pat(col){return PAT[col]||(PAT[col]=(()=>{const c=mk(2,2),g=c.getContext('2d');g.fillStyle=col;g.fillRect(0,0,1,1);g.fillRect(1,1,1,1);return ctx.createPattern(c,'repeat')})())}
@@ -966,6 +1023,7 @@ function draw(){
     else ctx.drawImage(SPR.pw[k.p],(k.x-5)|0,(k.y-4+Math.sin(k.t*4)*1.5)|0);
   }
   for(const e of E)drawEnemy(e);
+  {const A=pk();if(A&&A.drawMidground)A.drawMidground(G.t+(G.loop*LEVEL_LEN))}
   drawShip();
   if(G.state==='play'&&P.mag>0)drawMagnetField();
   if(G.state==='play'&&P.twinT>0&&(P.twinT>2||Math.floor(P.twinT*8)%2))for(const sg of [-1,1]){const ox=(P.x+shk(6))|0,oy=(P.y+sg*shk(26)+Math.sin(P.anim*5+sg)*1.5)|0;ctx.drawImage(SPR.opt,ox-3,oy-3)}
@@ -979,6 +1037,7 @@ function draw(){
   }
   // enemy bullets
   for(const b of EB){
+    if(b.sty){const A=pk();if(A&&A.bullets&&A.bullets[b.sty]){A.bullets[b.sty](ctx,b);continue}}
     const a=Math.floor(b.t*14)%2;
     ctx.fillStyle='#9a3a3a';ctx.fillRect((b.x-2)|0,(b.y-3)|0,4,6);ctx.fillRect((b.x-3)|0,(b.y-2)|0,6,4);ctx.fillStyle=['#ff7777','#ffffff','#ff7777'][Math.floor(b.t*12)%3];ctx.fillRect((b.x-1)|0,(b.y-2)|0,2,4);ctx.fillRect((b.x-2)|0,(b.y-1)|0,4,2);
     ctx.fillStyle='#000000';ctx.fillRect((b.x-1)|0,(b.y-1)|0,1,1);ctx.fillStyle=a?'#ffffff':'#9a3a3a';ctx.fillRect(b.x|0,b.y|0,1,1);
@@ -988,7 +1047,7 @@ function draw(){
     else if(f.ring){pixCircle(f.x|0,f.y|0,f.r,f.col||'#ffffff',Math.floor(f.life*20))}
     else{ctx.fillStyle=f.ramp?((f.life/f.l0)>.75?'#ffffff':(f.life/f.l0)>.5?'#b8c76f':(f.life/f.l0)>.28?'#9a6759':'#68372b'):f.c;ctx.fillRect(f.x|0,f.y|0,f.s,f.s)}
   }
-  for(const q of G.fg)ctx.drawImage(getFG()[q.s],q.x|0,q.y|0);
+  {const A=pk();if(!(A&&A.noFG))for(const q of G.fg)ctx.drawImage(getFG()[q.s],q.x|0,q.y|0);if(A&&A.drawForeground)A.drawForeground(G.t+(G.loop*LEVEL_LEN))}
   ctx.restore();
   drawHud();
   document.body.style.background=BORDER;
@@ -1066,7 +1125,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.95';
+const VERSION='0.96';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3133,6 +3192,7 @@ function initSaves(){
 /* ===== main loop ===== */
 let last=performance.now(),acc=0,barShown=null;
 function frame(now){
+  if(DEV.hold){last=now;requestAnimationFrame(frame);return}
   const dt=Math.min(.1,Math.max(0,(now-last)/1000))||0;last=now;
   UI.list=[];UI.mouseOnly=null;padPoll(dt);
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
@@ -3157,6 +3217,76 @@ document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
 });
 window.__g={newGameInSlot,loadSlot,continueGame,slotsUsed,readSlot,get CURSLOT(){return CURSLOT},arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
+
+/* ===== dev tools for art packs, used from the console: __g.dev.run(2,1) then __g.dev.step(10); __g.dev.show(); __g.dev.sheet(2,0) ===== */
+window.__g.dev={
+  /* start a mission on planet pl (0 to 5), level lv, with a very tough ship so it can be watched */
+  run(pl,lv,god){DEV.hold=false;SAVE.planet=pl;SAVE.level=lv||1;MODE='game';newRun(false);G.state='play';G.msgT=0;if(god!==false){P.hp=9999;G.stats.hp=9999;P.inv=0}last=performance.now();return G},
+  /* advance the mission by sec seconds of game time */
+  step(sec){for(let i=0;i<sec*60;i++){update(1/60);if(G.state==='play'&&P.hp<50)P.hp=50}},
+  /* spawn this planet's boss right now */
+  boss(){spawnBoss();return G.boss},
+  /* draw one frame and freeze the loop so a screenshot is stable (run() unfreezes) */
+  show(){DEV.hold=true;draw()},
+  /* zoom overlay for inspecting pixel art: zoom(pl,'cross') shows one enemy type's frames big; zoom(pl,'boss',0.5,true) the boss; zoom() with no arguments removes it */
+  zoom(pl,key,arg,arg2){
+    const old=document.getElementById('devzoom');if(old)old.remove();if(pl==null)return true;
+    DEV.hold=false;SAVE.planet=pl;MODE='game';newRun(false);G.state='play';G.msgT=0;DEV.hold=true;
+    const A=pk();if(!A)return false;
+    const tmp=mk(320,200),tg=tmp.getContext('2d');let wUsed=0,hUsed=0;
+    const fake=(k,x,y,i)=>({type:k==='rock'?'rock':k,fr:k,x,y,t:i*.9,w:16,h:12,hp:3,mhp:3,flash:0,big:i%2===0,spr:i%3,ph:0,y0:y,vx:-30,vy:0,shootT:9});
+    if(key==='boss'){
+      const B=A.boss;if(!B)return false;const hp=90,b={type:'boss',pkBoss:true,x:W/2,y:100,vx:0,vy:0,w:B.w,h:B.h,hp:hp,mhp:hp,pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true};
+      if(B.init)B.init(b);for(let i=0;i<240;i++)B.update(b,1/60,false);b.in=false;b.hp=hp*(arg==null?1:arg);
+      const keep=ctx;ctx.save();ctx.fillStyle='#14141c';ctx.fillRect(0,0,W,H);B.draw(ctx,b,!!arg2);tg.drawImage(cv,0,0);ctx.restore();wUsed=320;hUsed=200;
+    }else{
+      const sk=A.enemies[key];if(!sk)return false;let x=4;
+      if(sk.frames){for(const f of sk.frames){tg.drawImage(f,x,4);x+=f.width+4;hUsed=Math.max(hUsed,f.height+8)}if(sk.white){tg.drawImage(sk.white[0],x+4,4);x+=sk.white[0].width+8}wUsed=x}
+      else if(sk.draw){tg.save();for(let i=0;i<6;i++){const e=fake(key,28+i*52,30,i);sk.draw(tg,e,i===5)}tg.restore();wUsed=320;hUsed=60}
+    }
+    const z=Math.max(1,Math.min(12,Math.floor(Math.min(innerWidth-20,1400)/Math.max(40,wUsed))));
+    const o=document.createElement('canvas');o.id='devzoom';o.width=wUsed*z;o.height=Math.max(8,hUsed)*z;
+    o.style.cssText='position:fixed;left:0;top:0;z-index:99;background:#14141c;image-rendering:pixelated;border:2px solid #70a4b2';
+    const og=o.getContext('2d');og.imageSmoothingEnabled=false;og.drawImage(tmp,0,0,wUsed,Math.max(8,hUsed),0,0,o.width,o.height);document.body.appendChild(o);return z;
+  },
+  /* contact sheets. page 0: every enemy sprite or draw function. page 1: the boss (arg = health 0..1, arg2 = flash). page 2: the scene at time arg (background, midground, foreground) */
+  sheet(pl,page,arg,arg2){
+    DEV.hold=false;SAVE.planet=pl;MODE='game';newRun(false);G.state='play';G.msgT=0;DEV.hold=true;
+    const A=pk();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.fillStyle='#14141c';ctx.fillRect(0,0,W,H);
+    if(!A){text('NO ART PACK FOR PLANET '+pl,8,8,'#ffffff',1);return false}
+    const fake=(k,x,y,i)=>({type:k==='rock'?'rock':k,fr:k,x,y,t:i*.9,w:16,h:12,hp:3,mhp:3,flash:0,big:i%2===0,spr:i%3,ph:0,y0:y,vx:-30,vy:0,shootT:9});
+    page=page||0;
+    if(page===0){
+      let y=3;text('PLANET '+pl+' '+PLANETS[pl].n,4,y,'#ffffff',1);y+=9;
+      for(const k in (A.enemies||{})){const sk=A.enemies[k];text(k.toUpperCase(),4,y+10,'#9ad284',1);let x=46;
+        if(sk.frames){for(const f of sk.frames){ctx.drawImage(f,x,y+((26-f.height)>>1));x+=f.width+3;if(x>236)break}if(sk.white){ctx.drawImage(sk.white[0],270,y+((26-sk.white[0].height)>>1))}}
+        else if(sk.draw){for(let i=0;i<5;i++)sk.draw(ctx,fake(k,x+18+i*40,y+13,i),i===4)}
+        y+=28}
+      return true}
+    if(page===1){
+      const B=A.boss;if(!B){text('NO BOSS IN THIS PACK',8,8,'#ffffff',1);return false}
+      const hp=90,b={type:'boss',pkBoss:true,x:W/2,y:100,vx:0,vy:0,w:B.w,h:B.h,hp:hp,mhp:hp,pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true};
+      if(B.init)B.init(b);
+      for(let i=0;i<240;i++)B.update(b,1/60,false);   /* let the entrance and settle finish; no attacks (live=false) */
+      b.in=false;b.hp=hp*(arg==null?1:arg);
+      ctx.fillStyle='#000';ctx.fillRect(0,TOP,W,BOT-TOP);
+      B.draw(ctx,b,!!arg2);text('BOSS  W '+B.w+' H '+B.h+'  HP '+Math.round((arg==null?1:arg)*100)+'%',4,BOT+2,'#ffffff',1);
+      return true}
+    if(page===2){
+      G.t=arg||0;drawBackground();
+      for(const k in (A.enemies||{})){const sk=A.enemies[k];if(k==='rock'||!sk)continue}
+      if(A.drawMidground)A.drawMidground(G.t+G.loop*LEVEL_LEN);
+      if(A.drawForeground)A.drawForeground(G.t+G.loop*LEVEL_LEN);
+      return true}
+    return false;
+  }
+};
+
 </script>
+<script src="packs/asteroid.js?v=0.96"></script>
+<script src="packs/ice.js?v=0.96"></script>
+<script src="packs/lava.js?v=0.96"></script>
+<script src="packs/gas.js?v=0.96"></script>
+<script src="packs/base.js?v=0.96"></script>
 </body>
 </html>
