@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.38</title>
+<title>Idlyte v1.39</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1251,7 +1251,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.38';
+const VERSION='1.39';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3397,7 +3397,7 @@ function arpNote(t,m,dur,vol,dest){
   lp.type='lowpass';lp.Q.value=W.q;
   const base=W.b+(W.lfo||0)*(.5+.5*Math.sin(t*.21));
   lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:.55),dur*(W.n==='BELL'?.8:.3));
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:.72),dur*(W.n==='BELL'?.8:.16));   // hold, then release: a long dur is legato, a short one is staccato
   for(const [ty,dt,gv,mu] of W.o){const o=AC.createOscillator(),og=AC.createGain();og.gain.value=gv*.7;if(ty==='pulse')o.setPeriodicWave(pulseWave());else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
   lp.connect(g);g.connect(dest||ARP.out);
 }
@@ -3423,11 +3423,18 @@ function arpBar(t){
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
   const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
-  const note=i=>root+ch.tones[i%4]+12*Math.floor(i/4);
+  // inversions now and then: the arpeggio starts from the third, fifth or seventh of the chord instead of the root
+  ARP.invT=(ARP.invT===undefined?0:ARP.invT)-1;
+  if(ARP.invT<=0){ARP.inv=Math.random()<.35?arpPick([1,1,2,3]):0;ARP.invT=1+Math.floor(Math.random()*3)}
+  const inv=ARP.inv|0,tn=ch.tones.map((x,j)=>j>=inv?x:x+12),ord=[];for(let j=0;j<4;j++)ord.push(tn[(j+inv)%4]);
+  const lo=root+ord[0],base=start+((((lo-start)%12)+12)%12)-ord[0];
+  const note=i=>base+ord[i%4]+12*Math.floor(i/4);
+  // note length drifts slowly between legato (notes run into each other) and now and then staccato
+  ARP.legP=(ARP.legP||0)+.157;const leg=Math.max(.55,Math.min(2.6,2.1+1.45*Math.sin(ARP.legP)));
   const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
   for(let k=0;k<n;k++){
     const q=ARP.ai++,i=arpIdx(q,L,dir),acc=(k%(n/4))===0?1:.75;
-    arpNote(t+k*step,note(i),step*1.6,.05*acc);
+    arpNote(t+k*step,note(i),step*leg,.05*acc);
   }
   // pad chord and bass: only when the PAD option is on (the default is the sequencer alone)
   if(mus.pad||ARP.padForce){const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
@@ -3473,8 +3480,8 @@ const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'onto
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 /* master mute: works from anywhere, including during a mission */
 /* two separate switches: MUSIC (mus.on) and SOUND EFFECTS (mus.mute means effects are muted). Both are remembered for the whole game */
-function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave')}catch(e){}mus.pad=pd==='1';mus.wave=wv===null?ARPW.findIndex(w=>w.n==='TRIANGLE'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* triangle is the default voice */}
-function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;try{localStorage.setItem('idlyte_wave',String(mus.wave))}catch(e){}arpPreview()}
+function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave2')}catch(e){}mus.pad=pd==='1';mus.wave=wv===null?ARPW.findIndex(w=>w.n==='SAWTOOTH'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* sawtooth is the default voice */}
+function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;try{localStorage.setItem('idlyte_wave2',String(mus.wave))}catch(e){}arpPreview()}
 function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad',mus.pad?'1':'0')}catch(e){}toast(mus.pad?'PAD AND BASS ON':'SEQUENCER ONLY')}
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
 function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND EFFECTS OFF':'SOUND EFFECTS ON')}
