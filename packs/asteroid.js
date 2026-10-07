@@ -401,7 +401,7 @@ PACKS[1]={
       if(ph===3){ebShot(mx,my,Math.cos(a0+.1)*98,Math.sin(a0+.1)*98,{sty:'shard'});ebShot(mx,my,Math.cos(a0-.1)*98,Math.sin(a0-.1)*98,{sty:'shard'})}
       sfxEnemyLaser();
     };
-    A.boss={w:130,h:64,hp:1.15,
+    A.boss={w:130,h:64,hp:1.45,
       init(b){
         b.in=true;b.state='enter';b.st=0;b.vx=0;b.vy=0;b.mouth=0;b.spitT=2;b.chargeT=8;b.face=Math.PI;
         refill(b,W+70,100);
@@ -463,7 +463,12 @@ PACKS[1]={
     h.add(20,'rock',8+L*3,.34,0,0,{rand:1});
     h.add(54,'rock',9+L*3,.3,0,0,{rand:1});
     h.add(33,'pod',2,1.3,60,70);
+    h.add(12,'dart',5,.35,50,25);
+    h.add(28,'ring',5,.5,90,0);
+    h.add(46,'cross',3,1.1,60,45);
     if(L>=2)h.add(44,'dart',6,.3,50,20);
+    if(L>=2){h.add(16,'ringR',3,.6,100,0);h.add(60,'cross',4,.9,50,35)}
+    if(L>=3){h.add(8,'ringR',4,.5,80,25);h.add(36,'pod',2,1.2,70,60);h.add(66,'dart',8,.25,40,15)}
   }
 };
 Object.assign(PLANETS[1],{d:'TUMBLING ROCK FIELDS, DUST CLOUDS AND MINING PIRATES.'});
