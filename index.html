@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.23</title>
+<title>Idlyte v1.24</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1213,7 +1213,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.23';
+const VERSION='1.24';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2879,10 +2879,12 @@ function extraScreen(id,rows,info){
   }
   if(id==='arcade'){
     L('CREDITS '+(SAVE.credits||0)+'     HIGH SCORE '+(SAVE.arcadeHi||0),Y_);
-    L('SPACE INVADERS. ONE CREDIT PER GAME.');L('WHEN YOU LOSE, A CONTINUE COSTS ONE MORE CREDIT.');
+    L('FIVE GAMES. ONE CREDIT PER GAME.');L('WHEN YOU LOSE, A CONTINUE COSTS ONE MORE CREDIT.');
     L('PRIZE: 1 GOLD FOR EVERY 250 POINTS.',G_);
-    rows.push({n:'PLAY  (1 CREDIT)',d:(SAVE.credits||0)>=1?'MOVE LEFT AND RIGHT. FIRE WITH SPACE OR TAP':'NO CREDITS. BUY ONE BELOW FIRST',r:'',ok:(SAVE.credits||0)>=1,
+    rows.push({n:'SPACE INVADERS  (1 CREDIT)',d:(SAVE.credits||0)>=1?'MOVE LEFT AND RIGHT. FIRE WITH SPACE OR TAP':'NO CREDITS. BUY ONE BELOW FIRST',r:'',ok:(SAVE.credits||0)>=1,
       fn:()=>{if((SAVE.credits||0)<1){toast('INSERT A CREDIT FIRST.');return}SAVE.credits--;HUB.screen=null;MODE='arcade';UI.focus=0;arcadeStart();save()}});
+    for(const g of ARC2.GAMES)rows.push({n:g.n+'  (1 CREDIT)',d:g.d,r:'HI '+(SAVE['arcadeHi_'+g.id]||0),ok:(SAVE.credits||0)>=1,
+      fn:()=>{if((SAVE.credits||0)<1){toast('INSERT A CREDIT FIRST.');return}SAVE.credits--;HUB.screen=null;MODE='arcade';UI.focus=0;ARC2.start(g.id);save()}});
     rows.push({n:'BUY 1 CREDIT',d:'5 GOLD',r:'5',ok:SAVE.coins>=5,fn:()=>{if(SAVE.coins<5){toast('NOT ENOUGH GOLD');return}SAVE.coins-=5;SAVE.credits=(SAVE.credits||0)+1;save()}});
     rows.push({n:'BUY 5 CREDITS',d:'20 GOLD',r:'20',ok:SAVE.coins>=20,fn:()=>{if(SAVE.coins<20){toast('NOT ENOUGH GOLD');return}SAVE.coins-=20;SAVE.credits=(SAVE.credits||0)+5;save()}});
     return 'ARCADE';
@@ -3164,7 +3166,7 @@ cv.addEventListener('pointerdown',e=>{
   const [x,y]=toCanvas(e),i=uiAt(x,y);
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
   if(MODE==='hub'&&HUB.screen){if(x<14||x>306||y<18||y>190)HUB.screen=null;return}
-  if(MODE==='arcade'){arcadeFire();return}
+  if(MODE==='arcade'){arcadeFire(toCanvas(e)[0]);return}
   if(MODE==='hub'&&!HUB.screen)hubClick(x,y);
 });
 
@@ -3270,8 +3272,9 @@ function arcadeWave(){
   AR.bk=[];for(let i=0;i<4;i++)AR.bk.push(mkBunker(34+i*64));
 }
 const ivx=i=>AR.fxp+i.c*18+((18-AS.iv[IVROW[i.r]][0].width)>>1),ivy=i=>AR.fy+i.r*14;
-function arcadeFire(){
+function arcadeFire(gx){
   if(!AR)return;
+  if(AR.g2){ARC2.fire(AR,gx);return}
   if(AR.state==='over'){if(AR.cd<8.8)arcadeContinue();return}
   if(AR.state!=='play'||AR.bul||AR.wt>0)return;
   AR.bul={x:AR.x,y:172};beep(900,.08,'square',.03);
@@ -3286,18 +3289,21 @@ function arcadeContinue(){
 }
 function arcadeExit(){
   const prize=Math.floor(AR.score/250);
-  if(AR.score>(SAVE.arcadeHi||0))SAVE.arcadeHi=AR.score;
+  const hk=AR.g2?'arcadeHi_'+AR.g2:'arcadeHi';if(AR.score>(SAVE[hk]||0))SAVE[hk]=AR.score;
   if(prize>0){SAVE.coins+=prize;SAVE.earned+=prize}
   toast('ARCADE SCORE '+AR.score+(prize?'  PRIZE +'+prize+' GOLD':''));
   save();AR=null;MODE='hub';UI.focus=0;
 }
 function arcadeKey(k){
   if(!AR)return;
+  if(AR.g2){ARC2.key(AR,k);return}
   if(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'||k==='arrowup'||k==='w'){if(!INP.repeat||AR.state!=='over')arcadeFire()}
   else if(k==='escape'||k==='q'||k==='backspace'){if(AR.state==='over')arcadeExit();else{AR.state='over';AR.cd=10}}
 }
 function arcadeTick(dt){
-  const A=AR;if(!A)return;A.t+=dt;
+  const A=AR;if(!A)return;
+  if(A.g2){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}ARC2.tick(A,Math.min(dt,.05));return}
+  A.t+=dt;
   if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}
   for(const f of A.fx){f.t-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt}A.fx=A.fx.filter(f=>f.t>0);
   for(const p of A.pops)p.t-=dt;A.pops=A.pops.filter(p=>p.t>0);
@@ -3356,6 +3362,7 @@ function arcadeTick(dt){
 function boomA(x,y,col){for(let i=0;i<14;i++){const a=Math.random()*6.28,s=20+Math.random()*50;AR.fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:.35+Math.random()*.3,c:i&1?col:'#ffffff'})}}
 function drawArcade(){
   const A=AR;if(!A)return;
+  if(A.g2){ARC2.draw(A,1/60);drawToast(150);return}
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
   for(const s of STARS){if(s.l===2)continue;ctx.fillStyle=s.c;ctx.fillRect(s.x|0,s.y|0,1,1)}
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,14);ctx.fillStyle='#352879';ctx.fillRect(0,13,W,1);
@@ -3730,6 +3737,7 @@ window.__g.dev={
 
 </script>
 <script src="weapons.js?v=1.09"></script>
+<script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
 <script src="packs/lava.js?v=1.18"></script>
