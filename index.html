@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.36</title>
+<title>Idlyte v1.37</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1218,7 +1218,8 @@ function drawHud(){
     if(P.guardT>0)row('GUARD '+Math.ceil(P.guardT),'#ff9966');
     if(window.WX&&WX.eq())row(WX.label().slice(0,13),'#9ad2e0')}
   if(DISP.manual&&G.t<7&&G.state==='play')textC('DRAG YOUR FINGER TO STEER',BOT-30,Math.floor(G.t*3)%2?'#ffffff':'#70a4b2',1);
-  {const cf=G.menuAt&&performance.now()-G.menuAt<3000;menuBtn(W-37,30,32,11,cf,()=>{if(cf){G.menuAt=0;leaveToTitle()}else{G.menuAt=performance.now();G.msg='TAP MENU AGAIN TO LEAVE THE MISSION';G.msgT=2.5}})}
+  /* the mission menu opens over the mission, which keeps running: sounds can be changed without stopping */
+  uiBtn(W-37,30,32,11,()=>{G.menuOpen=!G.menuOpen;G.mf=0;G.leaveAt=0},(f)=>{const o=!!G.menuOpen;ctx.fillStyle=o?'#4d40a8':f?'#6c5eb5':'#352879';ctx.fillRect(W-37,30,32,11);ctx.fillStyle='#9a8fe0';ctx.fillRect(W-37,30,32,1);ctx.fillRect(W-37,30,1,11);ctx.fillStyle='#1c1840';ctx.fillRect(W-37,40,32,1);ctx.fillRect(W-6,30,1,11);textC2(o?'CLOSE':'MENU',W-37+16,33,o?'#ffffff':'#bbbbbb')});
   drawBossBar();drawSpeedTiles();drawChanceMeter();drawZapHud();if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if(!G.slot&&G.readyT>0&&(G.tap||0)<.3){if(Math.floor(G.t*5)%2)text('READY: TAP AGAIN',66,BOT-9,'#9ad284',1)}else if(!G.slot&&G.tapDbg&&tapNow()-G.tapDbgT<2.5&&!((G.tapStreak||0)>=2))text(G.tapDbg,66,BOT-9,'#bbbbbb',1);if(!G.slot&&(G.tapStreak||0)>=2&&tapNow()-(G.tapLast||0)<Math.max(1.5,1.8*(G.tapIv||0)))text('STEADY X'+G.tapStreak,66,BOT-9,'#9ad284',1);if((G.tap||0)>=.99&&Math.floor(G.t*6)%2)text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7||G.tapFlash>0?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80&&!(G.zap>0))textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
   G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&Math.floor(age*14)%2===0,txt=q.txt||('SALVAGE FOUND: '+q.name),w=textW(txt,1)+18,x=((W-w)/2)|0,y=32+i*14;
@@ -1227,10 +1228,30 @@ function drawHud(){
     ctx.drawImage(SPR.crate[q.ix],x+2,y+2);text(txt,x+11,y+3,fl?'#000':'#fff',1)});
   if(G.flashT>0){ctx.fillStyle=pat('#ffffff');ctx.fillRect(0,TOP,W,BOT-TOP)}
   if(G.state==='dead'){textC('SHIP LOST',70,'#ff7777',2);textC('RETURNING TO STATION',92,'#bbb',1)}
+  if(G.menuOpen)drawMissionMenu();
+}
+function drawMissionMenu(){
+  SAVE.set=SAVE.set||{vol:1,scan:0};
+  const rows=[
+    ['MUSIC',mus.on?'ON':'OFF',()=>setMusic(!mus.on)],
+    ['SOUND EFFECTS',mus.mute?'OFF':'ON',()=>setMute(!mus.mute)],
+    ['PAD AND BASS',mus.pad?'ON':'OFF',()=>setPad(!mus.pad)],
+    ['ARPEGGIO SOUND',ARPW[mus.wave|0].n,()=>setWave((mus.wave|0)+1)],
+    ['VOLUME',['LOW','MEDIUM','HIGH'][SAVE.set.vol|0],()=>{SAVE.set.vol=((SAVE.set.vol|0)+1)%3;mus.vol=[.4,.7,1][SAVE.set.vol];save()}],
+    ['LEAVE MISSION',G.leaveAt&&performance.now()-G.leaveAt<3000?'TAP AGAIN':'',()=>{if(G.leaveAt&&performance.now()-G.leaveAt<3000){G.leaveAt=0;leaveToTitle()}else G.leaveAt=performance.now()}],
+    ['CLOSE MENU','',()=>{G.menuOpen=false}]];
+  G.menuRows=rows;G.mf=Math.max(0,Math.min(rows.length-1,G.mf|0));
+  const x0=52,w=216,y0=38,h=14+rows.length*15+4;
+  uiBtn(x0,y0,w,h,()=>{},()=>{});   // blocks taps from reaching the mission underneath
+  ctx.fillStyle='#000';ctx.fillRect(x0,y0,w,h);ctx.fillStyle='#6c5eb5';ctx.fillRect(x0,y0,w,1);ctx.fillRect(x0,y0,1,h);ctx.fillRect(x0+w-1,y0,1,h);ctx.fillRect(x0,y0+h-1,w,1);
+  ctx.fillStyle='#352879';ctx.fillRect(x0+1,y0+1,w-2,11);text('MISSION MENU. THE MISSION KEEPS RUNNING',x0+5,y0+4,'#ffffff',1);
+  rows.forEach((r,i)=>{const y=y0+14+i*15;
+    uiBtn(x0+3,y,w-6,13,()=>{G.mf=i;r[2]()},(f)=>{const fo=G.mf===i;ctx.fillStyle=fo?'#4d40a8':'#14102a';ctx.fillRect(x0+3,y,w-6,13);if(fo){ctx.fillStyle='#9a8fe0';ctx.fillRect(x0+3,y,2,13)}
+      text(r[0],x0+9,y+4,r[0]==='LEAVE MISSION'?'#ff9966':'#ffffff',1);if(r[1])textR(r[1],x0+w-9,y+4,r[1]==='OFF'?'#ff9966':'#9ad284',1)})});
 }
 
 /* ===== title page ===== */
-const VERSION='1.36';
+const VERSION='1.37';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3409,7 +3430,7 @@ function arpBar(t){
     arpNote(t+k*step,note(i),step*1.6,.05*acc);
   }
   // pad chord and bass: only when the PAD option is on (the default is the sequencer alone)
-  if(mus.pad){const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
+  if(mus.pad||ARP.padForce){const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
     const bm=36+(((ch.root-36)%12)+12)%12;
     arpPad(t,bm,beat*3.6,.05);arpNote(t+beat*2,bm,beat*1.2,.035)}
   ARP.bar++;if(ARP.bar>=N){ARP.bar=0;sec.last=sec.octl[sec.octl.length-1];ARP.pi++}
@@ -3471,6 +3492,8 @@ function handleKey(k){
     return;
   }
   if(AC&&AC.state==='suspended')AC.resume();
+  if(MODE==='game'&&G&&(k==='escape'||k==='o')){G.menuOpen=!G.menuOpen;G.mf=0;G.leaveAt=0;return}
+  if(MODE==='game'&&G&&G.menuOpen&&G.menuRows){const n=G.menuRows.length;if(k==='arrowup'||k==='w')G.mf=(G.mf+n-1)%n;else if(k==='arrowdown'||k==='s')G.mf=(G.mf+1)%n;else if((k==='enter'||k===' '||k==='e')&&!INP.repeat)G.menuRows[G.mf][2]();return}
   if(MODE==='game'){if(G&&G.slot&&(k==='1'||k==='2'||k==='3')){slotRespin(+k-1);return}if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
   if(MODE==='arcade'){arcadeKey(k);return}
   const hs={i:'inv',k:'shipstats',p:'personnel',o:'settings',h:'achv',g:'achv',b:'station'};
@@ -3534,7 +3557,7 @@ cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.
 cv.addEventListener('pointerleave',()=>{MOUSE.x=-99;MOUSE.y=-99});
 /* manual flying: drag a finger (or the mouse) anywhere to steer the ship. a quick tap still counts as a tap */
 const DRAG={on:false,id:null,x:0,y:0,t:0,path:0,dx:0,dy:0,gx:0,gy:0};
-function dragMode(){return MODE==='game'&&G&&DISP.manual&&G.state==='play'&&!G.slot}
+function dragMode(){return MODE==='game'&&G&&DISP.manual&&G.state==='play'&&!G.slot&&!G.menuOpen}
 function startDrag(e){DRAG.on=true;DRAG.tid=null;DRAG.id=e.pointerId;DRAG.x=e.clientX;DRAG.y=e.clientY;DRAG.t=performance.now();DRAG.path=0;const g=toCanvas(e);DRAG.gx=g[0];DRAG.gy=g[1]}
 document.addEventListener('pointermove',e=>{if(!DRAG.on||DRAG.tid!==null||e.pointerId!==DRAG.id)return;const r=cv.getBoundingClientRect(),mx=(e.clientX-DRAG.x)*W/r.width,my=(e.clientY-DRAG.y)*H/r.height;DRAG.x=e.clientX;DRAG.y=e.clientY;DRAG.dx+=mx;DRAG.dy+=my;DRAG.path+=Math.abs(mx)+Math.abs(my)});
 document.addEventListener('pointerup',e=>{if(!DRAG.on||DRAG.tid!==null||e.pointerId!==DRAG.id)return;DRAG.on=false;if(DRAG.path<4&&performance.now()-DRAG.t<300&&MODE==='game'&&G)tapAt(DRAG.gx,DRAG.gy)});
@@ -4022,7 +4045,10 @@ function initSaves(){
 let last=performance.now(),acc=0,barShown=null;
 function frame(now){
   if(DEV.hold){last=now;requestAnimationFrame(frame);return}
-  if(MODE!=='game'){musMode('hub');SHIPSC=1}
+  /* the arpeggio carries on through the SHIP LOST page, and a pad is added there; the pad goes again when the next mission starts */
+  const lostPage=MODE==='loot'&&typeof LOOT!=='undefined'&&LOOT&&LOOT.result==='lost';
+  ARP.padForce=lostPage;
+  if(MODE!=='game'){if(lostPage)musMode('arp');else musMode('hub');SHIPSC=1}
   const dt=Math.min(.1,Math.max(0,(now-last)/1000))||0;last=now;
   UI.list=[];UI.mouseOnly=null;padPoll(dt);
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
@@ -4030,7 +4056,7 @@ function frame(now){
     acc+=dt*SPEED;let n=0;while(acc>=1/60&&n<600){update(1/60);acc-=1/60;n++}
     bankAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;
     musMode('arp');musVol(.5);draw();
-  }else if(MODE==='loot'){lootTick(dt);musVol(.2);drawLoot()}
+  }else if(MODE==='loot'){lootTick(dt);musVol(lostPage?.5:.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
   else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
   else if(MODE==='story'){musVol(.25);drawStory(dt)}
