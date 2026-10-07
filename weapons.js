@@ -183,7 +183,43 @@ window.WX=(function(){
     if(cur)rows.push({n:'REMOVE EXOTIC WEAPON',d:'GO BACK TO THE STANDARD GUNS ONLY.',r:'',ok:true,fn:()=>{S.eq=null;toast('EXOTIC WEAPON REMOVED');save()}});
   }
 
-  return {DEFS,TH,TRAITS,sv,eq,formOf,power:()=>{const id=eq();return id?powerOf(id):0},powerOf,tick,up,hit,onKill,draw,drawFx,shopRows,
+
+  /* ---- exotic shields: bought in levels (max 3) in the armour shop, all of them can be fitted at once ---- */
+  const SHD=[
+    {id:'layered',n:'LAYERED PLATING',base:15000,mul:2.4,eng:2,d:'THE SHIELD BLOCKS 2 MORE HITS PER LEVEL.',unit:'+2 HITS'},
+    {id:'reflect',n:'MIRROR SHIELD',base:25000,mul:2.4,eng:3,d:'A BLOCKED HIT THROWS NEARBY ENEMY BULLETS BACK AT THEM.',unit:'WIDER BLAST'},
+    {id:'novash',n:'NOVA SHIELD',base:40000,mul:2.4,eng:3,d:'WHEN THE SHIELD BREAKS IT EXPLODES, WIPING BULLETS AND HURTING ENEMIES.',unit:'BIGGER NOVA'},
+    {id:'regen',n:'REGEN FIELD',base:30000,mul:2.4,eng:3,d:'RAISES A SMALL SHIELD AGAIN BY ITSELF EVERY FEW SECONDS.',unit:'FASTER'}];
+  const SBY={};for(const d of SHD)SBY[d.id]=d;
+  const sl=id=>(sv().sh&&sv().sh[id])||0;
+  const shPrice=id=>Math.round(SBY[id].base*Math.pow(SBY[id].mul,sl(id))/50)*50;
+  function shieldRows(rows,pwNow){
+    const S=sv();S.sh=S.sh||{};
+    for(const d of SHD){
+      const l=sl(d.id),mx=l>=3,need=(SAVE.crew.eng||0)<d.eng,p=shPrice(d.id);
+      rows.push({ic:'sh_'+d.id,f:Math.max(0,l-1),n:d.n+'  LV '+l+'/3',d:need?'NEEDS ENGINEER LV '+d.eng+': '+d.d:d.d,r:mx?'MAX':need?'LOCKED':String(p),ok:!mx&&!need&&SAVE.coins>=p,
+        pw:(mx||need)?null:[shipPowerRaw(),shipPowerRaw()+4],
+        fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;S.sh[d.id]=l+1;toast(d.n+' LEVEL '+(l+1));checkUnlocks();save()}});
+    }
+  }
+  function shieldPower(){return 4*SHD.reduce((a,d)=>a+sl(d.id),0)}
+  function shieldHits(){return 2*sl('layered')}
+  /* called from hurtPlayer when the shield absorbed a hit; broke = it has just run out of hits */
+  function shieldHit(broke){
+    const d=G.stats.dmg,r=sl('reflect');
+    if(r){const rad=44+r*22;ring(P.x,P.y,rad,'#9ad2e0',.35);
+      const keep=[];for(const b of EB){if(Math.hypot(b.x-P.x,b.y-P.y)<rad){PB.push({x:b.x,y:b.y,vx:210,vy:(b.y-P.y)*.6,dmg:d*(1+r),lv:2})}else keep.push(b)}EB=keep}
+    const n=sl('novash');
+    if(broke&&n){const rad=[0,70,110,999][n];ring(P.x,P.y,Math.min(rad,150),'#ff99cc',.5);EB=EB.filter(b=>Math.hypot(b.x-P.x,b.y-P.y)>rad);
+      for(const e of live())if(Math.hypot(e.x-P.x,e.y-P.y)<rad+20)dealt(e,d*5*n,'novash');shake=Math.max(shake,.3)}
+  }
+  function shieldTick(dt){
+    const l=sl('regen');if(!l||G.state!=='play')return;
+    const s=st();s.rg=(s.rg||0)+dt;
+    if(s.rg>=[0,22,15,9][l]){s.rg=0;if(P.shield<=0){P.shield=5+l*2;P.shHit=1+Math.floor(l/2)+shieldHits()/2|0;G.msg='REGEN SHIELD';G.msgT=1;ring(P.x,P.y,22,'#9ad2e0',.3)}}
+  }
+
+  return {shieldRows,shieldPower,shieldHits,shieldHit,shieldTick,SHD,DEFS,TH,TRAITS,sv,eq,formOf,power:()=>{const id=eq();return id?powerOf(id):0},powerOf,tick,up,hit,onKill,draw,drawFx,shopRows,
     label:()=>{const id=eq();return id?BY[id].forms[formOf(id)]:''},
     /* dev: WX.give('arc',700) buys the weapon, fits it and sets its kills */
     give(id,xp){const S=sv();S.own[id]=1;S.eq=id;if(xp!=null)S.xp[id]=xp;return formOf(id)}};

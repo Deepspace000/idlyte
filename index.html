@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.30</title>
+<title>Idlyte v1.31</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -498,11 +498,11 @@ const ITEMS=[
  {id:'crys',n:'ALIEN CRYSTAL',v:90,w:3,c:'#cc44cc'},
  {id:'relic',n:'ANCIENT RELIC',v:260,w:1,c:'#b8c76f'}];
 const UPG={
- dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:8,base:600,mul:1.6,shop:'weapons'},
- guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:8,base:500,mul:1.55,shop:'weapons'},
+ dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:14,base:600,mul:1.6,shop:'weapons'},
+ guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:14,base:500,mul:1.55,shop:'weapons'},
  startgun:{n:'MULTI-SHOT LINK',d:'START EACH MISSION WITH EXTRA GUNS',max:2,base:4000,mul:3,shop:'weapons'},
- hull:{n:'HULL PLATING',d:'+1 HULL POINT',max:8,base:750,mul:1.6,shop:'armour'},
- shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:5,base:1250,mul:1.7,shop:'armour'},
+ hull:{n:'HULL PLATING',d:'+1 HULL POINT',max:12,base:750,mul:1.6,shop:'armour'},
+ shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:8,base:1250,mul:1.7,shop:'armour'},
  damper:{n:'IMPACT DAMPER',d:'LONGER SAFE TIME AFTER A HIT',max:3,base:2000,mul:2,shop:'armour'},
  cell:{n:'ENERGY CELL',d:'A PERMANENT EXTRA HULL CELL. VERY EXPENSIVE',max:3,base:25000,mul:2.2,shop:'armour'},
  opt:{n:'OPTION DRONE',d:'A DRONE FOLLOWS YOU AND FIRES',max:2,base:4500,mul:3,shop:'design'},
@@ -550,7 +550,7 @@ function mkPlanet(cols){const R=44,S=R*2+1;
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*9+Math.sin(nx*3)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.5?(lit>.2?.5:-.3):0))*0.999},cols)}
 function themeAssets(i){return THC[i]||(THC[i]={clouds:[mkCloud(7,THEMES[i].cl),mkCloud(41,THEMES[i].cl),mkCloud(99,THEMES[i].cl)],planet:mkPlanet(THEMES[i].pl)})}
 function shipPowerRaw(){const st=baseStats();
-  return Math.max(0,(window.WX?WX.power():0)+(st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5)}
+  return Math.max(0,(window.WX?WX.power()+WX.shieldPower():0)+(st.hp-3)*4+(st.fire*st.dmg-1.4)*8+(st.speed-44)/4+st.opts*5+(st.missile?4+st.missile*3:0)+(st.repair?4:0)+(st.startGun-1)*4+st.startShield*.5)}
 function shipPower(){return Math.floor(shipPowerRaw()+1e-6)}
 /* ship power as it would be if obj[key] became val (a purchase); the save is put back exactly as it was */
 function powerIf(obj,key,val){const had=Object.prototype.hasOwnProperty.call(obj,key),old=obj[key];obj[key]=val;const p=shipPowerRaw();if(had)obj[key]=old;else delete obj[key];return p}
@@ -578,7 +578,7 @@ function baseStats(){
   const nav=cr.nav||0,wp=cr.weap||0,tc=cr.tech||0;
   return {hp:Math.max(1,3+(u.hull||0)+(u.cell||0)+sh.hp+((SAVE.lab&&SAVE.lab.nano)||0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
     magnet:(22+(u.magnet||0)*8)*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*ms.gold*pl.gold*(1+.25*((SAVE.level||1)-1)),lootBonus:(u.cargo||0)*.08+ms.diff*.01+pl.loot+(u.salv?.1:0),
-    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3,shieldDur:9+tc*3,shieldHits:2,damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
+    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3,shieldDur:9+tc*3,shieldHits:2+(window.WX?WX.shieldHits():0),damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
     repair:u.repair||0,missile:u.missile||0,skill:Math.min(.97,.75+.06*nav)};
 }
 
@@ -802,7 +802,7 @@ function powerup(k){
 }
 function hurtPlayer(){
   if(P.inv>0||G.state!=='play')return;
-  if(P.shield>0){if(--P.shHit<=0)P.shield=0;P.inv=1;boom(P.x,P.y,10,false);return}
+  if(P.shield>0){const br=--P.shHit<=0;if(br)P.shield=0;P.inv=1;boom(P.x,P.y,10,false);if(window.WX)WX.shieldHit(br);return}
   P.hp--;P.inv=G.stats.damper;shake=.3;BORDER='#883232';borderT=.12;boom(P.x,P.y,14,false);
   if(P.wpn>G.stats.startGun){P.wpn--;P.wpnT=10}
   if(P.hp<=0){G.state='dead';G.timer=3.2;boom(P.x,P.y,60,true);shake=.8;SAVE.runs++;if(G.score>SAVE.best)SAVE.best=G.score;save()}
@@ -901,7 +901,7 @@ function update(dt){
     EB=EB.filter(b=>Math.hypot(b.x-P.gx,b.y-P.gy)>7);
   }
   if(G.stats.missile){P.misT=(P.misT||0)-dt;if(P.misT<=0&&E.length){P.misT=1.8/(1+G.stats.missile*.5);PB.push({x:P.x+shk(10),y:P.y,vx:110,vy:(Math.random()<.5?-1:1)*40,dmg:3,hm:1})}}
-  if(window.WX)WX.tick(dt);
+  if(window.WX){WX.tick(dt);WX.shieldTick(dt)}
   updateEntities(dt,true);
 }
 function updateEntities(dt,live){
@@ -1224,7 +1224,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.30';
+const VERSION='1.31';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1475,6 +1475,10 @@ function itemIcon(b,key,cx,cy,o){
   else if(key==='salv'){R(-2,-10,5,10,K);R(-1,-10,3,9,'#959595');R(-8,-1,17,3,K);R(-7,0,15,1,'#bbbbbb');for(const x of [-8,-1,6]){R(x,1,3,7,K);R(x+1,1,1,6,'#bbbbbb')}R(-1,-4,3,3,'#ff9966')}
   else if(key==='missile'){R(-8,-3,14,7,K);R(-7,-2,12,5,'#bbbbbb');R(-7,-2,12,1,'#fff');R(6,-2,4,5,K);R(6,-1,3,3,'#ff7777');R(-9,-7,6,5,K);R(-8,-6,4,4,'#ff7777');R(-9,4,6,5,K);R(-8,5,4,4,'#ff7777');R(-13,-1,4,3,'#ff9966');R(-12,0,2,1,'#ffffaa');R(-3,-3,2,7,'#ff7777')}
   else if(key==='cargo'){R(-9,-7,18,15,K);R(-8,-6,16,13,'#9a6759');for(let y=-4;y<7;y+=4)R(-8,y,16,1,'#68372b');R(-8,-6,16,2,'#b8c76f');R(-1,-6,3,13,'#bbbbbb');R(-8,-1,16,2,'#bbbbbb');R(-1,-1,3,2,'#fff')}
+  else if(key==='sh_layered'){for(let i=0;i<3;i++){const hw=9-i*3;R(-hw-1,-9+i*2,hw*2+3,17-i*3,'#000');R(-hw,-8+i*2,hw*2+1,15-i*3,['#6c5eb5','#70a4b2','#9ad2e0'][i])}R(-1,-4,3,8,'#fff')}
+  else if(key==='sh_reflect'){R(-9,-9,19,19,'#000');R(-8,-8,17,17,'#bbbbbb');R(-8,-8,17,3,'#fff');ln(-7,8,8,-7,'#fff',2);ln(-7,2,2,-7,'#9ad2e0',1);ln(-2,8,8,-2,'#9ad2e0',1);R(6,-9,4,4,'#ff7777')}
+  else if(key==='sh_novash'){disc(0,0,7,'#352879');disc(0,0,5,'#6c5eb5');disc(0,0,2,'#fff');for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]])ln(dx*7,dy*7,dx*11,dy*11,'#ff77ff',2)}
+  else if(key==='sh_regen'){disc(0,0,8,K);disc(0,0,7,'#2c5a2c');disc(0,0,5,'#000');R(-1,-4,3,9,'#9ad284');R(-4,-1,9,3,'#9ad284');R(-1,-4,3,2,'#fff')}
   else if(key==='wx_lance'){R(-11,-3,22,7,'#352879');R(-10,-2,20,5,'#6c5eb5');R(-9,-1,18,3,'#9ad2e0');R(-8,0,17,1,'#fff');R(9,-4,3,9,K);R(10,-3,2,7,'#ffffaa');R(11,-1,2,3,'#fff');R(-12,-1,3,3,'#fff')}
   else if(key==='wx_arc'){const pts=[[-6,-10],[3,-4],[-3,-1],[7,10]];for(let i=0;i<3;i++){ln(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],'#352879',5);}for(let i=0;i<3;i++){ln(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],'#9ad2e0',3);ln(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],'#fff',1)}R(-9,2,2,2,'#fff');R(7,-8,2,2,'#fff')}
   else if(key==='wx_rail'){R(-11,-7,22,4,K);R(-10,-6,20,2,'#6c6c6c');R(-11,4,22,4,K);R(-10,5,20,2,'#6c6c6c');R(-11,-2,22,6,'#352879');R(-11,-1,22,4,'#9ad2e0');R(-11,0,22,2,'#fff');for(const x of [-7,-1,5]){R(x,-8,3,17,K);R(x+1,-7,1,15,'#ff9966')}}
@@ -1931,6 +1935,7 @@ function screenDef(id){
       const need=u.eng&&(SAVE.crew.eng||0)<u.eng;
       rows.push({ic:k,n:u.n+(u.max>1?'  LV '+l+'/'+u.max:(l?'  (BUILT)':'')),d:need?'NEEDS ENGINEER LV '+u.eng+': '+u.d:u.d,r:mx?'MAX':need?'LOCKED':String(p),ok:!mx&&!need&&SAVE.coins>=p,pw:(!mx&&!need)?[shipPowerRaw(),powerIf(SAVE.up,k,l+1)]:null,fn:buy(p,()=>{SAVE.up[k]=l+1;checkUnlocks()})});}
     if(id==='weapons'&&window.WX)WX.shopRows(rows);
+    if(id==='armour'&&window.WX)WX.shieldRows(rows);
   }else if(id==='crew'){
     title='CREW AGENCY';info.push('CREW HELP YOUR SHIP BY THEMSELVES. BETTER CREW HELP MORE.');info.push({t:'WALLET '+SAVE.coins+' GOLD   SHIP POWER '+shipPower(),c:'#70a4b2'});
     for(const c of CREW){const l=SAVE.crew[c.id]||0,mx=l>=3,p=mx?0:c.cost[l];
@@ -3264,12 +3269,14 @@ function arpNewCycle(){
   const a=[];for(let i=0;i<9;i++)a.push(1+(i%4));
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
   ARP.octs=a;ARP.oi=0;
+  ARP.dirs=['up','down','mix'];for(let i=2;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ARP.dirs[i],ARP.dirs[j]]=[ARP.dirs[j],ARP.dirs[i]]}   // ascend for a while, descend for a while, then mix it up, in a new order each cycle
   const start=ARP.plan.length?ARP.plan[ARP.plan.length-1].next:0;
   ARP.plan=arpCycle(start);ARP.pi=0;ARP.bar=0;
 }
 function arpPrep(sec){
   if(sec.ready)return;sec.ready=true;
   const POOL=[[0,5,3,4],[0,3,5,4],[0,2,3,4],[0,5,1,4],[0,3,1,4],[0,4,5,3]];
+  sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.prog=arpPick(POOL).map(d=>arpChord(sec.key,d));
   let oct=ARP.octs[ARP.oi++%ARP.octs.length];if(sec.last===oct)oct=1+(oct%4);sec.oct=oct;
   const A=sec.key,B=sec.next,nextV=arpChord(B,4);
@@ -3289,11 +3296,12 @@ function arpSetup(){
 }
 function arpNote(t,m,dur,vol){
   const f=mtof(m),g=AC.createGain(),lp=AC.createBiquadFilter();
-  lp.type='lowpass';lp.Q.value=2.2;
-  const base=900+700*(.5+.5*Math.sin(t*.21));
-  lp.frequency.setValueAtTime(base+1800,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
+  lp.type='lowpass';lp.Q.value=.9;
+  const base=1100+500*(.5+.5*Math.sin(t*.21));
+  lp.frequency.setValueAtTime(base+700,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*.55,dur*.3);
-  for(const dt of [-6,6]){const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt;o.connect(lp);o.start(t);o.stop(t+dur*2.2+.1)}
+  /* smooth waveform: two slightly detuned sines plus a quiet triangle, so it sounds round and glassy rather than buzzy */
+  for(const [ty,dt,gv] of [['sine',-4,1],['sine',4,1],['triangle',0,.45]]){const o=AC.createOscillator(),og=AC.createGain();og.gain.value=gv*.7;o.type=ty;o.frequency.value=f;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.2+.1)}
   lp.connect(g);g.connect(ARP.out);
 }
 function arpPad(t,m,dur,vol){
@@ -3301,20 +3309,25 @@ function arpPad(t,m,dur,vol){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.5);g.gain.setTargetAtTime(0,t+dur,.35);
   o.connect(g);g.connect(ARP.out);o.start(t);o.stop(t+dur+1.6);
 }
+function arpIdx(q,L,d){
+  const pp=q%(2*(L-1)),ud=pp<L?pp:2*(L-1)-pp;
+  if(d==='up')return q%L;if(d==='down')return L-1-(q%L);if(d==='updown')return ud;if(d==='downup')return L-1-ud;return (q*5)%L;
+}
 function arpBar(t){
   if(ARP.pi>=ARP.plan.length)arpNewCycle();
   const sec=ARP.plan[ARP.pi];arpPrep(sec);
   const ch=sec.prog[ARP.bar],beat=60/ARP.bpm,bar=beat*4;
-  if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+' '+sec.kind+' '+sec.oct+'oct '+sec.how);
+  if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how);
   if(ARP.log.length>40)ARP.log.shift();
-  // one subdivision per bar, usually the same as the last
-  if(Math.random()>.62){const r=Math.random();ARP.sub=r<.55?16:r<.8?24:8}
+  // one subdivision per bar
+  ARP.sub=(ARP.sub===16&&Math.random()<.1)?8:16;   // sixteenths nearly all the time, an eighth-note bar only now and then
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
   const oc=sec.oct,start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
   const note=i=>root+ch.tones[i%4]+12*Math.floor(i/4);
+  const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
   for(let k=0;k<n;k++){
-    const q=ARP.ai++%(2*(L-1)),i=q<L?q:2*(L-1)-q,acc=(k%(n/4))===0?1:.75;
+    const q=ARP.ai++,i=arpIdx(q,L,dir),acc=(k%(n/4))===0?1:.75;
     arpNote(t+k*step,note(i),step*1.6,.05*acc);
   }
   // pad chord and bass
