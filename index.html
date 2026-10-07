@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.10</title>
+<title>Idlyte v1.13</title>
+<meta name="apple-mobile-web-app-title" content="Idlyte">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+<link rel="manifest" href="manifest.webmanifest?v=2">
+<meta name="theme-color" content="#000000">
+
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -29,7 +35,7 @@
   #touch button.down{background:#000;color:#fff}
   body.ls{display:block}
   body.ls #wrap{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;z-index:1}
-  body.ls canvas{width:100%!important;height:100%!important}
+  body.ls #wrap{display:flex;align-items:center;justify-content:center}
   body.ls #bar,body.ls #menu{display:none!important}
   body.ls #touch{position:fixed;left:8px;bottom:8px;width:auto;padding:0;margin:0;z-index:5;opacity:.55}
   body.ls #touch button{height:auto}
@@ -54,14 +60,21 @@
 const W=320,H=200,TOP=14,BOT=192;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
+const FIT={ratio:0,size:0,sharp:0};
 function fit(){
   const ls=innerWidth>innerHeight*1.45&&innerHeight<600;
   document.body.classList.toggle('ls',ls);
-  if(ls){cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';return}
-  const bar=document.getElementById('bar'),tb=document.getElementById('touch'),mn=document.getElementById('menu'),bh=(mn&&mn.offsetHeight?mn.offsetHeight+8:0)+(bar&&bar.offsetHeight?bar.offsetHeight:0)+(tb&&tb.offsetHeight?tb.offsetHeight:0)+30;
-  let s=Math.min((innerWidth-8)/W,(innerHeight-bh)/H);
-  s=s>=2?Math.floor(s):Math.max(.5,s);
-  cv.style.width=W*s+'px';cv.style.height=H*s+'px';
+  const bar=document.getElementById('bar'),tb=document.getElementById('touch'),mn=document.getElementById('menu');
+  const bh=ls?0:(mn&&mn.offsetHeight?mn.offsetHeight+8:0)+(bar&&bar.offsetHeight?bar.offsetHeight:0)+(tb&&tb.offsetHeight?tb.offsetHeight:0)+30;
+  const aw=ls?innerWidth:innerWidth-8,ah=ls?innerHeight:innerHeight-bh;
+  let mode=FIT.ratio,r=1.6;
+  if(mode===0)mode=ls?4:1;
+  if(mode===2)r=4/3;else if(mode===3)r=16/9;
+  const f=[1,.85,.7,.55][FIT.size]||1;let w,h;
+  if(mode===4){w=aw*f;h=ah*f}
+  else{w=Math.min(aw,ah*r)*f;h=w/r}
+  if(FIT.sharp||(!ls&&mode===1&&FIT.ratio===0)){let sx=w/W;sx=sx>=2?Math.floor(sx):Math.max(.5,sx);if(FIT.sharp||mode===1){w=W*sx;h=mode===4?Math.min(h,ah):w/r}}
+  cv.style.width=Math.round(w)+'px';cv.style.height=Math.round(h)+'px';
 }
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));if(window.visualViewport)visualViewport.addEventListener('resize',fit);fit();
 
@@ -460,7 +473,7 @@ for(let i=0;i<2;i++)STARS.push({x:Math.random()*W,y:TOP+Math.random()*(BOT-TOP),
 function freshSave(){return {coins:0,best:0,runs:0,kills:0,up:{},inv:{},bank:0,bankMax:0,day:0,monthsPaid:null,ships:[0],ship:0,missions:[0],mission:0,sorties:0,clears:0,earned:0,sold:0,sh:{},ach:{},opened:{},crew:{nav:0,weap:0,tech:0,eng:0},fitXP:0,fed:0,set:{vol:1,scan:0,music:1},planet:0,pSeen:{},visited:0,level:1,prog:{},tapHull:0,tapXP:0,taps:0,credits:0,arcadeHi:0,bestPct:{},fitLv:0,fitPts:0,chance:0,paint:{color:'chrome',pattern:'none',accent:'orange',canopy:'cyan',own:{}},extras:{},booksOwned:{},layout:{},built:{},tokens:0,areasBuilt:0,bookPage:{},bookDone:{},bookOpened:{},booksSeen:1,newBook:false,shipName:'DRIFTER'};}
 let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
-SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
+SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0,ratio:0,size:0,sharp:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
 if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
 function save(){if(!CURSLOT)return;try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
@@ -1186,7 +1199,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.10';
+const VERSION='1.13';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2538,6 +2551,17 @@ function extraScreen(id,rows,info){
     L('  '+foodText(),foodCol());
     return 'PERSONNEL';
   }
+  if(id==='display'){
+    const S=SAVE.set;
+    L('CHANGE HOW BIG THE GAME IS AND WHAT SHAPE IT HAS ON YOUR SCREEN.');L('A PHONE HELD SIDEWAYS FILLS THE SCREEN ON AUTO.');
+    {const RN=['AUTO','ORIGINAL 16:10','4:3','16:9','FILL SCREEN'],SN=['FULL','LARGE','MEDIUM','SMALL'];
+     rows.push({n:'SCREEN SHAPE',d:'AUTO FILLS A PHONE HELD SIDEWAYS. FILL STRETCHES TO THE EDGES',r:RN[S.ratio|0],ok:true,fn:()=>{S.ratio=((S.ratio|0)+1)%RN.length;applySettings();save()}});
+     rows.push({n:'SCREEN SIZE',d:'HOW MUCH OF THE WINDOW THE GAME USES',r:SN[S.size|0],ok:true,fn:()=>{S.size=((S.size|0)+1)%SN.length;applySettings();save()}});
+     rows.push({n:'SHARP PIXELS',d:'WHOLE PIXEL SIZES FOR A CLEANER PICTURE. MAY LEAVE BORDERS',r:S.sharp?'ON':'OFF',ok:true,fn:()=>{S.sharp=S.sharp?0:1;applySettings();save()}})}
+    rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
+    rows.push({n:'BACK',d:'BACK TO SETTINGS',r:'',ok:true,fn:()=>{HUB.screen='settings';UI.focus=0}});
+    return 'DISPLAY';
+  }
   if(id==='settings'){
     SAVE.set=SAVE.set||{vol:1,scan:0};const S=SAVE.set,vn=['LOW','MEDIUM','HIGH'];
     rows.push({n:'MUTE ALL SOUND',d:'SILENCES THE MUSIC AND EVERY SOUND EFFECT. KEY: M',r:mus.mute?'MUTED':'SOUND ON',ok:true,fn:()=>{setMute(!mus.mute)}});
@@ -2545,7 +2569,7 @@ function extraScreen(id,rows,info){
     rows.push({n:'VOLUME',d:'HOW LOUD THE MUSIC AND SOUNDS ARE',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
     rows.push({n:'CLOCK',d:'SHOW STATION TIME OR YOUR REAL LOCAL TIME',r:S.clock?'REAL TIME':'STATION TIME',ok:true,fn:()=>{S.clock=S.clock?0:1;save()}});
     rows.push({n:'SHIP NAME',d:'CHANGE THE NAME OF YOUR SHIP',r:SAVE.shipName||'',ok:true,fn:()=>{SAVE.shipName=askShipName(SAVE.shipName||'DRIFTER');save()}});
-    rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:S.scan?'ON':'OFF',ok:true,fn:()=>{S.scan=S.scan?0:1;applySettings();save()}});
+    rows.push({n:'DISPLAY',d:'SCREEN SHAPE, SIZE, SHARP PIXELS AND THE CRT LOOK',r:'OPEN',ok:true,fn:()=>{HUB.screen='display';UI.focus=0}});
     rows.push({n:HUB.confirmReset?'PRESS AGAIN TO ERASE EVERYTHING':'RESET ALL PROGRESS',d:'STARTS A NEW GAME FROM THE BEGINNING',r:'',ok:true,fn:()=>{if(HUB.confirmReset){try{localStorage.removeItem('idlyte_slot_'+CURSLOT)}catch(e){}location.reload()}else HUB.confirmReset=1}});
     L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL');L('ESC OR O SETTINGS, H GOALS, M MUTES ALL SOUND');
     return 'SETTINGS';
@@ -2712,7 +2736,7 @@ function extraScreen(id,rows,info){
   }
   return 'MENU';
 }
-function applySettings(){const sc=document.getElementById('scan'),on=!!(SAVE.set&&SAVE.set.scan);if(sc)sc.style.display=on?'block':'none';const w=document.getElementById('wrap');if(w)w.classList.toggle('crt',on)}
+function applySettings(){const sc=document.getElementById('scan'),on=!!(SAVE.set&&SAVE.set.scan);if(SAVE.set){FIT.ratio=SAVE.set.ratio|0;FIT.size=SAVE.set.size|0;FIT.sharp=SAVE.set.sharp?1:0;fit()}if(sc)sc.style.display=on?'block':'none';const w=document.getElementById('wrap');if(w)w.classList.toggle('crt',on)}
 
 function textC2(s,cx,y,col){text(s,(cx-textW(s,1)/2)|0,y,col,1)}
 function drawToast(y){
@@ -3242,7 +3266,7 @@ function askShipName(def){
 }
 function finishLoad(){
   SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
-  SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
+  SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0,ratio:0,size:0,sharp:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
   if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
   for(const c of COMPANIES)if(!SAVE.sh[c.id])SAVE.sh[c.id]={own:0,p:c.price};
   if(SAVE.monthsPaid==null)SAVE.monthsPaid=monthIdx(SAVE.day);
