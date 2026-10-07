@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.34</title>
+<title>Idlyte v1.35</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1230,7 +1230,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.34';
+const VERSION='1.35';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3239,6 +3239,7 @@ function musInit(){
   for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
   const conv=AC.createConvolver();conv.buffer=buf;const wet=AC.createGain();wet.gain.value=.6;
   mus.in.connect(mus.gain);mus.in.connect(conv);conv.connect(wet);wet.connect(mus.gain);mus.gain.connect(AC.destination);
+  {const dl=AC.createDelay(1),fb=AC.createGain(),ew=AC.createGain();dl.delayTime.value=.32;fb.gain.value=.3;ew.gain.value=.26;mus.in.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(ew);ew.connect(mus.gain)}   // slight echo on the muzak
   const nb=AC.createBuffer(1,AC.sampleRate*.1,AC.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;mus.noise=nb;
   mus.next=AC.currentTime+.2;setInterval(musTick,100);
 }
@@ -3301,22 +3302,25 @@ function arpPrep(sec){
   const MINP=[[0,5,2,6],[0,3,5,4],[0,5,3,4],[0,6,5,4],[0,2,6,3],[0,3,6,4],[0,5,6,4],[0,3,0,4]];
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.prog=arpPick(sec.minor?MINP:MAJP).map(d=>arpChord(sec.key,d,sec.minor));
-  let oct=ARP.octs[ARP.oi++%ARP.octs.length];if(sec.last===oct)oct=1+(oct%4);sec.oct=oct;
+  sec.bars=12+Math.floor(Math.random()*3);   // 12 to 14 bars, about 28 to 32 seconds, in each key
+  sec.octl=[];for(let b=0;b<Math.ceil(sec.bars/4);b++){let oc=ARP.octs[ARP.oi++%ARP.octs.length];if(b===0&&sec.last===oc)oc=1+(oc%4);sec.octl.push(oc)}   // the arpeggio size changes every four bars
+  sec.oct=sec.octl[0];
   const A=sec.key,B=sec.next,am=sec.minor,bm=sec.nm,nextV=arpChord(B,4,bm),iv=((B-A)%12+12)%12;
   const viaPivot=()=>{
     const pv=arpPivots(A,am,B,bm),pre=pv.filter(x=>x.pre),pick=pre.length?arpPick(pre):(pv.length?arpPick(pv):null);
     if(!pick)return false;
-    sec.prog[2]=arpChord(A,pick.d,am);sec.prog[3]=nextV;sec.how=pre.length?'pivot':'pivot*';return true};
+    sec.tail=[arpChord(A,pick.d,am),nextV];sec.how=pre.length?'pivot':'pivot*';return true};
+  sec.tail=[sec.prog[2],sec.prog[3]];   // the last two bars lead into the next key
   if(sec.kind==='left'||sec.kind==='right'){
-    if(!viaPivot()){sec.prog[2]=arpChord(A,3,am);sec.prog[3]=nextV;sec.how='V7'}
+    if(!viaPivot()){sec.tail=[arpChord(A,3,am),nextV];sec.how='V7'}
   }else if(sec.kind==='distant'){
     if(am&&bm&&iv===4){   // C#m from Am: the V7 of A is the relative major's tonic of B, so it falls straight onto B's minor tonic
-      sec.prog[2]=arpChord(A,3,am);sec.prog[3]=arpChord(A,4,am);sec.how='mediant'}
+      sec.tail=[arpChord(A,3,am),arpChord(A,4,am)];sec.how='mediant'}
     else if(iv===3||iv===6||iv===9){   // minor thirds and the tritone: V7 of A, then the diminished seventh that is also B's leading-note chord
-      sec.prog[2]=arpChord(A,4,am);sec.prog[3]={root:(B+11)%12,tones:[0,3,6,9]};sec.how='dim7'}
-    else if(!viaPivot()){sec.prog[2]=arpChord(A,3,am);sec.prog[3]=nextV;sec.how='V7'}
+      sec.tail=[arpChord(A,4,am),{root:(B+11)%12,tones:[0,3,6,9]}];sec.how='dim7'}
+    else if(!viaPivot()){sec.tail=[arpChord(A,3,am),nextV];sec.how='V7'}
   }else{   // hard: a lift of a semitone or tone straight after A's dominant, the classic pop key change
-    sec.prog[3]=arpChord(A,4,am);sec.how='lift'}
+    sec.tail=[sec.prog[2],arpChord(A,4,am)];sec.how='lift'}
 }
 function arpSetup(){
   if(ARP.ready||!AC||!mus.in)return;
@@ -3364,14 +3368,14 @@ function arpIdx(q,L,d){
 function arpBar(t){
   if(ARP.pi>=ARP.plan.length)arpNewCycle();
   const sec=ARP.plan[ARP.pi];arpPrep(sec);
-  const ch=sec.prog[ARP.bar],beat=60/ARP.bpm,bar=beat*4;
+  const N=sec.bars,ch=ARP.bar<N-2?sec.prog[ARP.bar%4]:sec.tail[ARP.bar-(N-2)],beat=60/ARP.bpm,bar=beat*4;
   if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how);
   if(ARP.log.length>40)ARP.log.shift();
   // one subdivision per bar
   ARP.sub=(ARP.sub===16&&Math.random()<.1)?8:16;   // sixteenths nearly all the time, an eighth-note bar only now and then
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
-  const oc=sec.oct,start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
+  const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
   const note=i=>root+ch.tones[i%4]+12*Math.floor(i/4);
   const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
   for(let k=0;k<n;k++){
@@ -3382,9 +3386,12 @@ function arpBar(t){
   if(mus.pad){const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
     const bm=36+(((ch.root-36)%12)+12)%12;
     arpPad(t,bm,beat*3.6,.05);arpNote(t+beat*2,bm,beat*1.2,.035)}
-  ARP.bar++;if(ARP.bar>=4){ARP.bar=0;sec.last=sec.oct;ARP.pi++}
+  ARP.bar++;if(ARP.bar>=N){ARP.bar=0;sec.last=sec.octl[sec.octl.length-1];ARP.pi++}
 }
-function arpTick(){while(ARP.barT<AC.currentTime+1.6){arpBar(ARP.barT);ARP.barT+=60/ARP.bpm*4}}
+function arpTick(){
+  if(!(ARP.barT>AC.currentTime-3))ARP.barT=AC.currentTime+.3;   // never try to catch up on a long gap, that could stall the page
+  let n=0;while(ARP.barT<AC.currentTime+1.6&&n++<4){arpBar(ARP.barT);ARP.barT+=60/ARP.bpm*4}
+}
 /* switch between the hub's gentle muzak and the mission arpeggio */
 function musMode(m){
   if(m===mus.mode)return;mus.mode=m;
@@ -3397,7 +3404,9 @@ function musTick(){
   if(!AC)return;if(AC.state==='suspended'){AC.resume();return}
   if(mus.mode==='arp'){if(!ARP.ready){arpSetup();if(ARP.out){ARP.barT=AC.currentTime+.35;ARP.out.gain.value=1}}if(ARP.ready){arpTick();return}}
   const eighth=60/74/2;
-  while(mus.next<AC.currentTime+.5){
+  if(!(mus.next>AC.currentTime-2))mus.next=AC.currentTime+.2;   // after a long pause (a hidden tab, a suspended context) do not replay the missed notes
+  let guard=0;
+  while(mus.next<AC.currentTime+.5&&guard++<40){
     const st=mus.step++,t=mus.next,sub=st%8,ch=MCH[Math.floor(st/8)%4];
     if(sub===0){for(const n of ch){tone(t,n,3,'sine',.03,.6,2.2);tone(t,n+12,3,'triangle',.008,.8,2.4)}}
     if(sub===0||sub===4)tone(t,ch[0]-12,.5,'sine',.1,.02,.35);
@@ -3544,7 +3553,7 @@ let AR=null;
 function beep(f,d,type,v){
   if(!AC||AC.state!=='running'||mus.mute)return;
   const o=AC.createOscillator(),g=AC.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=v||.035;
-  g.gain.setTargetAtTime(0,AC.currentTime+d*.5,d*.25);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d+.15);
+  g.gain.setTargetAtTime(0,AC.currentTime+d*.5,d*.25);o.connect(g);g.connect(sfxOut());o.start();o.stop(AC.currentTime+d+.15);
 }
 /* ===== soft sound effects: lasers, explosions, the pokie machine. generated, and they follow the music switch and volume ===== */
 let SFXNB=null;const SFXT={};
@@ -3553,12 +3562,22 @@ function sfxOn(name,gap){
   const n=AC.currentTime;if(SFXT[name]!==undefined&&n-SFXT[name]<gap)return false;SFXT[name]=n;return true;
 }
 const sfxV=()=>.6+.4*(mus.vol||1);
+/* a slight echo on every sound effect: one shared bus with a short feedback delay */
+let SFXB=null;
+function sfxOut(){
+  if(SFXB)return SFXB;
+  SFXB=AC.createGain();SFXB.connect(AC.destination);
+  const dl=AC.createDelay(1),fb=AC.createGain(),wet=AC.createGain(),lp=AC.createBiquadFilter();
+  dl.delayTime.value=.21;fb.gain.value=.3;wet.gain.value=.3;lp.type='lowpass';lp.frequency.value=2400;
+  SFXB.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(wet);wet.connect(AC.destination);
+  return SFXB;
+}
 function sfxTone(f0,f1,dur,type,vol,o){
   o=o||{};const t=AC.currentTime+(o.at||0),osc=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
   osc.type=type;osc.frequency.setValueAtTime(f0,t);if(f1!==f0)osc.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
   f.type='lowpass';f.frequency.value=o.lp||2600;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*sfxV(),t+(o.att||.01));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  osc.connect(f);f.connect(g);g.connect(AC.destination);osc.start(t);osc.stop(t+dur+.05);
+  osc.connect(f);f.connect(g);g.connect(sfxOut());osc.start(t);osc.stop(t+dur+.05);
 }
 function sfxNoise(dur,vol,f0,f1,type,o){
   o=o||{};
@@ -3566,7 +3585,7 @@ function sfxNoise(dur,vol,f0,f1,type,o){
   const t=AC.currentTime+(o.at||0),src=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();
   src.buffer=SFXNB;f.type=type||'lowpass';f.frequency.setValueAtTime(f0,t);if(f1!==f0)f.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);if(o.q)f.Q.value=o.q;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol*sfxV(),t+(o.att||.015));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-  src.connect(f);f.connect(g);g.connect(AC.destination);src.start(t,Math.random()*.5);src.stop(t+dur+.05);
+  src.connect(f);f.connect(g);g.connect(sfxOut());src.start(t,Math.random()*.5);src.stop(t+dur+.05);
 }
 /* space: a soft downward "pew" and a gentle, low rumble of an explosion */
 function sfxLaser(){
