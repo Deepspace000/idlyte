@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.37</title>
+<title>Idlyte v1.38</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1251,7 +1251,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.37';
+const VERSION='1.38';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3473,7 +3473,7 @@ const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'onto
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 /* master mute: works from anywhere, including during a mission */
 /* two separate switches: MUSIC (mus.on) and SOUND EFFECTS (mus.mute means effects are muted). Both are remembered for the whole game */
-function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave')}catch(e){}mus.pad=pd==='1';mus.wave=wv===null?1:Math.max(0,Math.min(ARPW.length-1,+wv|0))}
+function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave')}catch(e){}mus.pad=pd==='1';mus.wave=wv===null?ARPW.findIndex(w=>w.n==='TRIANGLE'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* triangle is the default voice */}
 function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;try{localStorage.setItem('idlyte_wave',String(mus.wave))}catch(e){}arpPreview()}
 function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad',mus.pad?'1':'0')}catch(e){}toast(mus.pad?'PAD AND BASS ON':'SEQUENCER ONLY')}
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
