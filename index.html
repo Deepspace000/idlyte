@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.20</title>
+<title>Idlyte v1.21</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1213,7 +1213,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.20';
+const VERSION='1.21';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2175,6 +2175,7 @@ function syncPets(){
 }
 function walkPet(p,sp,dt,cd,follow){
   const e=EXT[p.d];if(!e)return;
+  if(p.come){const dx=SPpos.x-p.x;if(Math.abs(dx)<14||p.d!==0){p.come=0;p.vx=0;p.wait=3}else{p.vx=Math.sign(dx)*sp*2.2;p.x+=p.vx*dt}return}
   if(follow&&p.d===cd&&Math.abs(SPpos.x-p.x)<50&&Math.abs(SPpos.x-p.x)>14){p.vx=Math.sign(SPpos.x-p.x)*sp*1.3;p.x+=p.vx*dt;p.wait=.4;p.go=.3;return}
   if(p.wait>0){p.wait-=dt;return}
   if(!p.vx&&Math.random()<.5){p.vx=(Math.random()<.5?-1:1)*sp;p.go=.8+Math.random()*2.5}
@@ -2183,11 +2184,31 @@ function walkPet(p,sp,dt,cd,follow){
   if(p.go<=0){p.vx=0;p.wait=1+Math.random()*4}
 }
 let SPpos={x:0};
+const AFF_AT=[3,8,15,25,40],PATAT={},PET_NAME={cat:'CAT',dog:'DOG',parrot:'PARROT',robot:'ROBOT BUDDY'};
+function petLevel(id){const n=(SAVE.aff&&SAVE.aff[id])||0;let l=1;for(const t of AFF_AT)if(n>=t)l++;return l}
+function petPos(id){if(id==='cat')return CAT;return PETS.find(p=>p.id===id)||CAT}
+function patPet(id){
+  SAVE.aff=SAVE.aff||{};const nm=PET_NAME[id],now=HUB.t,l0=petLevel(id);
+  let msg=id==='cat'?'THE CAT PURRS.':PETDEF[id].say;
+  if(now-(PATAT[id]===undefined?-9:PATAT[id])>=2.5){
+    SAVE.aff[id]=(SAVE.aff[id]||0)+1;PATAT[id]=now;const l1=petLevel(id),pp=petPos(id);
+    (HUB.hearts=HUB.hearts||[]).push({id,t:0},{id,t:-.25});
+    if(l1>l0){msg='THE '+nm+' LOVES YOU MORE! PET LEVEL '+l1+(l1===3?'. IT WILL NOW COME TO MEET YOU WHEN YOU ARRIVE.':'.');save()}
+    else{const nx=AFF_AT.find(t=>t>SAVE.aff[id]);msg+='  PET LEVEL '+l1+(nx?'  ('+(nx-SAVE.aff[id])+' MORE PATS TO LEVEL UP)':'  (MAX LEVEL)');if(SAVE.aff[id]%4===0)save()}
+  }else msg+='  (IT LIKES THAT)';
+  toast(msg);
+}
+function petsGreet(){
+  const ids=['cat',...PETS.map(p=>p.id)];let any=null;
+  for(const id of ids){if(petLevel(id)<3)continue;const p=petPos(id),e=EXT[0];if(!e)continue;
+    p.d=0;const sx=HUB.sp.x;p.x=(sx-e.l>e.r-sx)?e.l+8:e.r-8;p.come=1;p.wait=0;p.vx=0;if(p.tele!==undefined)p.tele=40+Math.random()*20;any=any||PET_NAME[id]}
+  if(any)toast('YOUR PETS HEAR YOU ARRIVE AND COME RUNNING.');
+}
 function petsUpdate(dt,cd){
   SPpos=HUB.sp;
   for(const p of PETS){
     p.t+=dt;p.tele-=dt;
-    if(p.tele<=0||!EXT[p.d]){p.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){p.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[p.d];p.x=e.l+10+Math.random()*Math.max(4,e.r-e.l-20)}}
+    if((p.tele<=0&&!p.come)||!EXT[p.d]){p.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){p.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[p.d];p.x=e.l+10+Math.random()*Math.max(4,e.r-e.l-20)}}
     walkPet(p,PETDEF[p.id].sp,dt,cd,p.id==='dog');
   }
   for(const v of VIS){v.t=(v.t||0)+dt;walkPet(v,16,dt,cd,false)}
@@ -2222,8 +2243,8 @@ function nearThing(){
   const sp=HUB.sp,d=deckOf(sp.y);if(d<0)return null;
   let best=null,bd=11;
   for(const t of THINGS)if(t.d===d&&t.room.built){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
-  if(!best)for(const p of PETS)if(EXT[p.d]&&p.d===d&&Math.abs(sp.x-p.x)<10){const df=PETDEF[p.id];return {d,x:p.x,label:()=>'PET THE '+df.n,fn:()=>toast(df.say)}}
-  if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT',fn:()=>toast('THE CAT PURRS.')};
+  if(!best)for(const p of PETS)if(EXT[p.d]&&p.d===d&&Math.abs(sp.x-p.x)<10){const df=PETDEF[p.id];return {d,x:p.x,label:()=>'PET THE '+df.n+' (LV '+petLevel(p.id)+')',fn:()=>patPet(p.id)}}
+  if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT (LV '+petLevel('cat')+')',fn:()=>patPet('cat')};
   return best;
 }
 function interactWith(t){if(t)t.fn()}
@@ -2286,6 +2307,7 @@ function enterHub(first){
   const r=roomById('hangar');HUB.sp.x=r.x0+96;HUB.sp.y=FYd(0)-4;HUB.sp.path=null;HUB.sp.pend=null;HUB.sp.face=1;
   HUB.cam.x=Math.max(0,Math.min(WWID-W,HUB.sp.x-W/2));HUB.cam.y=Math.max(0,Math.min(WH-H+70,HUB.sp.y-130));
   if(!HULL)HULL=buildHull();
+  syncPets();petsGreet();
   checkUnlocks();
   if(!first)checkStory();
 }
@@ -2335,7 +2357,7 @@ function hubClick(x,y){
     if(!EXT[d])return;
     let pend=null,tx=Math.max(14,Math.min(WWID-14,wx));
     for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
-    if(!pend&&CAT.d===d&&Math.abs(wx-CAT.x)<10){pend={fn:()=>toast('THE CAT PURRS.')};tx=CAT.x}
+    if(!pend&&CAT.d===d&&Math.abs(wx-CAT.x)<10){pend={fn:()=>patPet('cat')};tx=CAT.x}
     planPath(tx,FYd(d)-4,pend);return;
   }
 }
@@ -2356,10 +2378,12 @@ function hubUpdate(dt){
   }
   // cat
   CAT.t+=dt;CAT.tele-=dt;
-  if(CAT.tele<=0||!EXT[CAT.d]){CAT.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){CAT.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[CAT.d];CAT.x=e.l+8+Math.random()*Math.max(4,e.r-e.l-16)}}
-  if(CAT.wait>0)CAT.wait-=dt;else{if(!CAT.vx&&Math.random()<.5){CAT.vx=(Math.random()<.5?-1:1)*9;CAT.go=.8+Math.random()*2.5}
+  if((CAT.tele<=0&&!CAT.come)||!EXT[CAT.d]){CAT.tele=25+Math.random()*30;const ds=[0,1,2,3].filter(q=>EXT[q]);if(ds.length){CAT.d=ds[Math.floor(Math.random()*ds.length)];const e=EXT[CAT.d];CAT.x=e.l+8+Math.random()*Math.max(4,e.r-e.l-16)}}
+  if(CAT.come){const dx=HUB.sp.x-CAT.x;if(Math.abs(dx)<14||CAT.d!==0){CAT.come=0;CAT.vx=0;CAT.wait=3}else{CAT.vx=Math.sign(dx)*24;CAT.x+=CAT.vx*dt}}
+  else if(CAT.wait>0)CAT.wait-=dt;else{if(!CAT.vx&&Math.random()<.5){CAT.vx=(Math.random()<.5?-1:1)*9;CAT.go=.8+Math.random()*2.5}
     CAT.x+=CAT.vx*dt;CAT.go-=dt;if(EXT[CAT.d]&&(CAT.x<EXT[CAT.d].l+6||CAT.x>EXT[CAT.d].r-6))CAT.vx*=-1;if(CAT.go<=0){CAT.vx=0;CAT.wait=1+Math.random()*4}}
   petsUpdate(dt,cd);
+  if(HUB.hearts){for(const h of HUB.hearts)h.t+=dt;HUB.hearts=HUB.hearts.filter(h=>h.t<1.3)}
   if(HUB.screen){musVol(.3);return}
   let dx=0,dy=0;
   if(UI.keys.arrowleft||UI.keys.a||PAD.x<0)dx=-1;else if(UI.keys.arrowright||UI.keys.d||PAD.x>0)dx=1;
@@ -2491,6 +2515,7 @@ function drawHub(){
   if(HUB.grow){const r=roomById(HUB.grow.id),a=HUB.grow.t/1.8;ctx.fillStyle=pat('#ffffff');if(a>.3)ctx.fillRect(r.x0,yTop(r.d),r.w,RH);for(let i=0;i<8;i++)R_(ctx,r.x0+((i*37+HUB.t*60)%r.w),yTop(r.d)+((i*23+HUB.t*40)%RH),2,2,'#ffffff')}
   // cat
   if(EXT[CAT.d]){const cf=Math.floor(t*6)%2;ctx.save();ctx.translate(CAT.x|0,0);if(CAT.vx<0){ctx.scale(-1,1)}ctx.drawImage(SPR.cat[CAT.vx?cf:0],-5,(FYd(CAT.d)-8)|0);ctx.restore()}
+  if(HUB.hearts)for(const h of HUB.hearts){if(h.t<0)continue;const p=petPos(h.id);if(!EXT[p.d])continue;const hx=(p.x+(h.t*10%7)-3)|0,hy=(FYd(p.d)-20-h.t*14)|0;ctx.globalAlpha=Math.max(0,1-h.t/1.3);ctx.fillStyle='#ff7777';ctx.fillRect(hx,hy,2,1);ctx.fillRect(hx+3,hy,2,1);ctx.fillRect(hx-1,hy+1,7,2);ctx.fillRect(hx,hy+3,5,1);ctx.fillRect(hx+1,hy+4,3,1);ctx.fillRect(hx+2,hy+5,1,1);ctx.fillStyle='#ffffff';ctx.fillRect(hx,hy+1,1,1);ctx.globalAlpha=1}
   for(const p of PETS)if(EXT[p.d]){const df=PETDEF[p.id],fr=SPR.pet[p.id][Math.floor(p.t*6)%2],h=fr.height,yy=df.fl?(FYd(p.d)-30+Math.sin(p.t*3)*3):(FYd(p.d)-h+1);
     ctx.save();ctx.translate(p.x|0,0);if(p.vx<0)ctx.scale(-1,1);ctx.drawImage(fr,-(fr.width>>1),yy|0);ctx.restore()}
   for(const v of VIS)if(EXT[v.d])drawPerson(v.spr,v.x-4,FYd(v.d)-3,HUB.t,v.seed,false);
@@ -2570,6 +2595,7 @@ function extraScreen(id,rows,info){
   if(id==='personnel'){
     const eff={nav:l=>'SPEED +'+8*l+'%  DODGING +'+6*l+'%',weap:l=>'FIRE RATE +'+10*l+'%  DAMAGE +'+10*l+'%',tech:l=>'SHIELD +'+3*l+' SECONDS  SAFE TIME +'+(.2*l).toFixed(1)+'S',eng:l=>'BUILDS PARTS UP TO LEVEL '+l};
     for(const c of CREW){const l=cr[c.id]||0;L(c.n+': '+(l?TIERS[l-1]+' '+CREWNAMES[c.id][l-1]:'NOT HIRED'),l?'#fff':'#6c6c6c');L('  '+(l?eff[c.id](l):'HIRE ONE AT THE CREW AGENCY'),l?'#70a4b2':'#6c6c6c')}
+    L('');L('PETS',Y_);for(const id of ['cat',...PETS.map(p=>p.id)]){const n=(SAVE.aff&&SAVE.aff[id])||0,lv=petLevel(id),nx=AFF_AT.find(t=>t>n);L('  '+PET_NAME[id]+': LEVEL '+lv+'  PATS '+n+(lv>=3?'  COMES TO MEET YOU':nx?'  ('+(nx-n)+' TO LEVEL UP)':''),'#70a4b2')}
     L('');L('YOU',Y_);L('  FITNESS LEVEL '+fitLevel()+' OF 10   WALKING SPEED +'+fitLevel()*2+'%');
     L('  '+foodText(),foodCol());
     return 'PERSONNEL';
@@ -2743,7 +2769,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='foodm'){
     L('A BASIC FOOD MACHINE. CHEAP AND FILLING ENOUGH.');L(foodText(),foodCol());
-    rows.push({n:'SNACK BAR  (1 GOLD)',d:'WELL FED FOR 2 DAYS',r:'1',ok:SAVE.coins>=1,fn:()=>{if(SAVE.coins<1){toast('NOT ENOUGH GOLD');return}SAVE.coins-=1;SAVE.fed=Math.max(SAVE.fed||0,2);toast('THE MACHINE DROPS A SNACK BAR.');save()}});
+    rows.push({n:'SNACK BAR  (1 GOLD)',d:'ADDS 2 DAYS OF FOOD. STACKS UP TO 4 DAYS (ABOUT 2 MINUTES)',r:'1',ok:SAVE.coins>=1&&(SAVE.fed||0)<4,fn:()=>{if((SAVE.fed||0)>=4){toast('YOU ARE FULL. THE MACHINE KEEPS 4 DAYS OF FOOD AT MOST.');return}if(SAVE.coins<1){toast('NOT ENOUGH GOLD');return}SAVE.coins-=1;SAVE.fed=Math.min(4,(SAVE.fed||0)+2);toast('THE MACHINE DROPS A SNACK BAR.');save()}});
     return 'FOOD MACHINE';
   }
   if(id==='cafe'){
