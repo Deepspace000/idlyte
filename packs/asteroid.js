@@ -284,24 +284,30 @@ function segImg(r,seed,tail){
 }
 function headImg(open){
   return cnv(48,40,(g)=>{
-    const cx=29,cy=20,o=open*3.4;
-    ell(g,cx+2,cy,16,14,SKIN);
+    const cx=29,cy=20,A=2.4+open*4.6;
+    ell(g,cx+2,cy,15,13,SKIN);
     for(let i=0;i<5;i++){ell(g,cx-6+i*5,cy-13+(i>2?i-2:0),3.4,3,BONEP)}
     for(let i=0;i<4;i++){ell(g,cx-2+i*5,cy+13-(i>1?i-1:0),3,2.6,BONEP)}
-    ell(g,cx-11,cy,10,9.5,SKIN2);
-    // mouth cavity
-    for(let y=-6;y<=6;y++){const hw=Math.max(0,12-Math.abs(y)*.9);if(Math.abs(y)<=3+o){px(g,'#3a0a14',cx-22+Math.abs(y)*.3,cy+y,hw+4,1)}}
-    // jaws
-    thick(g,SKIN[2],18,cy-6,2,cy-5-o,4);thick(g,SKIN[4],18,cy-7,2,cy-6-o,2);thick(g,SKIN[5],17,cy-8,3,cy-7-o,1);
-    thick(g,SKIN[2],18,cy+6,2,cy+5+o,4);thick(g,SKIN[4],18,cy+7,2,cy+6+o,2);thick(g,SKIN[5],17,cy+8,3,cy+7+o,1);
-    for(let x=5;x<=16;x+=3){px(g,'#ffffff',x,cy-3-o*.8+(x>12?-1:0),1,3);px(g,'#ffffff',x+1,cy+1+o*.8,1,3)}
-    // eye
-    px(g,'#000000',cx-8,cy-8,6,6);px(g,'#9ad2e0',cx-7,cy-7,4,4);px(g,'#ffffff',cx-6,cy-6,2,2);px(g,'#ff77ff',cx-4,cy-4,1,1);
-    // glitter in the hide
-    for(let i=0;i<5;i++)px(g,VEIN[i%4],cx+4+i*3,cy-4+((i*5)%9));
+    ell(g,cx-9,cy+1,10,9,SKIN);
+    const hh=x=>{const t=(21-x)/19;return A*Math.pow(Math.max(0,Math.sin(Math.PI*Math.min(1,Math.max(0,t)))),.7)};
+    // mouth: a curved lens that opens from the middle, throat glowing at the back
+    for(let x=2;x<=21;x++){const h=hh(x);for(let y=-Math.ceil(h);y<=Math.ceil(h);y++){if(Math.abs(y)>h)continue;px(g,x>15?'#9a3a3a':'#3a0a14',x,cy+y)}if(h>1.5&&x>15)px(g,'#ff7777',x,cy,1,1)}
+    // jaw plates along the curves, hooked at the tips
+    for(let x=0;x<=22;x++){const h=hh(Math.min(21,Math.max(2,x))),tip=x<4?(4-x):0;
+      for(let k=0;k<3;k++){px(g,[SKIN[5],SKIN[4],SKIN[2]][k],x,cy-h-1-k+tip*.8);px(g,[SKIN[3],SKIN[2],SKIN[1]][k],x,cy+h+1+k-tip*.8)}}
+    // teeth along both edges and long hooked fangs at the tips
+    for(let x=6;x<=19;x+=3){const h=hh(x);px(g,'#ffffff',x,cy-h,1,2);px(g,'#ffffff',x+1,cy+h-1,1,2)}
+    px(g,'#ffffff',3,cy-2,1,3);px(g,'#ffffff',3,cy,1,3);px(g,'#ffffaa',2,cy-1,1,2);
+    // nostrils and head rings
+    px(g,'#3a2a10',cx-16,cy-5,2,2);
+    for(let x=cx-4;x<=cx+14;x+=6)for(let y=cy-9;y<=cy+9;y++)if(BAYER[y&3][x&3]/16<.35)px(g,SKIN[1],x,y);
+    // round glowing eye with a slit pupil, heavy brow
+    for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=(x*x+y*y)/10;if(d<=1)px(g,d>.7?'#3a0a14':'#ffcc33',cx-4+x,cy-8+y)}
+    px(g,'#000000',cx-4,cy-10,1,5);px(g,'#ffffff',cx-6,cy-10,1,1);
+    thick(g,'#12092e',cx-10,cy-12,cx+2,cy-9,2);thick(g,BONEP[3],cx-10,cy-13,cx+2,cy-10,1);
+    for(let i=0;i<5;i++)px(g,VEIN[i%4],cx+5+i*3,cy-4+((i*5)%9));
   });
 }
-
 /* ---------- registration ---------- */
 PACKS[1]={
   init(){

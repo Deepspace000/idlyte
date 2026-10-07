@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.01</title>
+<title>Idlyte v1.03</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -643,6 +643,29 @@ function spawn(o){
 }
 /* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
 function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
+/* ===== mini boss: halfway through every level, a double size elite built from the planet's own enemy art ===== */
+const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR'];
+function spawnMini(){
+  const k=MINI_KEY[G.planet||0],hp=26*loopScale()*(G.level>=3?1.3:1);
+  const e={type:'mini',fr:k,x:W+30,y:100,vx:-55,vy:0,w:36,h:26,hp,mhp:hp,pts:1500,t:0,flash:0,shootT:1.5,ringT:3.5,in:true};
+  E.push(e);G.mini=e;G.msg='ELITE';G.msgT=2.5;
+}
+function miniUpdate(e,dt,live){
+  if(e.in){e.x+=e.vx*dt;if(e.x<=232)e.in=false;return}
+  e.y=100+Math.sin(e.t*.9)*48;e.x=232+Math.sin(e.t*.5)*10;
+  if(!live)return;
+  e.shootT-=dt;e.ringT-=dt;
+  const fast=e.hp<e.mhp*.5;
+  if(e.shootT<=0){e.shootT=fast?1.1:1.7;for(let i=-1;i<=1;i++)ebAim(e.x-16,e.y,66,i*.3)}
+  if(e.ringT<=0){e.ringT=fast?3:4.2;ebRing(e.x,e.y,fast?12:8,52,e.t)}
+}
+function drawMini(e){
+  const A=pk(),sk=A&&A.enemies?A.enemies[e.fr]:null,def={ring:SPR.ring,ringR:SPR.ringR,pod:SPR.pod},f=e.flash>0;
+  let fr=sk&&sk.frames?(f&&sk.white?sk.white:sk.frames):(f?SPR[e.fr+'W']:def[e.fr]);
+  if(!fr)return;const sp=fr[Math.floor(e.t*8)%fr.length],w=sp.width*2,h=sp.height*2,x=(e.x-w/2)|0,y=(e.y-h/2)|0;
+  if(!f){ctx.fillStyle=Math.floor(e.t*5)%2?'#ff7777':'#9a3a3a';ctx.fillRect(x-2,y-2,w+4,1);ctx.fillRect(x-2,y+h+1,w+4,1);ctx.fillRect(x-2,y-2,1,h+4);ctx.fillRect(x+w+1,y-2,1,h+4)}
+  ctx.drawImage(sp,x,y,w,h);
+}
 function spawnBoss(){
   const A=pk(),B=A&&A.boss,hp=90*loopScale()*bossMul()*((B&&B.hp)||1);
   const b={type:'boss',x:W+90,y:100,vx:-60,vy:0,w:B?B.w:128,h:B?B.h:78,hp,mhp:hp,pts:5000,t:0,flash:0,shootT:2,ringT:4,phase:0,fr:'boss',in:true,pkBoss:!!B};
@@ -737,6 +760,7 @@ function killEnemy(e){
   if(e.type!=='rock'&&Math.random()<(e.type==='boss'?1:e.type==='pod'?.5:.07))PK.push({k:'chance',x:e.x,y:e.y,vx:-18,vy:rnd(-10,10),t:0});
   {const nt=e.type==='boss'?3:(e.type!=='rock'&&Math.random()<(e.type==='pod'?.3:.04))?1:0;for(let q=0;q<nt;q++)PK.push({k:'token',x:e.x+q*6,y:e.y+q*4,vx:-18,vy:rnd(-10,10),t:0})}
   if(!e.carry&&e.type!=='rock'&&e.type!=='boss'&&Math.random()<.04)PK.push({k:'pw',p:['P','S','M','O','R','B'][Math.floor(Math.random()*6)],x:e.x,y:e.y,vx:-18,vy:0,t:0});
+  if(e.type==='mini'){G.mini=null;dropCoins(e.x,e.y,14);for(let i=0;i<3;i++)lootDrop({type:'pod',x:e.x+i*5,y:e.y});PK.push({k:'pw',p:['P','S','M','O','R','B'][Math.floor(Math.random()*6)],x:e.x,y:e.y,vx:-18,vy:0,t:0});PK.push({k:'chance',x:e.x,y:e.y+6,vx:-18,vy:0,t:0});for(let i=0;i<12;i++)boom(e.x+rnd(-14,14),e.y+rnd(-10,10),8,i<3);shake=Math.max(shake,.5);return}
   boom(e.x,e.y,e.type==='boss'?90:e.type==='rock'&&!e.big?6:18,e.type==='boss'||e.w>16);
   if(e.type==='boss'){
     dropCoins(e.x,e.y,40);G.state='clear';G.timer=6;G.msg=(G.level>=3?'SYSTEM CLEAR':'LEVEL '+G.level+' CLEAR');G.msgT=6;G.boss=null;
@@ -784,6 +808,7 @@ function update(dt){
   if(!G.boss){
     G.t+=dt;
     while(G.si<G.script.length&&G.script[G.si].t<=G.t)spawn(G.script[G.si++]);
+    if(G.t>=LEVEL_LEN/2&&!G.miniDone){G.miniDone=1;spawnMini()}
     if(G.t>=LEVEL_LEN-3&&!G.warned){G.warned=1;G.msg='WARNING';G.msgT=3}
     if(G.t>=LEVEL_LEN&&!G.boss&&E.filter(e=>e.type!=='rock').length<2)spawnBoss();
   }
@@ -827,7 +852,7 @@ function updateEntities(dt,live){
   if(PA&&PA.tick)PA.tick(dt,live);
   for(const e of E){
     e.t+=dt;if(e.flash>0)e.flash-=dt;
-    const sk=e.type!=='boss'&&PA&&PA.enemies?PA.enemies[e.fr]:null;
+    const sk=e.type!=='boss'&&e.type!=='mini'&&PA&&PA.enemies?PA.enemies[e.fr]:null;
     if(sk&&sk.move)sk.move(e,dt,live);
     else if(e.type==='ring'||e.type==='ringR'){e.x+=e.vx*dt;e.y=e.y0+Math.sin(e.t*3.2+e.ph)*30;
       if(live&&e.x<W-30&&e.x>60&&(e.shootT-=dt)<=0){e.shootT=rnd(2.2,4);enemyShot(e,0)}}
@@ -839,6 +864,7 @@ function updateEntities(dt,live){
       if(live&&e.x<W-20&&e.x>80&&(e.shootT-=dt)<=0){e.shootT=rnd(2.2,3.2);enemyShot(e,0);enemyShot(e,.35);enemyShot(e,-.35)}}
     else if(e.type==='rock'){e.x+=e.vx*dt;e.y+=e.vy*dt}
     else if(e.type==='boss'){bossUpdate(e,dt,live)}
+    else if(e.type==='mini'){miniUpdate(e,dt,live)}
     if(sk&&sk.update)sk.update(e,dt,live);
   }
   // enemy bullets
@@ -960,9 +986,10 @@ function zapReticle(e){
   }
 }
 function drawEnemy(e){
+  if(e.type==='mini'){drawMini(e);return}
   let spr;
   const f=e.flash>0;
-  {const A=pk(),sk=(A&&A.enemies&&e.type!=='boss')?A.enemies[e.fr]:null;
+  {const A=pk(),sk=(A&&A.enemies&&e.type!=='boss'&&e.type!=='mini')?A.enemies[e.fr]:null;
     if(sk){if(sk.draw)sk.draw(ctx,e,f);else{const fr=(f&&sk.white)?sk.white:sk.frames,sp=fr[Math.floor(e.t*(sk.fps||10))%fr.length];ctx.drawImage(sp,(e.x-sp.width/2)|0,(e.y-sp.height/2)|0)}
       zapReticle(e);return}}
   if(e.fr==='ring'||e.fr==='ringR'){const i=Math.floor(e.t*10)%6;spr=(f?SPR[e.fr+'W']:SPR[e.fr])[i]}
@@ -1063,10 +1090,10 @@ function drawSpeedTiles(){
   });
 }
 function drawBossBar(){
-  if(!G.boss)return;
-  const n=20,w=5,fill=Math.ceil(n*Math.max(0,G.boss.hp/G.boss.mhp));
+  const bo=G.boss||(G.mini&&!G.mini.dead?G.mini:null);if(!bo)return;
+  const n=20,w=5,fill=Math.ceil(n*Math.max(0,bo.hp/bo.mhp));
   ctx.fillStyle='#000';ctx.fillRect(58,TOP+3,n*(w+1)+28,9);ctx.fillStyle='#6c5eb5';ctx.fillRect(58,TOP+3,n*(w+1)+28,1);
-  text('BOSS',60,TOP+5,'#ff7777',1);
+  text(G.boss?'BOSS':'ELITE',60,TOP+5,'#ff7777',1);
   for(let i=0;i<n;i++){ctx.fillStyle=i<fill?(fill<n*.3?(Math.floor(G.t*6)%2?'#ff7777':'#9a3a3a'):'#9ad284'):'#222222';ctx.fillRect(82+i*(w+1),TOP+5,w,4)}
 }
 function drawHud(){
@@ -1125,7 +1152,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.01';
+const VERSION='1.03';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1866,7 +1893,7 @@ function slotStreak(ok){
 function zapTarget(gx,gy){
   let best=null,bd=1e9;
   for(const e of E){
-    if(e.dead||e.type==='boss'||e.type==='rock'||e.x<2||e.x>W-2)continue;
+    if(e.dead||e.type==='boss'||e.type==='mini'||e.type==='rock'||e.x<2||e.x>W-2)continue;
     const dx=Math.abs(gx-e.x)-e.w/2,dy=Math.abs(gy-e.y)-e.h/2;
     if(dx>7||dy>7)continue;
     const d=Math.hypot(Math.max(dx,0),Math.max(dy,0));
@@ -3303,10 +3330,10 @@ window.__g.dev={
 };
 
 </script>
-<script src="packs/asteroid.js?v=1.01"></script>
-<script src="packs/ice.js?v=1.01"></script>
-<script src="packs/lava.js?v=1.01"></script>
-<script src="packs/gas.js?v=1.01"></script>
-<script src="packs/base.js?v=1.01"></script>
+<script src="packs/asteroid.js?v=1.03"></script>
+<script src="packs/ice.js?v=1.03"></script>
+<script src="packs/lava.js?v=1.03"></script>
+<script src="packs/gas.js?v=1.03"></script>
+<script src="packs/base.js?v=1.03"></script>
 </body>
 </html>
