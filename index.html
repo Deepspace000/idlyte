@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v0.94</title>
+<title>Idlyte v0.95</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -1066,7 +1066,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='0.94';
+const VERSION='0.95';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2626,9 +2626,10 @@ const INP={last:'key'},PAD={x:0,y:0,prev:{},rep:{}};
 const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'ontouchstart' in window;
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 /* master mute: works from anywhere, including during a mission */
-function setMute(m){mus.mute=!!m;if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND MUTED':'SOUND ON')}
+function muteInit(){let v=null;try{v=localStorage.getItem('idlyte_mute')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1'}
+function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND MUTED':'SOUND ON')}
 function handleKey(k){
-  if(k==='m'&&MODE!=='slots'){if(!INP.repeat)setMute(!mus.mute);return}
+  if(k==='m'){if(!INP.repeat)setMute(!mus.mute);return}
   if(MODE==='title'||MODE==='slots'){
     musInit();
     const n=Math.max(1,UI.list.length);
@@ -3071,7 +3072,7 @@ function finishLoad(){
   if(!SAVE.shipName)SAVE.shipName='DRIFTER';
   SAVE.paint=Object.assign({color:'chrome',pattern:'none',accent:'lime',canopy:'cyan'},SAVE.paint||{});SAVE.paint.own=SAVE.paint.own||{};if(SAVE.paint.accent==='orange'&&!SAVE.paint.own['accent:orange'])SAVE.paint.accent='lime';rebuildShip();
   SAVE.extras=SAVE.extras||{};SAVE.booksOwned=SAVE.booksOwned||{};for(const b of BOOKS)if(SAVE.bookOpened[b.id]||SAVE.bookPage[b.id]>0)SAVE.booksOwned[b.id]=1;
-  mus.on=SAVE.set.music!==0;mus.mute=!!SAVE.set.mute;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
+  mus.on=SAVE.set.music!==0;muteInit();mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();refreshSpeedBtns();
   HUB.cam.x=0;HUB.cam.y=0;HUB.acc=0;HUB.screen=null;
 }
 function newGameInSlot(i,name){
@@ -3147,7 +3148,7 @@ function frame(now){
 }
 
 document.querySelectorAll('#menu button').forEach(b=>b.addEventListener('click',()=>{if(MODE!=='hub')return;const id=b.dataset.m;HUB.screen=HUB.screen===id?null:id;UI.focus=0}));
-initSaves();mus.on=SAVE.set.music!==0;mus.mute=!!SAVE.set.mute;mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();
+initSaves();mus.on=SAVE.set.music!==0;muteInit();mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();
 refreshSpeedBtns();
 requestAnimationFrame(frame);
 setInterval(save,5000);
