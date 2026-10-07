@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.33</title>
+<title>Idlyte v1.34</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1230,7 +1230,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.33';
+const VERSION='1.34';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3266,21 +3266,24 @@ function arpChord(key,deg,minor){
   const S=arpScale(minor),o=i=>S[(deg+i)%7]+((deg+i)>=7?12:0),b=o(0);
   return {root:(key+S[deg])%12,tones:[0,o(2)-b,o(4)-b,o(6)-b]};
 }
-/* diatonic triads of key A (major or minor) that also belong to key B: the pivot chords */
+/* pivot (common) chords: diatonic triads of key A that are also diatonic in key B, each with the degree it has in B.
+   a good pivot is a pre-dominant in B (ii, iv or the flat VI) because it then walks naturally to B's V7 and home */
 function arpPivots(A,am,B,bm){
-  const SA=arpScale(am),inB=new Set(arpScale(bm).map(x=>(B+x)%12)),out=[];
-  for(let d=0;d<7;d++){if(d===4)continue;const pcs=[0,2,4].map(i=>(A+SA[(d+i)%7])%12);if(pcs.every(q=>inB.has(q)))out.push(d)}
+  const SA=arpScale(am),SB=arpScale(bm),inB=new Set(SB.map(x=>(B+x)%12)),out=[];
+  for(let d=0;d<7;d++){if(d===4)continue;const root=(A+SA[d])%12,pcs=[0,2,4].map(i=>(A+SA[(d+i)%7])%12);if(!pcs.every(q=>inB.has(q)))continue;
+    const degB=SB.indexOf(((root-B)%12+12)%12),pre=bm?[1,3,5]:[1,3];out.push({d,degB,pre:pre.includes(degB)})}
   return out;
 }
-/* a cycle: a revolution of fifths to the left, one to the right, distant modulations, then hard ones. mostly minor keys, a major key now and then */
+/* a cycle: a revolution of fifths to the left, one to the right, distant modulations, then hard ones.
+   mostly minor keys, a major key now and then. distant ones are third relations (smooth through a diminished seventh or a relative major), hard ones are lifts of a semitone or tone */
 function arpCycle(k,firstMinor){
-  const L=[],push=(kind,iv)=>{L.push({key:k,kind,next:(k+iv)%12,minor:L.length?Math.random()>.22:firstMinor});k=(k+iv)%12};
+  const PM=.12,L=[],push=(kind,iv)=>{L.push({key:k,kind,next:(k+iv)%12,minor:L.length?Math.random()>PM:firstMinor});k=(k+iv)%12};
   for(let i=0;i<12;i++)push('left',5);
   for(let i=0;i<12;i++)push('right',7);
   let last=-1;
-  for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,4,6,8,9,10])}while(iv===last);last=iv;push('distant',iv)}
-  for(let i=0;i<6;i++){let iv;do{iv=arpPick([1,2,3,6,11])}while(iv===last);last=iv;push('hard',iv)}
-  L.forEach((q,i)=>{q.nm=i<L.length-1?L[i+1].minor:(ARP.leadMinor=Math.random()>.22)});
+  for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,3,9,9,6,4])}while(iv===last);last=iv;push('distant',iv)}
+  for(let i=0;i<6;i++){let iv;do{iv=arpPick([1,2])}while(iv===last&&i%2);last=iv;push('hard',iv)}
+  L.forEach((q,i)=>{q.nm=i<L.length-1?L[i+1].minor:(ARP.leadMinor=Math.random()>PM)});
   return L;
 }
 function arpNewCycle(){
@@ -3299,12 +3302,21 @@ function arpPrep(sec){
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.prog=arpPick(sec.minor?MINP:MAJP).map(d=>arpChord(sec.key,d,sec.minor));
   let oct=ARP.octs[ARP.oi++%ARP.octs.length];if(sec.last===oct)oct=1+(oct%4);sec.oct=oct;
-  const A=sec.key,B=sec.next,nextV=arpChord(B,4,sec.nm);
-  if(sec.kind==='left'||sec.kind==='right'||sec.kind==='distant'){
-    const pv=arpPivots(A,sec.minor,B,sec.nm);
-    if(pv.length){const d=arpPick(pv);sec.prog[2]=arpChord(A,d,sec.minor);sec.prog[3]=nextV;sec.how='pivot'}
-    else{sec.prog[2]=arpChord(A,3,sec.minor);sec.prog[3]={root:(B+11)%12,tones:[0,3,6,9]};sec.how='dim7'}   // diminished seventh pivot to the new leading note
-  }else{sec.prog[3]=arpChord(A,4,sec.minor);sec.how='hard'}
+  const A=sec.key,B=sec.next,am=sec.minor,bm=sec.nm,nextV=arpChord(B,4,bm),iv=((B-A)%12+12)%12;
+  const viaPivot=()=>{
+    const pv=arpPivots(A,am,B,bm),pre=pv.filter(x=>x.pre),pick=pre.length?arpPick(pre):(pv.length?arpPick(pv):null);
+    if(!pick)return false;
+    sec.prog[2]=arpChord(A,pick.d,am);sec.prog[3]=nextV;sec.how=pre.length?'pivot':'pivot*';return true};
+  if(sec.kind==='left'||sec.kind==='right'){
+    if(!viaPivot()){sec.prog[2]=arpChord(A,3,am);sec.prog[3]=nextV;sec.how='V7'}
+  }else if(sec.kind==='distant'){
+    if(am&&bm&&iv===4){   // C#m from Am: the V7 of A is the relative major's tonic of B, so it falls straight onto B's minor tonic
+      sec.prog[2]=arpChord(A,3,am);sec.prog[3]=arpChord(A,4,am);sec.how='mediant'}
+    else if(iv===3||iv===6||iv===9){   // minor thirds and the tritone: V7 of A, then the diminished seventh that is also B's leading-note chord
+      sec.prog[2]=arpChord(A,4,am);sec.prog[3]={root:(B+11)%12,tones:[0,3,6,9]};sec.how='dim7'}
+    else if(!viaPivot()){sec.prog[2]=arpChord(A,3,am);sec.prog[3]=nextV;sec.how='V7'}
+  }else{   // hard: a lift of a semitone or tone straight after A's dominant, the classic pop key change
+    sec.prog[3]=arpChord(A,4,am);sec.how='lift'}
 }
 function arpSetup(){
   if(ARP.ready||!AC||!mus.in)return;
@@ -3318,19 +3330,24 @@ function arpSetup(){
 const ARPW=[
  {n:'SINE',o:[['sine',0,1,1]],q:.5,b:3000,ob:0},
  {n:'GLASS',o:[['sine',-4,.7,1],['sine',4,.7,1],['triangle',0,.32,1]],q:.9,b:1100,ob:700,lfo:500},
- {n:'TRIANGLE',o:[['triangle',-3,.7,1],['triangle',3,.7,1]],q:.7,b:1800,ob:600,lfo:400},
+ {n:'TRIANGLE',o:[['triangle',0,.9,1]],q:.6,b:2600,ob:800,lfo:500},
+ {n:'SAWTOOTH',o:[['sawtooth',0,.5,1]],q:1.4,b:1200,ob:1800,lfo:600},
+ {n:'SQUARE',o:[['square',0,.36,1]],q:1,b:1100,ob:1100,lfo:400},
+ {n:'PULSE',o:[['pulse',0,.5,1]],q:1.2,b:1500,ob:1200,lfo:500},
+ {n:'SUPERSAW',o:[['sawtooth',-12,.3,1],['sawtooth',0,.3,1],['sawtooth',12,.3,1]],q:1.6,b:1000,ob:1500,lfo:600},
  {n:'WARM',o:[['sawtooth',-5,.3,1],['sawtooth',5,.3,1],['sine',0,.6,1]],q:1.1,b:700,ob:900,lfo:300},
  {n:'REED',o:[['square',-4,.2,1],['square',4,.2,1],['sine',0,.45,1]],q:1.3,b:850,ob:1100,lfo:350},
- {n:'SAW',o:[['sawtooth',-6,.42,1],['sawtooth',6,.42,1]],q:2.2,b:900,ob:1800,lfo:700},
  {n:'ORGAN',o:[['sine',0,.8,1],['sine',0,.4,2],['sine',0,.22,3],['sine',0,.1,4]],q:.5,b:3500,ob:0},
  {n:'BELL',o:[['sine',0,.8,1],['sine',0,.28,2.76],['sine',0,.14,5.4]],q:.5,b:4000,ob:0}];
+let PULSEW=null;   /* a 25 percent pulse wave, built once */
+function pulseWave(){if(PULSEW)return PULSEW;const N=48,re=new Float32Array(N),im=new Float32Array(N),d=.25;for(let n=1;n<N;n++){const a=2/(n*Math.PI)*Math.sin(n*Math.PI*d);re[n]=a*Math.cos(n*Math.PI*d);im[n]=a*Math.sin(n*Math.PI*d)}return PULSEW=AC.createPeriodicWave(re,im)}
 function arpNote(t,m,dur,vol,dest){
   const W=ARPW[mus.wave|0]||ARPW[1],f=mtof(m),g=AC.createGain(),lp=AC.createBiquadFilter();
   lp.type='lowpass';lp.Q.value=W.q;
   const base=W.b+(W.lfo||0)*(.5+.5*Math.sin(t*.21));
   lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:.55),dur*(W.n==='BELL'?.8:.3));
-  for(const [ty,dt,gv,mu] of W.o){const o=AC.createOscillator(),og=AC.createGain();og.gain.value=gv*.7;o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
+  for(const [ty,dt,gv,mu] of W.o){const o=AC.createOscillator(),og=AC.createGain();og.gain.value=gv*.7;if(ty==='pulse')o.setPeriodicWave(pulseWave());else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
   lp.connect(g);g.connect(dest||ARP.out);
 }
 /* a short phrase so the voice can be heard from the menus */
