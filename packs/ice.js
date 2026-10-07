@@ -346,7 +346,7 @@ init(){
     WHF.push(bevel(46,30,m,{ramp:ICE,depth:5,round:true,amb:.1,kd:.9,ks:.45,extra:(i,j,v)=>{const x=i+.5,y=j+.5;
       const k=spikeAt(x,y);if(k&&y<yTopW(x)+.5)return x<k[0]?'#ffffff':(x<k[0]+1?'#9ad2e0':'#70a4b2');
       if(i===7&&j===11)return '#ffffff';if(((i===6||i===8)&&j===11)||(i===7&&(j===10||j===12)))return '#1c1840';
-      const my=15.8+(x-3)*.07;if(x>3.5&&x<13&&Math.abs(y-my)<.5)return '#1c1840';
+      const my=15.8+(x-3)*.07;if(x<13&&Math.abs(y-my)<.5)return '#1c1840';   // starts at the very tip of the snout
       for(let s=0;s<SPOTS.length;s++){const q=SPOTS[s],dd=Math.hypot(x-q[0],y-q[1]);if(dd<1.45){const on=(s+f)%2===0;if(dd<.75)return on?'#ffffff':(s%2?'#ff77ff':'#ccff99');if(on)return s%2?'#ff77ff':'#ccff99';return v+.1}}
       if(y>17&&x>5&&x<27&&j%2===0)v-=.22;
       if(y>15.5)v-=(y-15.5)*.05;
