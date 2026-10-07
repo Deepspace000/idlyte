@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.19</title>
+<title>Idlyte v1.20</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1213,7 +1213,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.19';
+const VERSION='1.20';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2041,21 +2041,26 @@ function drawScreen(){
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
   text(def.title,20,22,'#ffffff',1);textR('GOLD '+SAVE.coins,282,22,'#b8c76f',1);
   let y=36;
-  if(HUB.scrId!==HUB.screen){HUB.scrId=HUB.screen;HUB.iscroll=0}
+  if(HUB.scrId!==HUB.screen){HUB.scrId=HUB.screen;HUB.iscroll=0;HUB.rscroll=0}
   const over=def.rows.length===0&&def.info.length>17;HUB.infoMax=over?def.info.length-17:0;
   HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));
   for(const l of (over?def.info.slice(HUB.iscroll,HUB.iscroll+17):def.info)){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;if(o.t)text(o.t,22,y,o.c,1);y+=8}
   if(over){const bx=HUB.iscroll>0,by=HUB.iscroll<HUB.infoMax;text(bx?'^':' ',296,38,'#70a4b2',1);text(by?'v':' ',296,168,'#70a4b2',1)}
   y+=4;
+  // rows get a roomy 20px pitch; when they do not all fit the list scrolls
+  const avail=176-y,nAll=def.rows.length;let pitch=20,maxVis=nAll;
+  if(nAll*20>avail){if(nAll*18<=avail)pitch=18;else{maxVis=Math.max(2,Math.floor(avail/20))}}
+  HUB.rowsMax=Math.max(0,nAll-maxVis);HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,HUB.rscroll||0));
+  const visRows=def.rows.slice(HUB.rscroll,HUB.rscroll+maxVis);
   // rows are registered first so keyboard focus starts on them, and each row's index matches its highlight
-  def.rows.forEach((r,i)=>{
-    const pitch=def.rows.length>8?13:def.rows.length>7?16:18,ry=y+i*pitch,i0=UI.list.length,cnt=r.btns?r.btns.length:1,fo=UI.focus>=i0&&UI.focus<i0+cnt;
+  visRows.forEach((r,i)=>{
+    const ry=y+i*pitch,i0=UI.list.length,cnt=r.btns?r.btns.length:1,fo=UI.focus>=i0&&UI.focus<i0+cnt;
     const run=(f)=>()=>{if(f.ok===false){toast(f.msg||(f.n&&/NEEDS|LOCKED/.test(f.d||'')?'LOCKED. HIRE A BETTER ENGINEER':'CANNOT DO THAT NOW'));return}f.fn()};
     ctx.fillStyle=fo?'#4d40a8':'#111111';ctx.fillRect(20,ry,280,pitch-1);
     if(fo){const pu=Math.floor(HUB.t*4)%2;ctx.fillStyle=pu?'#ffffff':'#9a8fe0';ctx.fillRect(20,ry,280,1);ctx.fillRect(20,ry+pitch-2,280,1);ctx.fillRect(20,ry,3,pitch-1);ctx.fillRect(297,ry,3,pitch-1)}
     if(r.bar!==undefined){ctx.fillStyle=fo?'#3c7a3c':'#2c5a2c';ctx.fillRect(22,ry,Math.round(278*r.bar),pitch-1)}
     const tx=r.icon?34:25;if(r.icon){ctx.fillStyle='#000';ctx.fillRect(24,ry+4,8,8);ctx.fillStyle=r.icon;ctx.fillRect(25,ry+5,6,6)}
-    const o1=pitch===13?1:pitch===16?2:3,o2=pitch===13?7:pitch===16?8:10;
+    const o1=pitch===20?4:3,o2=pitch===20?12:10;
     text(r.n,tx,ry+o1,r.ok===false&&!r.btns?'#6c6c6c':'#ffffff',1);text(r.d,tx,ry+o2,fo?'#e0f4ff':'#70a4b2',1);
     if(r.btns){
       const bx=[150,196,242],bw=[44,44,56];
@@ -2070,9 +2075,10 @@ function drawScreen(){
   uiBtn(288,19,16,13,()=>{HUB.screen=null},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1)});
   if(HUB.screenDraw){HUB.screenDraw();HUB.screenDraw=null}
   UI.nrows=UI.list.length-1;
+  if(HUB.rowsMax>0){const up=HUB.rscroll>0,dn=HUB.rscroll<HUB.rowsMax;text(up?'^':' ',22,181,'#70a4b2',1);text(dn?'v':' ',290,181,'#70a4b2',1);UI.list.push({x:16,y:176,w:34,h:12,fn:()=>{HUB.rscroll=Math.max(0,HUB.rscroll-1)}});UI.list.push({x:268,y:176,w:34,h:12,fn:()=>{HUB.rscroll=Math.min(HUB.rowsMax,HUB.rscroll+1)}})}
   if(UI.focus>=UI.list.length)UI.focus=0;
   if(HUB.infoMax>0){UI.list.push({x:20,y:36,w:270,h:68,fn:()=>{HUB.iscroll=Math.max(0,HUB.iscroll-4)}});UI.list.push({x:20,y:104,w:270,h:72,fn:()=>{HUB.iscroll=Math.min(HUB.infoMax,HUB.iscroll+4)}})}
-  ctx.fillStyle='#6c6c6c';textC(HUB.infoMax>0?'UP AND DOWN SCROLL. WHEEL OR TAP TOP AND BOTTOM.  ESC CLOSES':'ARROWS + ENTER, OR CLICK.  ESC CLOSES',181,'#6c6c6c',1);
+  ctx.fillStyle='#6c6c6c';textC(HUB.infoMax>0?'UP AND DOWN SCROLL. WHEEL OR TAP TOP AND BOTTOM.  ESC CLOSES':HUB.rowsMax>0?'MORE BELOW: ARROWS, WHEEL OR TAP ^ v.  ESC CLOSES':'ARROWS + ENTER, OR CLICK.  ESC CLOSES',181,'#6c6c6c',1);
 }
 
 /* ===== hub scene: hull, people, things to use, movement, drawing ===== */
@@ -2865,6 +2871,11 @@ function handleKey(k){
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
     if(MODE==='hub'&&HUB.screen==='book'){if(k==='arrowright'||k==='d'){bookTurn(1);return}if(k==='arrowleft'||k==='a'){bookTurn(-1);return}}
     if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){if(k==='arrowdown'||k==='s'){HUB.iscroll+=3;return}if(k==='arrowup'||k==='w'){HUB.iscroll-=3;return}}
+    if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){
+      const last=Math.max(0,(UI.nrows||1)-1);
+      if((k==='arrowdown'||k==='s')&&UI.focus>=last&&HUB.rscroll<HUB.rowsMax){HUB.rscroll++;UI.focus=last;return}
+      if((k==='arrowup'||k==='w')&&UI.focus<=0&&HUB.rscroll>0){HUB.rscroll--;UI.focus=0;return}
+    }
     const n=Math.max(1,UI.list.length);
     if(k==='arrowup'||k==='arrowleft'||k==='w'||k==='a'){UI.focus=(UI.focus+n-1)%n}
     else if(k==='arrowdown'||k==='arrowright'||k==='s'||k==='d'||k==='tab'){UI.focus=(UI.focus+1)%n}
@@ -2911,7 +2922,7 @@ function padPoll(dt){
     el.addEventListener('pointerdown',e=>{e.preventDefault();INP.last='touch';handleKey(key)})};
   hold('tl','arrowleft');hold('tr','arrowright');hold('tu','arrowup');hold('td','arrowdown');tap('ta','e');tap('tb','escape');tap('tm','m');tap('th','h');
 })();
-cv.addEventListener('wheel',e=>{if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}},{passive:false});
+cv.addEventListener('wheel',e=>{if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}else if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,(HUB.rscroll||0)+Math.sign(e.deltaY)));e.preventDefault()}},{passive:false});
 cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
 cv.addEventListener('pointerleave',()=>{MOUSE.x=-99;MOUSE.y=-99});
 cv.addEventListener('pointerdown',e=>{
