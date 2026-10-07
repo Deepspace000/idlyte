@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.18</title>
+<title>Idlyte v1.19</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -699,13 +699,25 @@ function miniUpdate(e,dt,live){
   if(e.shootT<=0){e.shootT=fast?1.1:1.7;for(let i=-1;i<=1;i++)ebAim(e.x-16,e.y,66,i*.3)}
   if(e.ringT<=0){e.ringT=fast?3:4.2;ebRing(e.x,e.y,fast?12:8,52,e.t)}
 }
+function drawTargetFrame(cx,cy,w,h,t){
+  cx|=0;cy|=0;const rx=(w>>1)+5,ry=(h>>1)+5,sp=Math.floor(t*9)%2,hot=Math.floor(t*4)%2;
+  pixEllipse(cx,cy,rx+1,ry+1,'#000000',sp);
+  pixEllipse(cx,cy,rx,ry,hot?'#ff7777':'#9a3a3a',(sp+1)%2);
+  ctx.fillStyle='#000000';
+  for(const [dx,dy,horiz] of [[0,-ry-6,0],[0,ry+2,0],[-rx-6,0,1],[rx+2,0,1]]){if(horiz)ctx.fillRect(cx+dx-1,cy+dy-2,5,5);else ctx.fillRect(cx+dx-2,cy+dy-1,5,5)}
+  ctx.fillStyle=hot?'#ffffff':'#ff7777';
+  ctx.fillRect(cx-1,cy-ry-5,3,4);ctx.fillRect(cx-1,cy+ry+2,3,4);ctx.fillRect(cx-rx-5,cy-1,4,3);ctx.fillRect(cx+rx+2,cy-1,4,3);
+  ctx.fillStyle='#ffffff';ctx.fillRect(cx-1,cy-ry-5,1,1);ctx.fillRect(cx-1,cy+ry+2,1,1);ctx.fillRect(cx-rx-5,cy-1,1,1);ctx.fillRect(cx+rx+2,cy-1,1,1);
+  const br=(x,y,sx,sy)=>{ctx.fillStyle='#ff7777';ctx.fillRect(x,y,3*sx,1);ctx.fillRect(x,y,1,3*sy)};
+  const bx=(w>>1)+1,by=(h>>1)+1;br(cx-bx,cy-by,1,1);br(cx+bx-1,cy-by,-1,1);br(cx-bx,cy+by-1,1,-1);br(cx+bx-1,cy+by-1,-1,-1);
+}
 function drawMini(e){
   if(e.pkMini){const A=pk();if(A&&A.mini){A.mini.draw(ctx,e,e.flash>0);return}}
   const A=pk(),sk=A&&A.enemies?A.enemies[e.fr]:null,def={ring:SPR.ring,ringR:SPR.ringR,pod:SPR.pod},f=e.flash>0;
   let fr=sk&&sk.frames?(f&&sk.white?sk.white:sk.frames):(f?SPR[e.fr+'W']:def[e.fr]);
   if(!fr)return;const sp=fr[Math.floor(e.t*8)%fr.length],w=sp.width*2,h=sp.height*2,x=(e.x-w/2)|0,y=(e.y-h/2)|0;
-  if(!f){ctx.fillStyle=Math.floor(e.t*5)%2?'#ff7777':'#9a3a3a';ctx.fillRect(x-2,y-2,w+4,1);ctx.fillRect(x-2,y+h+1,w+4,1);ctx.fillRect(x-2,y-2,1,h+4);ctx.fillRect(x+w+1,y-2,1,h+4)}
   ctx.drawImage(sp,x,y,w,h);
+  if(!f)drawTargetFrame(e.x,e.y,w,h,e.t);
 }
 function spawnBoss(){
   const A=pk(),B=A&&A.boss,hp=90*loopScale()*bossMul()*((B&&B.hp)||1);
@@ -1201,7 +1213,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.18';
+const VERSION='1.19';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
