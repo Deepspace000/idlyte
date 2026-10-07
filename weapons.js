@@ -172,11 +172,11 @@ window.WX=(function(){
     for(const d of DEFS){
       const own=S.own[d.id],need=(SAVE.crew.eng||0)<d.eng;
       if(!own){
-        rows.push({n:d.n,d:need?'NEEDS ENGINEER LV '+d.eng+': '+d.d:'EXOTIC. '+d.d+' IT EVOLVES THE MORE IT KILLS.',r:need?'LOCKED':String(d.price),ok:!need&&SAVE.coins>=d.price,pw:need?null:[shipPowerRaw(),base+7],
+        rows.push({ic:'wx_'+d.id,f:0,n:d.n,d:need?'NEEDS ENGINEER LV '+d.eng+': '+d.d:'EXOTIC. '+d.d+' IT EVOLVES THE MORE IT KILLS.',r:need?'LOCKED':String(d.price),ok:!need&&SAVE.coins>=d.price,pw:need?null:[shipPowerRaw(),base+7],
           fn:()=>{if(SAVE.coins<d.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=d.price;S.own[d.id]=1;S.eq=d.id;toast('BOUGHT AND FITTED '+d.n);checkUnlocks();save()}});
       }else{
         const f=formOf(d.id),x=S.xp[d.id]||0,fitted=cur===d.id,nx=f<3?'NEXT FORM AT '+TH[f+1]+' KILLS':'FULLY EVOLVED';
-        rows.push({n:d.forms[f]+(fitted?'  (FITTED)':''),d:x+' KILLS. '+nx+'. MUTATIONS: '+pr(d.id),r:fitted?'':'FIT',ok:!fitted,pw:fitted?null:[shipPowerRaw(),base+powerOf(d.id)],
+        rows.push({ic:'wx_'+d.id,f,n:d.forms[f]+(fitted?'  (FITTED)':''),d:x+' KILLS. '+nx+'. MUTATIONS: '+pr(d.id),r:fitted?'':'FIT',ok:!fitted,pw:fitted?null:[shipPowerRaw(),base+powerOf(d.id)],
           fn:()=>{S.eq=d.id;toast(d.forms[f]+' FITTED');save()}});
       }
     }
