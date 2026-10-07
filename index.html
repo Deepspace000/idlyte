@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.09</title>
+<title>Idlyte v1.10</title>
 <style>
   html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
@@ -28,10 +28,13 @@
   #tu{grid-column:2;grid-row:1}#tl{grid-column:1;grid-row:2}#td{grid-column:2;grid-row:2}#tr{grid-column:3;grid-row:2}
   #touch button.down{background:#000;color:#fff}
   body.ls{display:block}
-  body.ls #wrap{width:100vw;height:100vh}
+  body.ls #wrap{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;z-index:1}
+  body.ls canvas{width:100%!important;height:100%!important}
   body.ls #bar,body.ls #menu{display:none!important}
   body.ls #touch{position:fixed;left:8px;bottom:8px;width:auto;padding:0;margin:0;z-index:5;opacity:.55}
   body.ls #touch button{height:auto}
+  body.ls #pad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,38px)}
+  body.ls #touch button{font-size:16px}
 </style>
 </head>
 <body>
@@ -52,7 +55,7 @@ const W=320,H=200,TOP=14,BOT=192;
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
 function fit(){
-  const ls=matchMedia('(pointer:coarse)').matches&&innerWidth>innerHeight&&innerHeight<560;
+  const ls=innerWidth>innerHeight*1.45&&innerHeight<600;
   document.body.classList.toggle('ls',ls);
   if(ls){cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';return}
   const bar=document.getElementById('bar'),tb=document.getElementById('touch'),mn=document.getElementById('menu'),bh=(mn&&mn.offsetHeight?mn.offsetHeight+8:0)+(bar&&bar.offsetHeight?bar.offsetHeight:0)+(tb&&tb.offsetHeight?tb.offsetHeight:0)+30;
@@ -60,7 +63,7 @@ function fit(){
   s=s>=2?Math.floor(s):Math.max(.5,s);
   cv.style.width=W*s+'px';cv.style.height=H*s+'px';
 }
-addEventListener('resize',fit);fit();
+addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,200));if(window.visualViewport)visualViewport.addEventListener('resize',fit);fit();
 
 const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 const RAMPS={steel:['#222222','#444444','#6c6c6c','#959595','#bbbbbb','#ffffff'],green:['#1a3a1a','#2c5a2c','#588d43','#9ad284','#ccff99','#ffffff'],orange:['#3a2018','#68372b','#9a6759','#ff9966','#d8a878','#ffffff'],red:['#3a1c18','#68372b','#9a3a3a','#ff7777','#ffaaaa','#ffffff']};
@@ -1183,7 +1186,7 @@ function drawHud(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.09';
+const VERSION='1.10';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
