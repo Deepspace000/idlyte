@@ -381,21 +381,30 @@ function buildFusion(){
   });
   F.can=canArm(false);F.canX=canArm(true);
   /* neck of magma rings */
-  F.neck=part(52,40,-62,-60,g=>{const ox=-62,oy=-60;for(let i=0;i<5;i++){const t=i/4,x=-24+(-52+24)*t-ox,y=-34+(-48+34)*t-oy,r=8-i*.6;ell(g,x,y,r,r*.9,i%2?DRG:[NV,VI,LM,LL,WH]);if(i%2)px(g,OR,x-1,y,2,1)}});
-  /* lava dragon head with a billboard chrome jaw */
+  F.neck=part(52,40,-62,-60,g=>{const ox=-62,oy=-60;for(let i=0;i<5;i++){const t=i/4,x=-24+(-52+24)*t-ox,y=-34+(-48+34)*t-oy,r=8-i*.6;ell(g,x,y,r,r*.9,[N1,NV,D,GM,LL]);if(i%2)px(g,CY,x-1,y,2,1)}});
+  /* the fusion's head: a chrome machine skull, one scanning visor eye, vented jaw, antennae (nothing like the dragons) */
   const head=k=>part(64,48,-108,-78,g=>{
-    const jaw=[[4,30],[20,31+k*2],[38,33],[50,32],[48,37],[34,39+k*3],[16,37+k*5],[6,34+k*4]];
-    if(k){fillPoly(g,[[4,28],[42,28],[44,33+k],[14,34+k*4]],k>1?YL:OR);fillPoly(g,[[18,30],[42,30],[42,32+k],[22,33+k*3]],WH)}
-    g.drawImage(plate(64,48,polyM(jaw),{ramp:[K,VI,GM,LL],rim:WH,shadow:N0,lit:(i,j)=>{const f=(j-30)/12;return f<.3?.9:f<.5?.2:.55}}),0,0);
-    const skull=[[2,28],[8,22],[18,19],[30,14],[42,12],[54,14],[60,21],[58,30],[46,33],[26,31],[10,31]];
-    const nz=mkNoise(9);
-    g.drawImage(plate(64,48,polyM(skull),{ramp:DRG,rim:RD,shadow:K,lit:(i,j)=>.95-j/48*.9-i/64*.1,extra:(i,j,c)=>{if(c===K)return null;const v=Math.abs(Math.sin(i*.42+j*.8+nz.fbm(i*.2,j*.2,2)*5));return v<.09?(v<.04?YL:OR):null}}),0,0);
-    g.drawImage(plate(64,48,polyM([[40,13],[50,3],[60,0],[53,8],[48,15]]),{ramp:[K,D,LM,LL],rim:WH}),0,0);
-    g.drawImage(plate(64,48,polyM([[50,16],[60,8],[64,10],[56,19]]),{ramp:[K,D,LM,LL],rim:WH}),0,0);
-    px(g,K,38,18,7,4);px(g,YL,39,19,5,2);px(g,RD,41,19,1,2);px(g,WH,39,19,1,1);
-    px(g,K,8,24,2,2);px(g,OR,8,25,1,1);
-    for(let x=7;x<40;x+=3){px(g,WH,x,30,1,2);px(g,WH,x+1,31+k*2-(x>30?1:0),1,1)}
-    neon(g,[[16,36+k*4],[44,35]],MG,mg);
+    const helm=[[3,27],[5,15],[13,7],[30,4],[48,5],[60,11],[63,23],[60,33],[46,36],[18,35],[7,33]];
+    g.drawImage(plate(64,48,polyM(helm),{ramp:AR,rim:LL,shadow:N0,lit:(i,j)=>.95-j/48*.8-i/64*.15}),0,0);
+    // panel seams and bolts
+    for(const x of [22,34,46])px(g,N0,x,5,1,9);for(const q of [[10,12],[56,13],[9,30],[56,30]])px(g,LL,q[0],q[1],2,2);
+    // visor slit with the scanning eye
+    fillPoly(g,[[6,16],[50,14],[54,24],[8,26]],K);
+    const ex=14+((k===2?1:0)*3);
+    ell(g,ex+4,20,5,4,[rd,MG,LV,WH]);px(g,WH,ex+3,19,2,1);
+    for(let x=22;x<52;x+=5)px(g,x%10?rd:RD,x,19,3,2);
+    neon(g,[[6,14],[50,12]],CY,cy);
+    // forehead crest and antennae
+    g.drawImage(plate(64,48,polyM([[26,5],[40,2],[56,6],[44,9]]),{ramp:AR,rim:CY,shadow:N1}),0,0);
+    line(g,LM,52,5,57,0);line(g,LM,58,10,63,4);px(g,MG,57,0,2,2);px(g,MG,63,3,1,2);
+    // vented lower jaw, drops open with k
+    const jy=27+k*4;
+    g.drawImage(plate(64,48,polyM([[6,jy],[46,jy-1],[52,jy+4],[44,jy+10],[16,jy+11],[8,jy+7]]),{ramp:AR,rim:LL,shadow:N0,lit:(i,j)=>.7-(j-27)/40}),0,0);
+    for(let x=10;x<46;x+=4)px(g,K,x,jy+3,2,5);
+    if(k)for(let x=10;x<46;x+=4)px(g,k>1?YL:OR,x,jy-2,2,3);
+    px(g,MG,12,jy+9,32,1);
+    // exhaust pipes behind the head
+    px(g,N0,52,31,8,4);px(g,GM,53,32,6,1);px(g,OR,58,33,2,1);
   });
   F.head=[0,1,2].map(head);
   /* gas fortress stacks on the back */
@@ -797,13 +806,13 @@ init(){
   /* ======================================================================
      FUSION OF ALL MACHINES (level 3 finale), driven as a segment of the rush host
      ====================================================================== */
-  const FX_=252,FY_=100;
+  const FX_=330,FY_=100,FS=2,FOY=70;   // drawn at 2x about (x, y+70), so it fills the right of the screen and spills off the top and bottom
   const fPh=e=>{const r=e.hp/e.mhp;return r>.82?1:r>.64?2:r>.46?3:r>.28?4:r>.1?5:6};
   const FBOX={torso:[-38,-42,50,40],head:[-106,-74,-46,-32],can:[-96,-38,-14,0],claw:[-86,4,-20,46]};
   const inB=(b,x,y,m,n)=>x>=b[0]-(m||0)&&x<=b[2]+(m||0)&&y>=b[1]-(n||0)&&y<=b[3]+(n||0);
-  function fPos(e){return {mx:e.x-104,my:e.y-46+(e.hb||0),sx:e.x-6,sy:e.y+2,dx:e.x+30,dy:e.y-44,cx:e.x-94,cy:e.y-17,kx:e.x+34,ky:e.y-62}}
-  function fShed(e,p){const X=e.x,Y=e.y;
-    const bm=(x,y,n,b)=>{boom(X+x,Y+y,n,b);for(let i=0;i<6&&fxOk();i++)FX.push({x:X+x+rnd(-8,8),y:Y+y+rnd(-6,6),vx:rnd(-60,40),vy:rnd(-50,30),life:1.3,l0:1.3,c:[LL,GM,CY,OR][i&3],s:i%3?2:3})};
+  function fPos(e){const X=(o)=>e.x+FS*o,Y=(o)=>e.y+FOY+FS*o;return {mx:X(-104),my:Y(-46+(e.hb||0)),sx:X(-6),sy:Y(2),dx:X(30),dy:Y(-44),cx:X(-94),cy:Y(-17),kx:X(34),ky:Y(-62)}}
+  function fShed(e,p){const X=e.x,Y=e.y+FOY,Z=FS;
+    const bm=(x,y,n,b)=>{boom(X+x*Z,Y+y*Z,n,b);for(let i=0;i<6&&fxOk();i++)FX.push({x:X+x*Z+rnd(-8,8),y:Y+y*Z+rnd(-6,6),vx:rnd(-60,40),vy:rnd(-50,30),life:1.3,l0:1.3,c:[LL,GM,CY,OR][i&3],s:i%3?2:3})};
     if(p===2){bm(-20,-34,20,true);bm(30,-40,14,false);bm(10,34,14,false)}
     else if(p===3){bm(-60,28,22,true);bm(-40,24,12,false)}
     else if(p===4){bm(-64,-18,22,true);bm(-30,-22,14,false)}
@@ -819,7 +828,7 @@ init(){
     const k=e.las===3?Math.min(1,e.lt/1.9):0,y80=e.ys0+(e.ys1-e.ys0)*k;
     bm.mx=p.cx;bm.my=p.cy;bm.ty=p.cy+(y80-p.cy)*p.cx/Math.max(20,p.cx-80);bm.st=e.las===3?2:1;bm.lt=e.lt;
     const ya=bm.st===2?y80:e.ys0,y0=Math.min(ya,e.ys1)-6,y1=Math.max(ya,e.ys1)+6;bm.x=p.cx/2;bm.w=p.cx;bm.y=(y0+y1)/2;bm.h=y1-y0;bm.vy=0}
-  const FUS={w:170,h:140,
+  const FUS={w:330,h:260,
     init(e){if(!FU)FU=buildFusion();e.x=W+150;e.y=FY_;e.in=true;e.ph=1;e.pause=0;e.cd={glob:1.5,ice:3,br:2,lava:3,gas:5,las:1.5,ink:2.5,can:2,sp:1.5,hive:4,glob4:2,ring:2,lat:1,cur:3,ov:0};
       e.tel=null;e.las=0;e.beam=null;e.spir=0;e.sa=0;e.br=null;e.dsp=0;e.dspT=0;e.hb=0;e.mouth=0;e.fT=0},
     update(e,dt,live,host){
@@ -871,27 +880,28 @@ init(){
         if(c.cur<=0&&!e.tel){c.cur=ph>=6?4.2:5.6;e.tel={k:'cur',t:.9,x:e.x-60,gy:rnd(54,146),two:ph>=6}}
         if(ph>=6&&c.glob<=0){c.glob=2.4;if(room(5)){ebFan(p.mx,p.my,5,1,66,aimA(p.mx,p.my),{sty:'cyfire'});e.mouth=.4}}}
     },
-    hit(e,x,y){const lx=x-e.x,ly=y-e.y,ph=fPh(e);
+    hit(e,x,y){const lx=(x-e.x)/FS,ly=(y-e.y-FOY)/FS,ph=fPh(e);
       if(ph>=5&&Math.hypot(lx+6,ly-2)<14)return 1.6;
       if(inB(FBOX.torso,lx,ly))return 1;
       if(inB(FBOX.head,lx,ly-(e.hb||0)))return .9;
       if(ph<4&&inB(FBOX.can,lx,ly))return .6;
       if(ph<3&&inB(FBOX.claw,lx,ly))return .6;
       return 0},
-    touch(e,px_,py){const lx=px_-e.x,ly=py-e.y,ph=fPh(e),m=shk(12),n=shk(6);
+    touch(e,px_,py){const lx=(px_-e.x)/FS,ly=(py-e.y-FOY)/FS,ph=fPh(e),m=shk(12)/FS,n=shk(6)/FS;
       if(inB([-34,-38,46,36],lx,ly,m,n))return true;if(inB(FBOX.head,lx,ly-(e.hb||0),m,n))return true;
       if(ph<4&&inB([-96,-30,-30,-4],lx,ly,m,n))return true;if(ph<3&&inB([-84,14,-40,40],lx,ly,m,n))return true;return false},
     draw(c,e,f){
       const t=e.t||0,ph=fPh(e),X=Math.round(e.x),Y=Math.round(e.y),hb=e.hb||0,ab=Math.round(Math.sin(t*1.5+1)*1.5);
       const dp=(pp,dx,dy)=>c.drawImage(f?pp.w:pp.c,X+pp.ox+(dx||0),Y+pp.oy+(dy||0));
       const p=fPos(e);
+      c.save();c.translate(X,Y+FOY);c.scale(FS,FS);c.translate(-X,-Y);
       // Ra's disc, spinning faster during the spiral
       if(!f&&(e.tel&&e.tel.k==='sp'||e.spir>0)&&((t*12)|0)&1){c.fillStyle=pat(YL);c.fillRect(X+30-58,Y-44-58,116,116)}
       dp(ph>=5?FU.discX[((t*3)|0)&1]:FU.disc[((t*(e.spir>0?14:3))|0)&3]);
       // the worm tail coiling off to the right
       for(let k=8;k>=0;k--){const s=FU.tail[k],x=X+38+k*8,y=Y+30+k*6+Math.sin(t*1.6-k*.6)*(3+k*1.4);c.drawImage(f?s.w:s.c,(x-s.c.width/2+(k===8?4:0))|0,(y-s.c.height/2)|0)}
       // kraken tentacles
-      const tent=(i)=>{let x=X-8+i*16,y=Y+36+(i===1?4:0);for(let k=0;k<10;k++){const a=PI*.66+i*.08+Math.sin(t*1.8+i*1.3-k*.45)*.38;x+=Math.cos(a)*5.4;y+=Math.sin(a)*5.4;if(y>BOT+4)break;const r=Math.max(2,Math.round(6.5-k*.5)),s=FU.tent[r];c.drawImage(f?s.w:s.c,(x-s.c.width/2)|0,(y-s.c.height/2)|0)}
+      const tent=(i)=>{let x=X-8+i*16,y=Y+36+(i===1?4:0);for(let k=0;k<10;k++){const a=PI*.66+i*.08+Math.sin(t*1.8+i*1.3-k*.45)*.38;x+=Math.cos(a)*5.4;y+=Math.sin(a)*5.4;if(Y+FOY+FS*(y-Y)>BOT+8)break;const r=Math.max(2,Math.round(6.5-k*.5)),s=FU.tent[r];c.drawImage(f?s.w:s.c,(x-s.c.width/2)|0,(y-s.c.height/2)|0)}
         if(!f&&e.tel&&e.tel.k==='cur'&&((t*16)|0)&1){c.fillStyle=pat(CY);c.fillRect((x-4)|0,(y-4)|0,9,9)}};
       tent(2);
       dp(ph>=5?FU.torsoX:FU.torso);
@@ -905,20 +915,22 @@ init(){
       dp(FU.neck,0,Math.round(hb/2));
       dp(FU.head[e.br?2:(e.mouth>0?1:0)],0,hb);
       dp(ph>=4?FU.canX:FU.can,0,ph>=4?0:-ab);
-      if(f)return;
-      // eye glow and telegraphs
-      if(((t*4)|0)&1){c.fillStyle=WH;c.fillRect(X-66,Y-58+hb,2,1)}
+      if(f){c.restore();return}
+      // eye glow
+      if(((t*4)|0)&1){c.fillStyle=WH;c.fillRect(X-88,Y-60+hb,3,2)}
+      c.restore();
+      // telegraphs (world coordinates)
       if(e.tel){const tl=e.tel,bl=((t*16)|0)&1;
-        if(tl.k==='ice'&&bl){c.fillStyle=pat(CY);c.fillRect(p.sx-16,p.sy-14,32,28)}
+        if(tl.k==='ice'&&bl){c.fillStyle=pat(CY);c.fillRect(p.sx-32,p.sy-28,64,56)}
         if(tl.k==='br'){c.fillStyle=bl?YL:OR;c.fillRect(p.mx-4,p.my-2,6,5);const y0=tl.low?174:26;for(let i=0;i<12;i++){const k=i/12,x=p.mx+(60-p.mx)*k,y=p.my+(y0-p.my)*k;if((i+((t*20)|0))&1)c.fillRect(x|0,y|0,2,1)}}
         if(tl.k==='cur'){for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-tl.gy)<26)continue;c.fillStyle=bl?CY:WH;c.fillRect((tl.x)|0,y,2,2)}c.fillStyle=bl?WH:CY;c.fillRect((tl.x-3)|0,(tl.gy-26)|0,8,1);c.fillRect((tl.x-3)|0,(tl.gy+26)|0,8,1)}}
       if(e.tel2){const bl=((t*16)|0)&1;for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-e.tel2.gy)<26)continue;c.fillStyle=bl?CY:WH;c.fillRect((e.tel2.x)|0,y,2,2)}}
-      if(e.fT>0||(e.dsp>0&&((t*10)|0)%4===0)){e.fT=Math.max(0,e.fT-1/60);if(((t*14)|0)&1){c.fillStyle=pat(MG);c.fillRect(X-20,Y-12,28,28)}}
-      if(ph>=4)for(let i=0;i<3;i++){c.fillStyle=Math.random()<.5?YL:WH;c.fillRect((X+rnd(-40,50))|0,(Y+rnd(-40,40))|0,1,1)}
-      if(ph>=6&&((t*8)|0)&1){c.fillStyle=pat(RD);c.fillRect(X-40,Y-44,92,86)}
+      if(e.fT>0||(e.dsp>0&&((t*10)|0)%4===0)){e.fT=Math.max(0,e.fT-1/60);if(((t*14)|0)&1){c.fillStyle=pat(MG);c.fillRect(p.sx-30,p.sy-28,60,60)}}
+      if(ph>=4)for(let i=0;i<5;i++){c.fillStyle=Math.random()<.5?YL:WH;c.fillRect((p.sx+rnd(-80,100))|0,(p.sy+rnd(-80,80))|0,1,2)}
+      if(ph>=6&&((t*8)|0)&1){c.fillStyle=pat(RD);c.fillRect(p.sx-76,p.sy-90,184,180)}
     },
-    onKill(e){const X=e.x,Y=e.y;for(let i=0;i<10;i++)boom(X+rnd(-90,60),Y+rnd(-60,60),16,i<5);
-      for(let i=0;i<30&&fxOk();i++)FX.push({x:X+rnd(-60,40),y:Y+rnd(-50,50),vx:rnd(-90,60),vy:rnd(-90,40),life:1.6,l0:1.6,c:[YL,OR,CY,MG,LL,LG][i%6],s:i%3?2:3});shake=1;G.flashT=.3}
+    onKill(e){const X=e.x-60,Y=e.y+40;for(let i=0;i<14;i++)boom(X+rnd(-160,120),Y+rnd(-110,110),16,i<7);
+      for(let i=0;i<40&&fxOk();i++)FX.push({x:X+rnd(-110,80),y:Y+rnd(-90,90),vx:rnd(-90,60),vy:rnd(-90,40),life:1.6,l0:1.6,c:[YL,OR,CY,MG,LL,LG][i%6],s:i%3?2:3});shake=1;G.flashT=.3}
   };
 
   /* ======================================================================
