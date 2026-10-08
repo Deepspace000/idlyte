@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.39</title>
+<title>Idlyte v1.40</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1251,7 +1251,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.39';
+const VERSION='1.40';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3303,19 +3303,28 @@ function arpCycle(k,minor0){
   const PM=.12,L=[];let minor=minor0;
   const add=(kind,iv,nm)=>{L.push({key:k,kind,minor,next:(k+iv)%12,nm});k=(k+iv)%12;minor=nm};
   const detour=()=>{
-    const opts=minor?['parallel','relative','augmented','augmented','tritone','mediant']:['parallel','relative','augmented','tritone'];
+    const opts=minor?['parallel','relative','augmented','augmented','tritone','mediant','chromatic','chromatic','shiftUp','shiftDown']:['parallel','relative','augmented','tritone','chromatic','shiftUp','shiftDown'];
     const kd=arpPick(opts);
     if(kd==='parallel')add(kd,0,!minor);
     else if(kd==='relative')add(kd,minor?3:9,!minor);
     else if(kd==='augmented')add(kd,arpPick([4,8]),minor);
     else if(kd==='tritone')add(kd,6,minor);
+    else if(kd==='chromatic')add(kd,arpPick([1,11]),Math.random()>PM);   // up or down a semitone, the dominant seventh sliding chromatically
+    else if(kd==='shiftUp')add(kd,3,minor);      // parallel shift: the same progression and mode a minor third higher
+    else if(kd==='shiftDown')add(kd,8,minor);    // ... or a major third lower
     else add(kd,4,true);
   };
   const circle=(kind,iv,n)=>{for(let i=0;i<n;i++){if(i>0&&i<n-1&&L.length&&L[L.length-1].kind===kind&&Math.random()<.22)detour();else add(kind,iv,Math.random()>PM)}};
   circle('left',5,12);circle('right',7,12);
   let last=-1;
   for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,3,9,9,6,4])}while(iv===last);last=iv;add(iv===4?'mediant':'dim7',iv,iv===4?true:Math.random()>PM)}
-  for(let i=0;i<6;i++){let iv;do{iv=arpPick([1,2])}while(iv===last&&i%2);last=iv;add('hard',iv,Math.random()>PM)}
+  for(let i=0;i<6;i++){
+    const t=arpPick(['hard','hard','chromatic','shiftUp','shiftDown']);
+    if(t==='hard'){let iv;do{iv=arpPick([1,2])}while(iv===last&&i%2);last=iv;add('hard',iv,Math.random()>PM)}
+    else if(t==='chromatic'){const iv=arpPick([1,11]);last=iv;add(t,iv,Math.random()>PM)}
+    else if(t==='shiftUp'){last=3;add(t,3,minor)}
+    else{last=8;add(t,8,minor)}
+  }
   ARP.leadMinor=minor;
   return L;
 }
@@ -3334,8 +3343,11 @@ function arpPrep(sec){
   const c=d=>arpChord(A,d,am),X=(o,t)=>({root:(A+o)%12,tones:t});
   /* bars 0 to 3: strong chords to establish the key. bars 4 to 7: a colourful exploration with borrowed and altered chords. then strong chords again, then two bars that lead to the next key */
   const STRONG=am?[[0,3,4,0],[0,5,3,4],[0,3,6,4],[0,2,3,4]]:[[0,3,4,0],[0,5,3,4],[0,1,4,0],[0,3,1,4]];
-  const sa=arpPick(STRONG);let sb;do{sb=arpPick(STRONG)}while(sb===sa);
-  sec.prog=sa.map(d=>c(d));sec.prog2=sb.map(d=>c(d));
+  // after a parallel shift the new key repeats the same chord pattern, just transposed
+  const pv0=ARP.plan[ARP.pi-1],inh=(pv0&&(pv0.kind==='shiftUp'||pv0.kind==='shiftDown')&&pv0.minor===am)?pv0:null;
+  const saI=inh?inh.saI:Math.floor(Math.random()*STRONG.length);let sbI;if(inh)sbI=inh.sbI;else{do{sbI=Math.floor(Math.random()*STRONG.length)}while(sbI===saI)}
+  sec.saI=saI;sec.sbI=sbI;
+  sec.prog=STRONG[saI].map(d=>c(d));sec.prog2=STRONG[sbI].map(d=>c(d));
   const EXP=am?[
     ()=>[c(0),X(0,[0,4,7,10]),c(3),X(7,[0,4,8,10])],              // i, I7 (secondary dominant of iv), iv, augmented V
     ()=>[c(0),X(1,[0,4,7,11]),X(7,[0,4,6,10]),c(0)],              // i, Neapolitan bII, whole-tone V7b5, i
@@ -3349,7 +3361,8 @@ function arpPrep(sec){
     ()=>[c(0),X(8,[0,4,7,11]),X(3,[0,4,7,11]),X(7,[0,4,6,10])],   // I, bVI, bIII (parallel minor), whole-tone V7b5
     ()=>[c(5),X(2,[0,4,7,10]),c(4),X(7,[0,4,8,10])]               // vi, V7/V, V7, augmented V
   ];
-  sec.explore=arpPick(EXP)();
+  sec.expI=inh?inh.expI:Math.floor(Math.random()*EXP.length);
+  sec.explore=EXP[sec.expI]();
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.bars=12+Math.floor(Math.random()*3);   // 12 to 14 bars, about 28 to 32 seconds, in each key
   sec.octl=[];for(let b=0;b<Math.ceil(sec.bars/4);b++){let oc=ARP.octs[ARP.oi++%ARP.octs.length];if(b===0&&sec.last===oc)oc=1+(oc%4);sec.octl.push(oc)}   // the arpeggio size changes every four bars
@@ -3365,6 +3378,9 @@ function arpPrep(sec){
     case 'augmented':sec.tail=[c(3),X(7,[0,4,8,10])];sec.how='aug V (major third)';break;   // the augmented triad is the V+ of keys a major third apart, so it can land on any of them
     case 'tritone':sec.tail=[c(3),X(7,[0,4,6,10])];sec.how='whole-tone V (tritone)';break;  // its root is the bII7 of the key a tritone away
     case 'mediant':sec.tail=[c(3),c(4)];sec.how='mediant';break;                           // V7 of A is the relative major of the new minor key
+    case 'chromatic':sec.tail=[c(4),nextV];sec.how='chromatic slide';break;                 // V7 of A slides a semitone to V7 of B
+    case 'shiftUp':sec.tail=[c(3),c(4)];sec.how='shift up a minor third';break;
+    case 'shiftDown':sec.tail=[c(3),c(4)];sec.how='shift down a major third';break;
     case 'dim7':sec.tail=[c(4),{root:(B+11)%12,tones:[0,3,6,9]}];sec.how='dim7';break;
     default:sec.tail=[c(3),c(4)];sec.how='lift';
   }
