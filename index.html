@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.75</title>
+<title>Idlyte v1.76</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -680,7 +680,8 @@ function newRun(){
 G=null;newRun(false);
 function loopScale(){return 1+G.loop*.45}
 /* ordinary enemies are tougher from the Asteroid Belt on (x1.25), the Ice Moon (x1.6) and from the Lava World on (x2). Bosses and mini bosses keep loopScale */
-function enemyScale(){const p=G.planet||0;return loopScale()*(p>=3?2:p===2?1.6:p===1?1.25:1)}
+const ENEMY_MUL=[1,1.25,1.6,2,3,3.6,4.2,4.8,5.4,6];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
+function enemyScale(){return loopScale()*ENEMY_MUL[Math.min(ENEMY_MUL.length-1,G.planet||0)]}
 
 /* ===== salvage drops and option drones ===== */
 function lootDrop(e){
@@ -1281,7 +1282,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.75';
+const VERSION='1.76';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
