@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.53</title>
+<title>Idlyte v1.54</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.53';
+const VERSION='1.54';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3283,6 +3283,22 @@ function musInit(){
   const nb=AC.createBuffer(1,AC.sampleRate*.1,AC.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;mus.noise=nb;
   mus.next=AC.currentTime+.2;setInterval(musTick,100);
 }
+/* iPad and iPhone only start sound from a real touch, and mute Web Audio when the silent switch is on.
+   So on every touch/click: ask for the playback audio session, start (or resume) the context inside the gesture, play a silent buffer,
+   and keep a silent looping <audio> element going, which makes iOS treat the page as media that may play out loud. */
+function audioUnlock(){
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  try{musInit()}catch(e){}
+  if(AC&&AC.state!=='running'){try{const p=AC.resume();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+  if(AC){try{const b=AC.createBuffer(1,1,22050),sr=AC.createBufferSource();sr.buffer=b;sr.connect(AC.destination);sr.start(0)}catch(e){}}
+  if(!window.__silentAudio){
+    try{const a=document.createElement('audio');a.setAttribute('playsinline','');a.setAttribute('webkit-playsinline','');a.loop=true;a.preload='auto';
+      a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+      const p=a.play();if(p&&p.catch)p.catch(()=>{window.__silentAudio=null});window.__silentAudio=a}catch(e){}
+  }else if(window.__silentAudio.paused){try{window.__silentAudio.play().catch(()=>{})}catch(e){}}
+}
+['touchstart','touchend','pointerdown','click','keydown'].forEach(ev=>document.addEventListener(ev,audioUnlock,{passive:true,capture:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running'){try{AC.resume()}catch(e){}}});
 function musVol(v){if(AC&&mus.gain)mus.gain.gain.setTargetAtTime((mus.on)?v*.55*(mus.vol||1):0,AC.currentTime,.4)}
 const MCH=[[48,52,55,59,62],[45,48,52,55,59],[50,53,57,60,64],[43,47,53,57,64]],PENT=[64,67,69,72,74,76,79];
 const MUSTR=-5;   /* the whole music is tuned down a fourth */
