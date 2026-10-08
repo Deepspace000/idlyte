@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.57</title>
+<title>Idlyte v1.58</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1255,7 +1255,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.57';
+const VERSION='1.58';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4368,6 +4368,22 @@ requestAnimationFrame(frame);
    With the game open twice (a home-screen icon plus a browser tab, or an old tab) two stale copies overwrote each other, so one slot kept flipping
    between different gold and planet counts. Now only the visible tab, and only while playing, writes; a tab that comes back adopts a newer save. */
 setInterval(()=>{if(MODE==='hub'||MODE==='game'||MODE==='loot'||MODE==='arcade')save()},5000);
+/* auto-update: browsers (iPad Safari especially) keep an old copy of the page. Look at the live page; if its version is newer, reload it once. */
+async function checkForUpdate(cur,force){
+  try{
+    if(!/^https?:$/.test(location.protocol))return 'noproto';
+    const r=await fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'});const t=await r.text();
+    const m=t.match(/const VERSION='([0-9.]+)'/);if(!m)return 'nover';
+    const a=m[1].split('.').map(Number),b=(cur||VERSION).split('.').map(Number);
+    if(!(a[0]>b[0]||(a[0]===b[0]&&a[1]>b[1])))return 'current';
+    const k='idlyte_reload_'+m[1];if(!force&&sessionStorage.getItem(k))return 'already';
+    if(!force)sessionStorage.setItem(k,'1');
+    if(MODE==='title'||(MODE==='hub'&&!HUB.screen)){if(CURSLOT)save(true);if(!force)location.replace(location.pathname+'?v='+m[1]);return 'reloading '+m[1]}
+    toast('NEW VERSION '+m[1]+' IS READY. GO BACK TO THE TITLE SCREEN TO UPDATE');return 'later '+m[1];
+  }catch(e){return 'err'}
+}
+setTimeout(()=>checkForUpdate(),1500);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkForUpdate()});
 function adoptNewer(){
   if(!CURSLOT||MODE!=='hub')return;
   const o=readSlot(CURSLOT);
