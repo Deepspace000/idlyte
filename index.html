@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.72</title>
+<title>Idlyte v1.73</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1277,7 +1277,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.72';
+const VERSION='1.73';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2003,10 +2003,10 @@ function screenDef(id){
   const buy=(price,fn)=>()=>{if(SAVE.coins<price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=price;fn();save()};
   if(id==='salvage'){
     title='SALVAGE SHOP';let tot=0,n=0;
-    for(const it of ITEMS){const c=SAVE.inv[it.id]||0;if(c){tot+=c*it.v;n+=c;
-      rows.push({n:it.n+'  X'+c,d:'WE PAY '+it.v+' GOLD EACH',r:'+'+c*it.v,ok:true,icon:it.c,fn:()=>{SAVE.coins+=c*it.v;SAVE.earned+=c*it.v;SAVE.sold+=c*it.v;SAVE.inv[it.id]=0;toast('SOLD FOR '+c*it.v+' GOLD');save()}})}}
+    for(const it of ITEMS){const c=SAVE.inv[it.id]||0;if(c){tot+=Math.round(c*it.v);n+=c;
+      rows.push({n:it.n+'  X'+c,d:'WE PAY '+(Math.round(it.v*10)/10)+' GOLD EACH',r:'+'+Math.round(c*it.v),ok:true,icon:it.c,fn:()=>{SAVE.coins+=Math.round(c*it.v);SAVE.earned+=Math.round(c*it.v);SAVE.sold+=Math.round(c*it.v);SAVE.inv[it.id]=0;toast('SOLD FOR '+Math.round(c*it.v)+' GOLD');save()}})}}
     if(n)rows.push({ic:'bag',n:'SELL EVERYTHING',d:n+' ITEMS',r:'+'+tot,ok:true,fn:()=>{SAVE.coins+=tot;SAVE.earned+=tot;SAVE.sold+=tot;SAVE.inv={};toast('SOLD FOR '+tot+' GOLD');save()}});
-    info.push('WE BUY ANYTHING YOU FOUND OUT THERE.');
+    info.push('WE BUY ANYTHING YOU FOUND OUT THERE.');if(SAVE.built&&SAVE.built.cargo)info.push({t:'CARGO BAY BONUS: +5% FOR QUALITY STORAGE',c:'#9ad284'});
     info.push(n?'YOUR HOLD: '+n+' ITEMS WORTH '+tot+' GOLD':'YOUR HOLD IS EMPTY. FLY A MISSION TO FIND SALVAGE.');
   }else if(id==='bank'){
     title='STATION BANK';const np=nextPayout();
@@ -2591,7 +2591,8 @@ const CROPS=[
  {id:'melon',n:'MELON',k:'FRUIT',seed:30,grow:5,food:5,col:'#9ad284',lv:'#2c5a2c'}];
 function gardenGrow(c){return Math.max(1,c.grow-(SAVE.garden.lamp|0))}
 function gardenPlots(){return 4+2*(SAVE.garden.extra|0)}
-function labApply(){const m=1+.1*((SAVE.lab&&SAVE.lab.scan)|0);for(const it of ITEMS){if(it.v0===undefined)it.v0=it.v;it.v=Math.round(it.v0*m)}}
+function labApply(){const m=(1+.1*((SAVE.lab&&SAVE.lab.scan)|0))*(SAVE.built&&SAVE.built.cargo?1.05:1);   // a built cargo bay stores salvage well: +5% when selling
+  for(const it of ITEMS){if(it.v0===undefined)it.v0=it.v;it.v=Math.round(it.v0*m*100)/100}}
 function relaxAt(msg,days,refDays,fit){
   if(fit&&!(SAVE.fed>0)){toast('YOU ARE TOO HUNGRY. EAT SOMETHING FIRST.');return}
   advanceDays(days);if(fit)addFit(fit);SAVE.refresh=Math.max(SAVE.refresh||0,refDays);HUB.fade=.8;toast(msg+'  REFRESHED FOR '+SAVE.refresh+' DAYS');save();
@@ -3009,13 +3010,13 @@ function extraScreen(id,rows,info){
   const st=baseStats(),cr=SAVE.crew,sh=SHIPS[SAVE.ship],G_='#9ad284',Y_='#b8c76f';
   const L=(t,c)=>info.push({t,c:c||'#bbbbbb'});
   if(id==='inv'){
-    let tot=0,n=0;for(const it of ITEMS){const c=SAVE.inv[it.id]||0;tot+=c*it.v;n+=c}
+    let tot=0,n=0;for(const it of ITEMS){const c=SAVE.inv[it.id]||0;tot+=Math.round(c*it.v);n+=c}
     L('WALLET '+SAVE.coins+'   BANK '+SAVE.bank+'   SHARES '+shareValue(),Y_);
     L('SALVAGE '+n+' ITEMS WORTH '+tot+'   NET WORTH '+(SAVE.coins+SAVE.bank+shareValue()+tot),Y_);
     L(shopById('salvage').open()?'SELL SALVAGE AT THE SALVAGE SHOP.':'SALVAGE IS KEPT HERE UNTIL THE SALVAGE SHOP OPENS AT '+UNLOCK_GOLD.salvage+' GOLD.','#70a4b2');
     L('');L('SALVAGE IN YOUR HOLD','#fff');
     if(!n)L('  NOTHING. FLY A MISSION TO FIND SOME.');
-    for(const it of ITEMS){const c=SAVE.inv[it.id]||0;if(c)L('  '+it.n+'  X'+c+'  = '+c*it.v+' GOLD')}
+    for(const it of ITEMS){const c=SAVE.inv[it.id]||0;if(c)L('  '+it.n+'  X'+c+'  = '+Math.round(c*it.v)+' GOLD')}
     L('');L('SHARES OWNED','#fff');
     let any=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];if(s.own){any=1;L('  '+c.n+'  X'+s.own+'  PRICE '+s.p.toFixed(1))}}
     if(!any)L('  NONE');
@@ -3317,8 +3318,8 @@ function drawLoot(){
   text('SALVAGE FOUND',40,74,'#ffffff',1);
   let y=84,tot=0;const ids=ITEMS.filter(it=>LOOT.items[it.id]);
   if(!ids.length)text('NOTHING THIS TIME',48,y,'#6c6c6c',1);
-  ids.forEach(it=>{const c=LOOT.items[it.id];tot+=c*it.v;
-    ctx.drawImage(SPR.crate[ITEMS.indexOf(it)],40,y-1);text(it.n,52,y,'#ffffff',1);text('X'+c,160,y,'#bbbbbb',1);textR(c*it.v+' GOLD',280,y,'#b8c76f',1);y+=10});
+  ids.forEach(it=>{const c=LOOT.items[it.id];tot+=Math.round(c*it.v);
+    ctx.drawImage(SPR.crate[ITEMS.indexOf(it)],40,y-1);text(it.n,52,y,'#ffffff',1);text('X'+c,160,y,'#bbbbbb',1);textR(Math.round(c*it.v)+' GOLD',280,y,'#b8c76f',1);y+=10});
   ctx.fillStyle='#352879';ctx.fillRect(40,142,240,1);
   text('SALVAGE VALUE',40,147,'#bbbbbb',1);textR(tot+' GOLD',280,147,'#b8c76f',1);
   text(shopById('salvage').open()?'SELL SALVAGE AT THE SALVAGE SHOP ON THE STATION':'KEPT IN YOUR CARGO. THE SALVAGE SHOP OPENS AT '+UNLOCK_GOLD.salvage+' GOLD',40,156,'#70a4b2',1);
