@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.84</title>
+<title>Idlyte v1.85</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1287,7 +1287,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.84';
+const VERSION='1.85';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1368,7 +1368,7 @@ function dayTick(){
     SAVE.monthsPaid++;
   }
 }
-function bankPct(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+n)}
+function bankPct(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+.6*n)}
 function bankRate(){return bankPct()/30.4}
 function shareValue(){let t=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];t+=s.own*s.p}return t}
 function shareAccrue(days){   // dividends only grow while flying a mission, like the bank
