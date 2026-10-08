@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.87</title>
+<title>Idlyte v1.88</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -176,11 +176,11 @@ const SHIP_ROWS=[
 "......k.kP3wwwwwwwwwwwwwwwwwOOOOw33k....."
 ];
 /*SHIPDEF*/const SHIP_DEF={
- 8:{scheme:'blue',acc:'cyan',rows:[".........................................", ".........................................", "........kkk..............................", "........kddk.............................", "........kggdk....kkkkk...................", "........kgggdkkkkdddddkkkk...............", "........kggggddddgggggddddkkk............", "........klllggggggggggggggdddk...........", "........kkkkkk4444444444444ggdkkk........", "..............kllllllllllllllggggk.......", "..............kllLLLLLllllllllggggkkk....", "..............kL333333333333333lllgggk...", "........kkkkkkLLLLLLLLLLLLLLIIIIIIIIlgk..", "...EC...klllllwwwwwwwwwwwwwwMMMMMMMMLLlk.", ".AEECCD.kwwwwwwwwwwwwwwwwwwwOOOOOOOOwwwk."]},
- 9:{scheme:'gold',acc:'orange',rows:[".........................................", ".........................................", "...............kkkkkkkkk.................", "..............kdddddddddk................", ".......kkkkkkkdgggggggggdkkk.............", ".............k44444444444444k............", ".............kggggggggggggggdkk..........", ".......kkkkkkglllllllllllggggddk.........", ".......kkkkkkl55555555555555555dkk.......", ".............klLLLLLLLLLlllllllgggk......", ".............kLLLLLLLLLLLLLLllllgggkk....", ".......kkkkkkLLLLL444444444IIIIIIIIIgk...", ".......kgggggLwwwwwwwwwwwLLIIIIIIIIIlgk..", "...EC..kLLLLLwwwwwwwwwwwwwwMMMMMMMMMLLlk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwwk."]},
- 10:{scheme:'ice',acc:'magenta',rows:[".........................................", ".........................................", "................kkkkkkkkkk...............", "..............kkddddddddddkk.............", ".............k33333333333333kkk..........", "...........kkdggggggggggggggdddkk........", "..........kdkkkkkkkkkkkkkkkkkkkddk.......", "..........kk...................kgdk......", ".........kggkkkkkkkkkkkkkkkkkkkgggdk.....", "........kgllggggggggggggggggggglllggk....", "........kgllggOggOggOggOggOggOglOllggk...", ".......kllLLlllllllllllllllllllLLLlllgk..", ".......kLLLLLLLLLLLLLLLLLLLLLIIIIIIIIIk..", "...EC..kLwwwwwwwwwwwwwwwwwwwwMMMMMMMMMLk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwwwOOOOOOOOOwk."]},
- 11:{scheme:'lava',acc:'orange',rows:[".........................................", ".........................................", ".........................................", ".........................................", ".........kkkkkkk.........................", ".......kkdddddddkkk......................", ".......kdg555555555kkkkkk................", "...EC..kgggggggggggddddddkkkk............", ".AEECCDkglllllllgggggggggddddkkk.........", ".......klllllllllllllllllgggggggk........", ".......kkkkkkkkkkl333333333333333kk......", ".................kLLLLLLLllllllllggk.....", ".................kLLLLLLLLLLLLLLLllgkk...", "...EC..kkkkkkkkkkwwwwwwwwwwMMMMMMMMMllk..", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwk.."]},
- 12:{scheme:'shadow',acc:'white',rows:[".........................................", ".k.......................................", ".kk......................................", ".kdkk....................................", ".kgddkk..................................", ".kgggddk.................................", ".kgggggdkk...............................", ".klllgggddkk.............................", ".klllllgggddk............................", ".kLlllllllgggkkkk........................", ".kkkkkkkklllgggggkkkkk...................", ".........k333333333333kkkkkk.............", ".........kLLLLLLLlllllggggggkkkkkkk......", "...EC....kwwwLLLLLLLLLLLLLLLllMMMMMkkkk..", ".AEECCD..kwwwwwwwwwwwwwwwwwwwwOOOOOOOOk.."]}};/*ENDSHIPDEF*/
+ 8:{scheme:'blue',acc:'cyan',rows:[".........................................", ".........................................", "........kkkk.............................", "........kdkk.............................", "........kggdk....kkkkk...................", "........kgggdkkkkdddddkkkk...............", "........kggggddddgdgggddddkkk............", "........klllggdgggdggkdkgkdddk...........", "........kkkkkkd444d44kdk4kdggdkkk........", "..............kllldllkdklkdllgdggk.......", "..............kllLdLLLdllldllldgggkkk....", "..............kL33d333d333d333dlllgggk...", "........kkkkkkdLMLdLMLdLMLdLMIdIIIIIlgk..", "...EC...kllllldwwwdwwwdwwwdwMMdMMMMMLLlk.", ".AEECCD.kwwwwwwwwwwwwwwwwwwwOOOOOOOOwwwk."]},
+ 9:{scheme:'gold',acc:'orange',rows:[".........................................", "........w.w.w............................", "........5.5.5..kkkkkkkkk.................", "........k.k.k.kdd3dd3dd3k................", ".......kkkkkkk44444444444kkk.............", ".............kMgggMgggMggdMdk............", ".......5555kkgggkgggkgggkgggdkk..........", ".......kdddddgllklllklllkggggddk.........", ".......kkkkkkl55k555k555k555555dkk.......", ".............klLkLLLkLLLkllllllgggk......", ".......5555kkLLLkLLLkLLLkLLLllllgggkk....", ".......kgggggLMLkLM4k4M4k4MIIIMIIIIIgk...", ".......klllllLwwkwwwkwwwkLLIIIIIIIIIlgk..", "...EC..kLLLLLw3333333333333333MMMMMMLLlk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwwk."]},
+ 10:{scheme:'ice',acc:'magenta',rows:[".........................................", ".....................M...................", "................kkkkkkkkkk...............", ".........lk...kkddddkddddkkk.............", ".........lk..k3k3333k3333k33kkk..........", ".........lkkkdgkggggkggggkggddkkk........", "..........kdkkkkkkkkkkkkkkkkkkkddk.......", "..........kk...................kOdk......", ".........kggkkkkkkkkkkkkkkkkkkkgggdk.....", "........kgllggggggggggggggggggglllggk....", "........kgllggOggOggOggOggOggOglOllggk...", ".......kllLLlllllllllllllllllllLLLlllgk..", ".......kLLLLLL444444444444444IIIIIIIIIk..", "...EC..kLwwwwwwwwwwwwwwwwwwwwMMMMMMMMMLk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwwwOOOOOOOOOwk."]},
+ 11:{scheme:'lava',acc:'orange',rows:[".........................................", ".........................................", ".........................................", ".........................................", ".........kkkkkkk.........................", ".......kkdddddddkkk......................", ".......kdd555555552kkkkkk................", "...EC..kkkkkkkkkgggddddddkkkk............", ".AEECCDkddllllllggMggMggMddMdkkk.........", ".......kkkkkkkkklllllllllgggggggk........", ".......kkkkkkkkkkl333333333333333kk......", ".................kLL3L3L3l3l3l3l3ggk.....", ".................kLLLLLLLLLLLLLLLllgkk...", "...EC..kkkkkkkkkkwwwwwwwwwwMMMMMMMMMllk..", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwk.."]},
+ 12:{scheme:'shadow',acc:'white',rows:[".........................................", ".D.......................................", ".Dw......................................", ".kdww....................................", ".kgddww..................................", ".kgdgddw.................................", ".kgdggddww...............................", ".kldlgdgddww.............................", ".kldlldggdddw............................", ".kLdlldlldgggwwkk........................", ".kLdLLdll3ll3gg3gkkkkk...................", ".kLLLLLLLL333333333333kkkkkk.............", ".kkkkkkkkLMLLLMLLlMlllMgggMgkkkkkkk......", "...EC....kwwwLLLLLLLLLLLLLLLllMMMMMkkkk..", ".AEECCD..kwwwwwwwwwwwwwwwwwwwwOOOOOOOOk.."]}};/*ENDSHIPDEF*/
 const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHIP_HW=SHIP_W>>1;
 /* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
 let SHIPSC=1;   /* how much bigger than the standard ship the one being flown is (corvettes and bigger) */
@@ -499,11 +499,11 @@ const SHIPS=[
  {n:'FRIGATE',price:750000,hp:8,sp:.85,fr:1.3,dm:1.6,opt:2,sc:1.8,yard:1,d:'ESCORT SHIP. +8 HULL, 2 DRONES, MUCH BIGGER'},
  {n:'CRUISER',price:2000000,hp:14,sp:.75,fr:1.4,dm:2,opt:3,sc:2.2,yard:1,d:'HEAVY SHIP. +14 HULL, 3 DRONES, HUGE'},
  {n:'DREADNOUGHT',price:6000000,hp:22,sp:.65,fr:1.5,dm:2.6,opt:3,sc:2.6,yard:1,d:'THE BIGGEST. +22 HULL, 3 DRONES, FILLS THE SKY'},
- {n:'LEVIATHAN',price:25000000,hp:30,sp:.7,fr:1.6,dm:3.2,opt:3,sc:2.6,yard:1,d:'DEEP SEA GIANT. +30 HULL, HEAVY GUNS'},
- {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:2.6,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
- {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:2.6,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
- {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:2.6,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
- {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:2.6,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'}];
+ {n:'LEVIATHAN',price:25000000,hp:30,sp:.7,fr:1.6,dm:3.2,opt:3,sc:2.75,yard:1,d:'DEEP SEA GIANT. +30 HULL, HEAVY GUNS'},
+ {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:2.9,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
+ {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:3.05,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
+ {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:3.2,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
+ {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.4,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'}];
 const MISSIONS=[
  {n:'STANDARD',diff:0,gold:1,price:0},
  {n:'HARD CONTRACT',diff:1,gold:1.6,price:3000},
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.87';
+const VERSION='1.88';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
