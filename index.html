@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.48</title>
+<title>Idlyte v1.49</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.48';
+const VERSION='1.49';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3779,7 +3779,7 @@ cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
   if(MODE==='game'){const [gx,gy]=toCanvas(e);if(G&&G.slot&&slotTap(gx,gy))return;const bi=uiAt(gx,gy);if(bi>=0){UI.list[bi].fn();return}if(dragMode()){if(e.pointerType!=='touch')startDrag(e);return}tapAt(gx,gy);return}
   musInit();
-  const [x,y]=toCanvas(e),i=uiAt(x,y);
+  const [x,y]=toCanvas(e),i=(MOUSE.x=x,MOUSE.y=y,uiAt(x,y));
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
   if(MODE==='hub'&&HUB.screen){if(x<14||x>306||y<18||y>190)HUB.screen=null;return}
   if(MODE==='arcade'){arcadeFire(toCanvas(e)[0]);return}
@@ -4374,8 +4374,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.48"></script>
-<script src="studio.js?v=1.48"></script>
+<script src="weapons.js?v=1.49"></script>
+<script src="studio.js?v=1.49"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>

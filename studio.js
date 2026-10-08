@@ -241,8 +241,10 @@ function studioKey(k){
   if(k==='arrowleft'||k==='a'){STU.cur=Math.max(0,STU.cur-1);studioAudition();return true}
   if(k==='arrowdown'||k==='s'){STU.cur=Math.min(n-1,STU.cur+8);studioAudition();return true}
   if(k==='arrowup'||k==='w'){STU.cur=Math.max(0,STU.cur-8);studioAudition();return true}
-  if(k==='pagedown'){STU.cur=Math.min(n-1,STU.cur+48);return true}
-  if(k==='pageup'){STU.cur=Math.max(0,STU.cur-48);return true}
+  if(k==='pagedown'){STU.cur=Math.min(n-1,STU.cur+48);studioAudition();return true}
+  if(k==='pageup'){STU.cur=Math.max(0,STU.cur-48);studioAudition();return true}
+  if(k==='home'){STU.cur=0;studioAudition();return true}
+  if(k==='end'){STU.cur=n-1;studioAudition();return true}
   if(k===']'){stuType(1);return true}
   if(k==='['){stuType(-1);return true}
   if(k==='.'){stuRoot(1);return true}
@@ -297,7 +299,9 @@ function drawStudio(){
   const rows=studioRows(),vis=7,cur=STU.bars[STU.cur];
   let curRow=0;rows.forEach((r,i)=>{if(STU.cur>=r.from&&STU.cur<r.to)curRow=i});
   const follow=STU.playBar>=0?STU.playBar:STU.cur;let fr=0;rows.forEach((r,i)=>{if(follow>=r.from&&follow<r.to)fr=i});
-  if(fr<STU.scroll)STU.scroll=fr;if(fr>=STU.scroll+vis)STU.scroll=fr-vis+1;STU.scroll=Math.max(0,Math.min(Math.max(0,rows.length-vis),STU.scroll));
+  // the view follows the selected bar (or the playing bar) only when that changes, so the list can be scrolled freely with the wheel, the arrows or the scroll bar
+  if(STU.lastFollow!==follow){STU.lastFollow=follow;if(fr<STU.scroll)STU.scroll=fr;if(fr>=STU.scroll+vis)STU.scroll=fr-vis+1}
+  STU.scroll=Math.max(0,Math.min(Math.max(0,rows.length-vis),STU.scroll));
   ctx.fillStyle='#0d0b1e';ctx.fillRect(16,62,288,vis*9+3);
   for(let k=0;k<vis;k++){
     const r=rows[STU.scroll+k];if(!r)break;const y=64+k*9,sec=STU.plan[r.si];
@@ -317,8 +321,17 @@ function drawStudio(){
     }
   }
   // scroll hints and mouse wheel
-  if(STU.scroll>0)text('^',298,64,'#ffffff',1);if(STU.scroll+vis<rows.length)text('v',298,64+vis*9-6,'#ffffff',1);
   STU.maxScroll=Math.max(0,rows.length-vis);
+  {// a scroll bar: arrows at both ends, a draggable-by-click track, a thumb that shows where you are in the whole piece
+    const tx=300,ty0=73,th=44,maxS=STU.maxScroll;
+    uiBtn(tx-1,62,7,10,()=>{STU.scroll=Math.max(0,STU.scroll-2)},()=>{ctx.fillStyle=STU.scroll>0?'#6c5eb5':'#222';ctx.fillRect(tx,62,5,10);text('^',tx+1,65,STU.scroll>0?'#fff':'#555',1)});
+    uiBtn(tx-1,118,7,10,()=>{STU.scroll=Math.min(maxS,STU.scroll+2)},()=>{ctx.fillStyle=STU.scroll<maxS?'#6c5eb5':'#222';ctx.fillRect(tx,118,5,10);text('v',tx+1,121,STU.scroll<maxS?'#fff':'#555',1)});
+    if(maxS>0){
+      uiBtn(tx-2,ty0,9,th,()=>{const my=(MOUSE&&MOUSE.y!=null)?MOUSE.y:ty0;STU.scroll=Math.max(0,Math.min(maxS,Math.round((my-ty0)/th*maxS)))},()=>{
+        ctx.fillStyle='#1c1840';ctx.fillRect(tx,ty0,5,th);
+        const tl=Math.max(6,Math.round(th*vis/rows.length)),tp=Math.round((th-tl)*STU.scroll/maxS);ctx.fillStyle='#9a8fe0';ctx.fillRect(tx,ty0+tp,5,tl)});
+    }
+  }
   // the chord changer
   ctx.fillStyle='#14102a';ctx.fillRect(16,129,288,60);ctx.fillStyle='#352879';ctx.fillRect(16,129,288,1);
   if(cur){
