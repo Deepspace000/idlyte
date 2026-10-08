@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.40</title>
+<title>Idlyte v1.41</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1251,7 +1251,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.40';
+const VERSION='1.41';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3435,7 +3435,7 @@ function arpBar(t){
   if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how);
   if(ARP.log.length>40)ARP.log.shift();
   // one subdivision per bar
-  ARP.sub=(ARP.sub===16&&Math.random()<.1)?8:16;   // sixteenths nearly all the time, an eighth-note bar only now and then
+  {const r=Math.random();ARP.sub=ARP.sub===16?(r<.09?8:r<.2?12:16):16}   // sixteenths most of the time; now and then a bar of eighths (8) or of eighth-note triplets (12, three to a beat)
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
   const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
@@ -3448,6 +3448,8 @@ function arpBar(t){
   // note length drifts slowly between legato (notes run into each other) and now and then staccato
   ARP.legP=(ARP.legP||0)+.157;const leg=Math.max(.55,Math.min(2.6,2.1+1.45*Math.sin(ARP.legP)));
   const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
+  // the rhythm (sixteenths or eighths), direction, size or inversion only ever changes on beat one of a bar, and the pattern then starts again from its first note on that beat
+  {const sig=n+'|'+dir+'|'+oc+'|'+inv;if(ARP.sig!==sig){ARP.sig=sig;ARP.ai=0}}
   for(let k=0;k<n;k++){
     const q=ARP.ai++,i=arpIdx(q,L,dir),acc=(k%(n/4))===0?1:.75;
     arpNote(t+k*step,note(i),step*leg,.05*acc);
