@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.60</title>
+<title>Idlyte v1.61</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1255,7 +1255,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.60';
+const VERSION='1.61';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1634,7 +1634,7 @@ let EXT=Array(NDECK).fill(null),SHX={};
 function inExt(d,x){return !!EXT[d]&&x>=EXT[d].l&&x<=EXT[d].r}
 function recomputeStation(){
   EXT=Array(NDECK).fill(null);SHX={};
-  for(const r of ROOMS)if(r.built||r.shop){const e=EXT[r.d]||(EXT[r.d]={l:r.x0,r:r.x1});e.l=Math.min(e.l,r.x0);e.r=Math.max(e.r,r.x1)}
+  for(const r of ROOMS)if(r.built){const e=EXT[r.d]||(EXT[r.d]={l:r.x0,r:r.x1});e.l=Math.min(e.l,r.x0);e.r=Math.max(e.r,r.x1)}
   for(let pass=0;pass<2;pass++)for(let d=0;d<NDECK;d++){const e=EXT[d];if(!e)continue;
     {const q0=SHX[24]||(SHX[24]={lo:d,hi:d});q0.lo=Math.min(q0.lo,d);q0.hi=Math.max(q0.hi,d);e.l=Math.min(e.l,15)}
     let best=null,bd=1e9;for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;if(dist<bd){bd=dist;best=sx}}
@@ -1935,10 +1935,8 @@ function mkCover(r,locked){
   if(r.shop){drawIconTo(g,r.shop,w>>1,34)}
   R_(g,(w>>1)-1,12,2,RH-13,'#1c1840');R_(g,(w>>1)-4,RH-26,2,7,'#bbbbbb');R_(g,(w>>1)+2,RH-26,2,7,'#bbbbbb');
   for(let x=2;x<w-2;x+=4){R_(g,x,RH-6,2,3,(x>>2)&1?'#b8c76f':'#000000');R_(g,x+2,RH-6,2,3,(x>>2)&1?'#000000':'#b8c76f')}R_(g,2,12,1,RH-19,'#6c5eb5');R_(g,5,15,(w>>1)-9,3,'#000');R_(g,6,16,(w>>1)-11,1,'#70a4b2');R_(g,(w>>1)+4,15,(w>>1)-9,3,'#000');R_(g,(w>>1)+5,16,(w>>1)-11,1,'#70a4b2');R_(g,(w>>1)-6,13,1,RH-26,'#1c1840');R_(g,(w>>1)+5,13,1,RH-26,'#1c1840');R_(g,(w>>1)-8,38,3,5,'#bbbbbb');R_(g,(w>>1)+5,38,3,5,'#bbbbbb');for(const [rx,ry] of [[2,13],[w-4,13],[2,RH-9],[w-4,RH-9]])R_(g,rx,ry,2,2,'#959595');
-  R_(g,w-7,15,4,4,locked===true?'#ff7777':locked==='sale'?'#b8c76f':'#9ad284');
-  if(locked===true){R_(g,(w>>1)-20,RH-18,40,11,'#000');textTo(g,'CLOSED',(w>>1)-11,RH-15,'#ff7777',1)}
-  else if(locked==='sale'){R_(g,(w>>1)-23,RH-18,46,11,'#000');textTo(g,'FOR SALE',(w>>1)-16,RH-15,'#b8c76f',1)}
-  if(locked===true){const id=g.getImageData(0,0,w,RH),d=id.data;for(let q=0;q<d.length;q+=4){if(d[q+3]<10)continue;const l=Math.round((d[q]*.3+d[q+1]*.59+d[q+2]*.11)*.62);if(d[q]>200&&d[q+1]<140&&d[q+2]<140){continue}d[q]=d[q+1]=d[q+2]=l}g.putImageData(id,0,0)}
+  R_(g,w-7,15,4,4,locked?'#ff7777':'#9ad284');
+  if(locked){R_(g,(w>>1)-20,RH-18,40,11,'#000');textTo(g,'CLOSED',(w>>1)-11,RH-15,'#ff7777',1)}
   return c;
 }
 function drawIconTo(g,id,cx,cy){const old=ctx;drawIcon(g,id,cx,cy)}
@@ -2556,7 +2554,7 @@ const THINGS=[];
 (function(){
   const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({get d(){return r.d},get x(){return r.x0+(typeof dx==='function'?dx(r):dx)},room:r,label,fn})};
   const scr=s=>()=>{HUB.screen=s;UI.focus=0};
-  for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>!r.sh.open()?'LOCKED: '+r.sh.need:!r.built?'FOR SALE: '+SHOP_PRICE[r.shop]+' GOLD (BUILD MENU)':'ENTER '+r.n+' SHOP',()=>{if(!r.sh.open())toast('NOT YET OPEN. '+r.sh.need);else if(!r.built)toast(r.n+' SHOP IS FOR SALE: '+SHOP_PRICE[r.shop]+' GOLD. BUY IT IN THE BUILD MENU.');else{HUB.screen=r.shop;UI.focus=0}});
+  for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>r.sh.open()?'ENTER '+r.n+' SHOP':'CLOSED: '+r.sh.need,()=>{if(r.sh.open()){HUB.screen=r.shop;UI.focus=0}else toast('CLOSED. '+r.sh.need)});
   add('hangar',44,()=>'BOARD YOUR SHIP',scr('hangar'));
   add('hangar',129,()=>'USE THE STAR MAP',scr('starmap'));
   add('engine',52,()=>'USE THE ENGINE CONSOLE',scr('engine'));
@@ -2587,7 +2585,7 @@ function curDeck(){let b=0,bd=1e9;for(let d=0;d<NDECK;d++){const q=Math.abs(HUB.
 function nearThing(){
   const sp=HUB.sp,d=deckOf(sp.y);if(d<0)return null;
   let best=null,bd=11;
-  for(const t of THINGS)if(t.d===d&&(t.room.built||t.room.shop)){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
+  for(const t of THINGS)if(t.d===d&&t.room.built){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
   if(!best)for(const p of PETS)if(EXT[p.d]&&p.d===d&&Math.abs(sp.x-p.x)<10){const df=PETDEF[p.id];return {d,x:p.x,label:()=>'PET THE '+df.n+' (LV '+petLevel(p.id)+')',fn:()=>patPet(p.id)}}
   if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT (LV '+petLevel('cat')+')',fn:()=>patPet('cat')};
   return best;
@@ -2677,7 +2675,7 @@ function planPath(tx,ty,pend){
 }
 function hubHover(wx,wy){
   for(let d=0;d<NDECK;d++)if(EXT[d]&&wy>=yTop(d)&&wy<yTop(d)+DECK_H){
-    let hit=null;for(const t of THINGS)if(t.d===d&&(t.room.built||t.room.shop)&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8)hit=t;
+    let hit=null;for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8)hit=t;
     if(hit)return{x:hit.x,d,label:typeof hit.label==='function'?hit.label():hit.label};
     if(CAT.d===d&&Math.abs(wx-CAT.x)<10)return{x:CAT.x,d,label:'PET THE CAT'};
     return null;
@@ -2701,7 +2699,7 @@ function hubClick(x,y){
   for(let d=0;d<NDECK;d++)if(wy>=yTop(d)&&wy<yTop(d)+DECK_H){
     if(!EXT[d])return;
     let pend=null,tx=Math.max(14,Math.min(WWID-14,wx));
-    for(const t of THINGS)if(t.d===d&&(t.room.built||t.room.shop)&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
+    for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
     if(!pend&&CAT.d===d&&Math.abs(wx-CAT.x)<10){pend={fn:()=>patPet('cat')};tx=CAT.x}
     planPath(tx,FYd(d)-4,pend);return;
   }
@@ -2836,7 +2834,7 @@ function canTrade(r){
   return c.v;
 }
 function drawTradeBadge(r,x,y){
-  if(r.sh&&(!r.sh.open()||!r.built))return;
+  if(r.sh&&!r.sh.open())return;
   const v=canTrade(r);if(v===null)return;
   const bx=x+r.w-13,by=y+14;
   ctx.fillStyle='#000';ctx.fillRect(bx-1,by-1,11,11);
@@ -2846,9 +2844,9 @@ function drawTradeBadge(r,x,y){
     ctx.fillStyle='#ff7777';for(let k=2;k<7;k++){ctx.fillRect(bx+k,by+k,1,1);ctx.fillRect(bx+8-k,by+k,1,1)}}
 }
 function drawRoom(r,t){
-  const x=r.x0,y=yTop(r.d),locked=r.sh?(!r.sh.open()?true:(!r.built?'sale':false)):false,rc=ROOMC[r.id]||(ROOMC[r.id]={});
+  const x=r.x0,y=yTop(r.d),locked=r.sh&&!r.sh.open(),rc=ROOMC[r.id]||(ROOMC[r.id]={});
   if(r.p>0&&!rc.inner)rc.inner=mkInterior(r);
-  if(rc.locked!==locked||!rc.cover){rc.cover=mkCover(r,locked);rc.locked=locked}
+  if(rc.locked!==locked||!rc.cover){rc.cover=mkCover(r,!!locked);rc.locked=locked}
   if(r.p>0){
     ctx.drawImage(rc.inner,x,y);dynRoom(r,x,y,t);
     for(const n of NPCS){if(n.room!==r)continue;if(n.crew&&!SAVE.crew[n.crew])continue;if(n.extra&&!(SAVE.extras&&SAVE.extras[n.extra]))continue;
@@ -2891,7 +2889,7 @@ function drawHub(){
   if(EXT[0]){for(const ex of [EXT[0].l+14,EXT[0].r-22]){R_(ctx,ex,FYd(0)+6,8,5,'#444');R_(ctx,ex+1,FYd(0)+9,6,3,'#222');const fl=3+Math.floor(Math.random()*5);R_(ctx,ex+1,FYd(0)+12,6,fl,'#68372b');R_(ctx,ex+2,FYd(0)+12,4,(fl>>1)+1,'#9a6759');R_(ctx,ex+3,FYd(0)+12,2,(fl>>2)+1,'#ffffff')}}
   if(!HULL)HULL=buildHull();ctx.drawImage(HULL,0,0);
   for(let d=0;d<NDECK;d++)if(EXT[d]){R_(ctx,EXT[d].l-9,yTop(d)+3,2,2,Math.floor(t*2+d)%2?'#ff7777':'#444444');R_(ctx,EXT[d].r+7,yTop(d)+3,2,2,Math.floor(t*2+d+1)%2?'#9ad284':'#444444')}
-  for(const r of ROOMS)if(r.built||r.shop)drawRoom(r,t);
+  for(const r of ROOMS)if(r.built)drawRoom(r,t);
   if(HUB.grow){const r=roomById(HUB.grow.id),a=HUB.grow.t/1.8;ctx.fillStyle=pat('#ffffff');if(a>.3)ctx.fillRect(r.x0,yTop(r.d),r.w,RH);for(let i=0;i<8;i++)R_(ctx,r.x0+((i*37+HUB.t*60)%r.w),yTop(r.d)+((i*23+HUB.t*40)%RH),2,2,'#ffffff')}
   // cat
   if(EXT[CAT.d]){const cf=Math.floor(t*6)%2;ctx.save();ctx.translate(CAT.x|0,0);if(CAT.vx<0){ctx.scale(-1,1)}ctx.drawImage(SPR.cat[CAT.vx?cf:0],-5,(FYd(CAT.d)-8)|0);ctx.restore()}
@@ -3025,11 +3023,11 @@ function extraScreen(id,rows,info){
     L('AREA TOKENS: '+(SAVE.tokens||0)+'    NEXT AREA COSTS '+cost+' TOKENS    GOLD '+SAVE.coins,(SAVE.tokens||0)>=cost?G_:Y_);
     L('SHOPS BUILT '+shopsBuilt+' OF '+shopsAll+'   AREAS BUILT '+areasBuilt+' OF '+areas.length+' (2 FREE)');
     L('SHOPS ARE UNLOCKED BY PROGRESS, THEN BOUGHT WITH GOLD. AREAS COST TOKENS.');
-    for(const r of buy.slice(0,2)){const p=SHOP_PRICE[r.shop];rows.push({n:'BUY THE '+r.n+' SHOP',d:'UNLOCKED. DECK '+(r.d+1)+'. PRICE '+p+' GOLD',r:String(p),ok:SAVE.coins>=p,fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.built[r.id]=1;syncBuilt();HUB.grow={id:r.id,t:1.8};toast('THE STATION GROWS: '+r.n+' SHOP');save()}})}
-    const room=Math.max(0,4-rows.length);
-    for(const o of opts.slice(0,room)){const r=o.room;rows.push({n:'BUILD '+r.n,d:o.dir+'  (DECK '+(r.d+1)+')',r:String(cost),ok:(SAVE.tokens||0)>=cost,fn:()=>{buildRoom(r)}})}
-    if(!rows.length)L(buy.length||opts.length?'':'NOTHING TO BUY OR BUILD RIGHT NOW.',G_);
-    {const cr=roomById('crew');if(cr&&!cr.built&&!cr.sh.open())rows.push({n:'CREW AGENCY  (LATER)',d:'HIRE NAVIGATORS, GUNNERS AND ENGINEERS. NOT YET OPEN.',r:'LATER',ok:false,msg:'THE CREW AGENCY OPENS LATER: '+cr.sh.need})}
+    {const shopsLeft=ROOMS.filter(r=>r.shop&&!r.built);
+     for(const r of shopsLeft){const p=SHOP_PRICE[r.shop];
+       if(r.sh.open())rows.push({n:'BUY THE '+r.n+' SHOP',d:'UNLOCKED. DECK '+(r.d+1)+'. PRICE '+p+' GOLD',r:String(p),ok:SAVE.coins>=p,fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.built[r.id]=1;syncBuilt();HUB.grow={id:r.id,t:1.8};toast('THE STATION GROWS: '+r.n+' SHOP');save()}});
+       else rows.push({n:r.n+' SHOP  (LATER)',d:r.sh.need+'.  PRICE '+p+' GOLD',r:'LATER',ok:false,msg:'NOT YET AVAILABLE: '+r.sh.need})}}
+    for(const o of opts.slice(0,3)){const r=o.room;rows.push({n:'BUILD '+r.n,d:o.dir+'  (DECK '+(r.d+1)+')',r:String(cost),ok:(SAVE.tokens||0)>=cost,fn:()=>{buildRoom(r)}})}
     if(ROOMS.filter(r=>r.built).length>2)rows.push({n:'MOVE AN AREA',d:'CHANGE WHERE A BUILT AREA SITS ON THE STATION',r:'',ok:true,fn:()=>{HUB.mvPage=0;HUB.screen='move';UI.focus=0}});
     rows.push({n:'EXTRAS: PETS, STAFF, TRAFFIC',d:'BUY A DOG, A PARROT, STAFF, SHUTTLES AND MORE',r:'',ok:true,fn:()=>{HUB.screen='extras';UI.focus=0}});
     return 'STATION';
