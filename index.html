@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.92</title>
+<title>Idlyte v1.93</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.92';
+const VERSION='1.93';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2104,8 +2104,8 @@ function screenDef(id){
     if(opens.length>1){const nx=opens[(opens.indexOf(SAVE.planet||0)+1)%opens.length];rows.push({n:'CHANGE DESTINATION',d:'NEXT: '+PLANETS[nx].n,ok:true,fn:()=>{setPlanet(nx);save()}})}
     const ml=maxLevel(SAVE.planet||0);if(ml>1)rows.push({n:'CHANGE LEVEL',d:'NEXT: LEVEL '+(((SAVE.level||1)%ml)+1)+'.  LEVELS CLEARED: '+(SAVE.prog[SAVE.planet||0]||0)+' OF 3',ok:true,fn:()=>{SAVE.level=((SAVE.level||1)%ml)+1;save()}});
     if(SAVE.missions.length>1){const nx=SAVE.missions[(SAVE.missions.indexOf(SAVE.mission)+1)%SAVE.missions.length];rows.push({n:'CHANGE CONTRACT',d:'NEXT: '+MISSIONS[nx].n,ok:true,fn:()=>{SAVE.mission=nx;save()}})}
-    {const ad=SHIPS.findIndex((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i));   // an advert for the next luxury ship
-     if(ad>=0){const q=SHIPS[ad];rows.push({ic:'ship',ix:ad,n:'FOR SALE: '+q.n,d:q.d,r:shortGold(q.price),ok:true,pw:[shipPowerRaw(),powerIf(SAVE,'ship',ad)],fn:()=>{HUB.screen='ships';UI.focus=0}})}}
+    SHIPS.forEach((q,ad)=>{if(q.price<2e7||SAVE.ships.includes(ad))return;   // adverts for the luxury ships
+      rows.push({ic:'ship',ix:ad,n:'FOR SALE: '+q.n,d:q.d,r:shortGold(q.price),ok:true,pw:[shipPowerRaw(),powerIf(SAVE,'ship',ad)],fn:()=>{HUB.screen='ships';UI.focus=0}})});
     rows.push({n:'DECORATE YOUR SHIP',d:'PAINT SHOP. COLOURS AND PATTERNS. CHEAP.',ok:true,fn:()=>{HUB.paintSel=Object.assign({},SAVE.paint);HUB.screen='paint';UI.focus=0}});
   }else{title=extraScreen(id,rows,info)}
   return {title,info,rows};
