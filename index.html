@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.42</title>
+<title>Idlyte v1.43</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1237,6 +1237,7 @@ function drawMissionMenu(){
     ['SOUND EFFECTS',mus.mute?'OFF':'ON',()=>setMute(!mus.mute)],
     ['PAD AND BASS',mus.pad?'ON':'OFF',()=>setPad(!mus.pad)],
     ['ARPEGGIO SOUND',ARPW[mus.wave|0].n,()=>setWave((mus.wave|0)+1)],
+    ['SYNTH MORPH',mus.morph!==false?'ON':'OFF',()=>setMorph(mus.morph===false)],
     ['VOLUME',['LOW','MEDIUM','HIGH'][SAVE.set.vol|0],()=>{SAVE.set.vol=((SAVE.set.vol|0)+1)%3;mus.vol=[.4,.7,1][SAVE.set.vol];save()}],
     ['LEAVE MISSION',G.leaveAt&&performance.now()-G.leaveAt<3000?'TAP AGAIN':'',()=>{if(G.leaveAt&&performance.now()-G.leaveAt<3000){G.leaveAt=0;leaveToTitle()}else G.leaveAt=performance.now()}],
     ['CLOSE MENU','',()=>{G.menuOpen=false}]];
@@ -1251,7 +1252,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.42';
+const VERSION='1.43';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2979,6 +2980,7 @@ function extraScreen(id,rows,info){
     SAVE.set=SAVE.set||{vol:1,scan:0};const S=SAVE.set,vn=['LOW','MEDIUM','HIGH'];
     rows.push({n:'MUSIC',d:'THE STATION MUSIC AND THE MISSION ARPEGGIOS. KEY: M',r:mus.on?'ON':'OFF',ok:true,ic:'note',fn:()=>setMusic(!mus.on)});
     rows.push({n:'ARPEGGIO SOUND',d:'THE VOICE OF THE MISSION SEQUENCER. EACH PRESS TRIES THE NEXT ONE',r:ARPW[mus.wave|0].n,ok:true,ic:'note',fn:()=>setWave((mus.wave|0)+1)});
+    rows.push({n:'SYNTH MORPH',d:'EVERY COUPLE OF MINUTES THE ARPEGGIO SOUND DRIFTS INTO ANOTHER SYNTH OVER A FEW SECONDS',r:mus.morph!==false?'ON':'OFF',ok:true,ic:'note',fn:()=>setMorph(mus.morph===false)});
     rows.push({n:'PAD AND BASS',d:'A SOFT PAD AND BASS UNDER THE MISSION ARPEGGIO. OFF MEANS THE SEQUENCER ALONE',r:mus.pad?'ON':'OFF',ok:true,ic:'note',fn:()=>setPad(!mus.pad)});
     rows.push({n:'SOUND EFFECTS',d:'LASERS, EXPLOSIONS AND THE POKIE MACHINE. KEY: N',r:mus.mute?'OFF':'ON',ok:true,ic:'speaker',fn:()=>setMute(!mus.mute)});
     rows.push({n:'VOLUME',d:'HOW LOUD THE MUSIC AND SOUNDS ARE',r:vn[S.vol],ok:true,fn:()=>{S.vol=(S.vol+1)%3;mus.vol=[.4,.7,1][S.vol];save()}});
@@ -3266,7 +3268,8 @@ function musInit(){
 }
 function musVol(v){if(AC&&mus.gain)mus.gain.gain.setTargetAtTime((mus.on)?v*.55*(mus.vol||1):0,AC.currentTime,.4)}
 const MCH=[[48,52,55,59,62],[45,48,52,55,59],[50,53,57,60,64],[43,47,53,57,64]],PENT=[64,67,69,72,74,76,79];
-const mtof=m=>440*Math.pow(2,(m-69)/12);
+const MUSTR=-5;   /* the whole music is tuned down a fourth */
+const mtof=m=>440*Math.pow(2,(m-69+MUSTR)/12);
 function tone(t,m,dur,type,vol,att,rel){
   const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=mtof(m);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setTargetAtTime(0,t+dur,rel/3);
@@ -3278,9 +3281,12 @@ function tone(t,m,dur,type,vol,att,rel){
    It walks the circle of fifths to the left (a full revolution), then to the right (a full revolution), then makes distant
    modulations through pivot chords, then hard modulations with no preparation, then starts again with the arpeggio sizes shuffled.
    Arpeggios run over 1 to 4 octaves in sixteenths, sixteenth triplets or eighths. Used only while the player is on a mission. ===== */
-const ARP={ready:false,out:null,bpm:104,barT:0,bar:0,pi:0,plan:[],cyc:0,octs:[],oi:0,ai:0,sub:16,startKey:0,log:[]};
+let ARP={live:true,ready:false,out:null,bpm:104,barT:0,bar:0,bn:0,pi:0,plan:[],cyc:0,octs:[],oi:0,ai:0,sub:16,startKey:0,log:[],seed:1,rs:1};
+/* every piece comes from a seed: the same seed always gives the same piece (mulberry32) */
+function arpR(){let a=ARP.rs=(ARP.rs+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}
+function arpNewState(seed){return {ready:true,out:null,bpm:104,barT:0,bar:0,bn:0,pi:0,plan:[],cyc:0,octs:[],oi:0,ai:0,sub:16,startKey:0,log:[],seed:seed,rs:seed|0}}
 const MAJ=[0,2,4,5,7,9,11],MIN=[0,2,3,5,7,8,10],KEYN=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
-const arpPick=a=>a[Math.floor(Math.random()*a.length)];
+const arpPick=a=>a[Math.floor(arpR()*a.length)];
 const arpScale=m=>m?MIN:MAJ;
 /* chord on a scale degree built in thirds. in a minor key the fifth degree is the major dominant seventh (harmonic minor) so cadences pull home */
 function arpChord(key,deg,minor){
@@ -3303,25 +3309,25 @@ function arpCycle(k,minor0){
   const PM=.12,L=[];let minor=minor0;
   const add=(kind,iv,nm)=>{L.push({key:k,kind,minor,next:(k+iv)%12,nm});k=(k+iv)%12;minor=nm};
   const detour=()=>{
-    const opts=minor?['parallel','relative','augmented','augmented','tritone','mediant','chromatic','chromatic','shiftUp','shiftDown']:['parallel','relative','augmented','tritone','chromatic','shiftUp','shiftDown'];
+    const opts=minor?['parallel','relative','augmented','augmented','tritone','mediant','chromatic','chromatic','chromatic','shiftUp','shiftDown']:['parallel','relative','augmented','tritone','chromatic','shiftUp','shiftDown'];
     const kd=arpPick(opts);
     if(kd==='parallel')add(kd,0,!minor);
     else if(kd==='relative')add(kd,minor?3:9,!minor);
     else if(kd==='augmented')add(kd,arpPick([4,8]),minor);
     else if(kd==='tritone')add(kd,6,minor);
-    else if(kd==='chromatic')add(kd,arpPick([1,11]),Math.random()>PM);   // up or down a semitone, the dominant seventh sliding chromatically
+    else if(kd==='chromatic')add(kd,arpPick([1,11]),arpR()>PM);   // up or down a semitone, the dominant seventh sliding chromatically
     else if(kd==='shiftUp')add(kd,3,minor);      // parallel shift: the same progression and mode a minor third higher
     else if(kd==='shiftDown')add(kd,8,minor);    // ... or a major third lower
     else add(kd,4,true);
   };
-  const circle=(kind,iv,n)=>{for(let i=0;i<n;i++){if(i>0&&i<n-1&&L.length&&L[L.length-1].kind===kind&&Math.random()<.22)detour();else add(kind,iv,Math.random()>PM)}};
+  const circle=(kind,iv,n)=>{for(let i=0;i<n;i++){if(i>0&&i<n-1&&L.length&&L[L.length-1].kind===kind&&arpR()<.22)detour();else add(kind,iv,arpR()>PM)}};
   circle('left',5,12);circle('right',7,12);
   let last=-1;
-  for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,3,9,9,6,4])}while(iv===last);last=iv;add(iv===4?'mediant':'dim7',iv,iv===4?true:Math.random()>PM)}
+  for(let i=0;i<6;i++){let iv;do{iv=arpPick([3,3,9,9,6,4])}while(iv===last);last=iv;add(iv===4?'mediant':'dim7',iv,iv===4?true:arpR()>PM)}
   for(let i=0;i<6;i++){
     const t=arpPick(['hard','hard','chromatic','shiftUp','shiftDown']);
-    if(t==='hard'){let iv;do{iv=arpPick([1,2])}while(iv===last&&i%2);last=iv;add('hard',iv,Math.random()>PM)}
-    else if(t==='chromatic'){const iv=arpPick([1,11]);last=iv;add(t,iv,Math.random()>PM)}
+    if(t==='hard'){let iv;do{iv=arpPick([1,2])}while(iv===last&&i%2);last=iv;add('hard',iv,arpR()>PM)}
+    else if(t==='chromatic'){const iv=arpPick([1,11]);last=iv;add(t,iv,arpR()>PM)}
     else if(t==='shiftUp'){last=3;add(t,3,minor)}
     else{last=8;add(t,8,minor)}
   }
@@ -3331,58 +3337,85 @@ function arpCycle(k,minor0){
 function arpNewCycle(){
   ARP.cyc++;
   const a=[];for(let i=0;i<9;i++)a.push(1+(i%4));
-  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(arpR()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
   ARP.octs=a;ARP.oi=0;
-  ARP.dirs=['up','down','mix'];for(let i=2;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ARP.dirs[i],ARP.dirs[j]]=[ARP.dirs[j],ARP.dirs[i]]}   // ascend for a while, descend for a while, then mix it up, in a new order each cycle
+  ARP.dirs=['up','down','mix'];for(let i=2;i>0;i--){const j=Math.floor(arpR()*(i+1));[ARP.dirs[i],ARP.dirs[j]]=[ARP.dirs[j],ARP.dirs[i]]}   // ascend for a while, descend for a while, then mix it up, in a new order each cycle
   const start=ARP.plan.length?ARP.plan[ARP.plan.length-1].next:9;   // the first cycle starts on A minor
   ARP.plan=arpCycle(start,ARP.plan.length?ARP.leadMinor:true);ARP.pi=0;ARP.bar=0;
 }
 /* extended chords: add 9ths, 11ths and 13ths to a chord according to what kind of seventh chord it is. the extra tones are folded into the octave
    (a 9th is a 2nd, a 13th a 6th) so the arpeggio still climbs in order. chord.base keeps the plain chord for the pad */
 function arpExtend(ch){
-  const t=ch.tones;if(t.length!==4||t.length>=7)return ch;
-  const has=(a,b,c,d)=>t[1]===a&&t[2]===b&&t[3]===c;
+  const t=ch.tones;if(t.length!==4)return ch;
+  const has=(a,b,c)=>t[1]===a&&t[2]===b&&t[3]===c;
   let opts=null;
-  if(has(4,7,11))opts=[[2],[2],[2,9],[6],[2,6],[9]];                          // maj9, maj13 (no 11th), maj7#11, maj9#11, 6/9 colours
-  else if(has(3,7,10))opts=[[2],[2],[5],[2,5],[2,9]];                         // m9, m11, m9/11, m13
-  else if(has(4,7,10))opts=[[2],[2,9],[1,8],[3,8],[6],[2,6]];                // dominant 9, 13, 7b9b13, 7#9b13, 7#11, 9#11
-  else if(has(4,8,10))opts=[[2],[6]];                                         // augmented dominant with a 9th, or the whole-tone #11
-  else if(has(4,6,10))opts=[[2]];                                             // V7b5 with a 9th
-  else if(has(3,6,10))opts=[[5]];                                             // half-diminished with an 11th
+  if(has(4,7,11))opts=[[2],[2,9],[2,9],[6],[2,6],[2,6,9],[9]];                  // maj9, maj13, maj7#11, maj9#11, maj13#11, 6/9
+  else if(has(3,7,10))opts=[[2],[5],[2,5],[2,9],[2,5],[2,5,9]];                 // m9, m11, m9/11, m13, m13/11
+  else if(has(4,7,10))opts=[[2],[2,9],[9],[1,8],[3,8],[3],[3,9],[6],[6,9],[2,6],[1,6,8]];   // 9, 13, 7b9b13, 7#9b13, 7#9, 13#9, 7#11, 13#11, alt
+  else if(has(4,8,10))opts=[[2],[6],[3]];                                         // augmented dominant: 9, #11, #9
+  else if(has(4,6,10))opts=[[2],[3],[8]];                                         // V7b5: 9, #9, b13
+  else if(has(3,6,10))opts=[[5],[2,5]];                                           // half-diminished with an 11th
+  else if(has(3,7,11))opts=[[2],[5]];                                             // minor-major seventh with a 9th or 11th
   if(!opts)return ch;
   const add=arpPick(opts),all=Array.from(new Set(t.concat(add))).sort((a,b)=>a-b);
-  return {root:ch.root,tones:all,base:t};
+  return Object.assign({},ch,{tones:all,base:t});
+}
+/* negative harmony: mirror a chord around the axis between the key's root and fifth. G7 in C becomes a Fm6 (Dm7b5), the major tonic becomes the minor tonic */
+const ARPQ=[[0,4,7,11],[0,3,7,10],[0,4,7,10],[0,3,6,10],[0,3,6,9],[0,3,7,9],[0,4,7,9],[0,3,7,11],[0,4,8,10],[0,4,7],[0,3,7]];
+function arpNegChord(ch,key){
+  const mir=pc=>(((2*key+7-pc)%12)+12)%12,pcs=(ch.base||ch.tones).map(x=>(ch.root+x)%12).map(mir);
+  for(const q of ARPQ){if(q.length!==pcs.length)continue;for(const r of pcs){const rel=pcs.map(x=>(x-r+12)%12).sort((a,b)=>a-b);if(rel.join()===q.join()){const o={root:r,tones:q.slice()};if(ch.ped!==undefined)o.ped=mir(ch.ped);if(ch.bass!==undefined)o.bass=mir(ch.bass);return o}}}
+  const r=Math.min(...pcs),rel=pcs.map(x=>(x-r+12)%12).sort((a,b)=>a-b);return {root:r,tones:rel};
 }
 function arpPrep(sec){
   if(sec.ready)return;sec.ready=true;
   const A=sec.key,B=sec.next,am=sec.minor,bm=sec.nm,nextV=arpChord(B,4,bm),iv=((B-A)%12+12)%12;
   const c=d=>arpChord(A,d,am),X=(o,t)=>({root:(A+o)%12,tones:t});
+  const Bs=(ch,off)=>{ch.bass=(A+off)%12;return ch};   // slash chord: a bass note other than the root
+  const Pd=(ch,off)=>{ch.ped=(A+off)%12;return ch};    // pedal point: this bass note is held while the chords change above it
   /* bars 0 to 3: strong chords to establish the key. bars 4 to 7: a colourful exploration with borrowed and altered chords. then strong chords again, then two bars that lead to the next key */
   const STRONG=am?[[0,3,4,0],[0,5,3,4],[0,3,6,4],[0,2,3,4]]:[[0,3,4,0],[0,5,3,4],[0,1,4,0],[0,3,1,4]];
   // after a parallel shift the new key repeats the same chord pattern, just transposed
   const pv0=ARP.plan[ARP.pi-1],inh=(pv0&&(pv0.kind==='shiftUp'||pv0.kind==='shiftDown')&&pv0.minor===am)?pv0:null;
-  const saI=inh?inh.saI:Math.floor(Math.random()*STRONG.length);let sbI;if(inh)sbI=inh.sbI;else{do{sbI=Math.floor(Math.random()*STRONG.length)}while(sbI===saI)}
+  const saI=inh?inh.saI:Math.floor(arpR()*STRONG.length);let sbI;if(inh)sbI=inh.sbI;else{do{sbI=Math.floor(arpR()*STRONG.length)}while(sbI===saI)}
   sec.saI=saI;sec.sbI=sbI;
   sec.prog=STRONG[saI].map(d=>c(d));sec.prog2=STRONG[sbI].map(d=>c(d));
+  const m7=[0,3,7,10],d7=[0,4,7,10];
   const EXP=am?[
-    ()=>[c(0),X(0,[0,4,7,10]),c(3),X(7,[0,4,8,10])],              // i, I7 (secondary dominant of iv), iv, augmented V
+    ()=>[c(0),X(0,d7),c(3),X(7,[0,4,8,10])],                      // i, I7 (secondary dominant of iv), iv, augmented V
     ()=>[c(0),X(1,[0,4,7,11]),X(7,[0,4,6,10]),c(0)],              // i, Neapolitan bII, whole-tone V7b5, i
     ()=>[c(5),c(6),c(2),X(7,[0,4,8,10])],                         // VI, VII, III (the relative major), augmented V
-    ()=>[X(0,[0,4,7,11]),X(5,[0,4,7,10]),c(0),c(4)],              // parallel major I, IV7 (dorian), i, V7
-    ()=>[X(10,[0,4,7,10]),c(2),X(3,[0,4,7,10]),c(5)],             // V7/III, III, V7/VI, VI
-    ()=>[c(3),X(1,[0,4,7,10]),c(0),X(7,[0,4,8,10])]               // iv, tritone substitute bII7, i, augmented V
+    ()=>[X(0,[0,4,7,11]),X(5,d7),c(0),c(4)],                      // parallel major I, IV7 (dorian), i, V7
+    ()=>[X(10,d7),c(2),X(3,d7),c(5)],                             // V7/III, III, V7/VI, VI
+    ()=>[c(3),X(1,d7),c(0),X(7,[0,4,8,10])],                      // iv, tritone substitute bII7, i, augmented V
+    ()=>[c(0),X(1,m7),X(2,m7),c(4)],                              // chromatic planing up: i7, bii7, ii7, V7
+    ()=>[X(5,m7),X(4,m7),X(3,m7),c(4)],                           // chromatic planing down: iv7, iii7, biii7, V7
+    ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,[0,1,4,7,10]),7)],   // V prolonged over a dominant pedal: V7, i6/4, V7sus4, V7b9
+    ()=>[X(0,[0,3,7]),Bs(X(0,m7),10),Bs(X(5,[0,3,7]),8),X(7,d7)],               // lament bass i, i7/b7, iv6, V7 (A G F E)
+    ()=>[X(0,[0,3,7]),Bs(X(2,[0,3,6,10]),0),Bs(X(7,d7),11),X(0,[0,3,7]),Bs(X(8,[0,4,7]),0),Bs(X(2,d7),0),Bs(X(7,[0,4,7]),11),Bs(X(0,[0,3,7,11]),11)],   // in the manner of Bach, prelude no. 1: i, iio7/i, V7/3, i, VI/i, V7/V over tonic, V/3, i(maj7)/7
+    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d))                            // the Baroque circle of fifths sequence: i iv VII III VI iio V i
   ]:[
-    ()=>[c(0),X(0,[0,4,7,10]),c(3),X(7,[0,4,8,10])],              // I, I7, IV, augmented V
-    ()=>[c(0),X(5,[0,3,7,10]),X(10,[0,4,7,11]),c(0)],             // I, borrowed minor iv, bVII (mixolydian), I
+    ()=>[c(0),X(0,d7),c(3),X(7,[0,4,8,10])],                      // I, I7, IV, augmented V
+    ()=>[c(0),X(5,m7),X(10,[0,4,7,11]),c(0)],                     // I, borrowed minor iv, bVII (mixolydian), I
     ()=>[c(0),X(8,[0,4,7,11]),X(3,[0,4,7,11]),X(7,[0,4,6,10])],   // I, bVI, bIII (parallel minor), whole-tone V7b5
-    ()=>[c(5),X(2,[0,4,7,10]),c(4),X(7,[0,4,8,10])]               // vi, V7/V, V7, augmented V
+    ()=>[c(5),X(2,d7),c(4),X(7,[0,4,8,10])],                      // vi, V7/V, V7, augmented V
+    ()=>[c(0),X(1,[0,4,7,11]),X(2,[0,4,7,11]),c(4)],              // chromatic planing up: I, bIImaj7, IImaj7, V7
+    ()=>[X(4,m7),X(3,m7),X(2,m7),c(4)],                           // chromatic planing down: iii7, biii7, ii7, V7
+    ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,[0,1,4,7,10]),7)],   // V prolonged over a dominant pedal
+    ()=>[X(0,[0,4,7]),Bs(X(2,m7),0),Bs(X(7,d7),11),X(0,[0,4,7]),Bs(X(9,[0,3,7]),0),Bs(X(2,d7),0),Bs(X(7,[0,4,7]),11),Bs(X(0,[0,4,7,11]),11)],   // in the manner of Bach, prelude no. 1 in C: I, ii7/I, V7/3, I, vi/I, V7/V over tonic, V/3, Imaj7/7
+    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d))                            // the Baroque circle of fifths sequence: I IV viio iii vi ii V I
   ];
-  sec.expI=inh?inh.expI:Math.floor(Math.random()*EXP.length);
+  sec.expI=inh?inh.expI:Math.floor(arpR()*EXP.length);
   sec.explore=EXP[sec.expI]();
-  const ex=(a,p)=>a.map(x=>Math.random()<p?arpExtend(x):x);   // extended chords: more of them while exploring
-  sec.prog=ex(sec.prog,.3);sec.prog2=ex(sec.prog2,.3);sec.explore=ex(sec.explore,.7);
+  // a tiny bit of negative harmony: now and then a single chord is mirrored around the root-fifth axis
+  const neg=a=>a.map(x=>arpR()<.05?arpNegChord(x,A):x);
+  sec.prog=neg(sec.prog);sec.prog2=neg(sec.prog2);sec.explore=neg(sec.explore);
+  // prolong some dominants: the last two strong bars become V7sus4 then V7 over a dominant pedal
+  if(arpR()<.35){sec.prog2[2]=Pd(X(7,[0,5,7,10]),7);sec.prog2[3]=Pd(c(4),7)}
+  const ex=(a,p)=>a.map(x=>arpR()<p?arpExtend(x):x);   // extended chords: 9ths, 11ths, 13ths, #9s and more while exploring
+  sec.prog=ex(sec.prog,.45);sec.prog2=ex(sec.prog2,.45);sec.explore=ex(sec.explore,.8);
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
-  sec.bars=12+Math.floor(Math.random()*3);   // 12 to 14 bars, about 28 to 32 seconds, in each key
+  sec.bars=(sec.explore.length>4?16:12)+Math.floor(arpR()*3);   // 12 to 14 bars (16 to 18 with an 8-bar exploration), about 30 seconds, in each key
   sec.octl=[];for(let b=0;b<Math.ceil(sec.bars/4);b++){let oc=ARP.octs[ARP.oi++%ARP.octs.length];if(b===0&&sec.last===oc)oc=1+(oc%4);sec.octl.push(oc)}   // the arpeggio size changes every four bars
   sec.oct=sec.octl[0];
   const viaPivot=()=>{
@@ -3402,7 +3435,8 @@ function arpPrep(sec){
     case 'dim7':sec.tail=[c(4),{root:(B+11)%12,tones:[0,3,6,9]}];sec.how='dim7';break;
     default:sec.tail=[c(3),c(4)];sec.how='lift';
   }
-  sec.tail=ex(sec.tail,.4);
+  if(sec.tail[1]===nextV&&arpR()<.45)nextV.ped=nextV.root;   // a dominant pedal under the arrival chord
+  sec.tail=ex(sec.tail,.5);
 }
 function arpSetup(){
   if(ARP.ready||!AC||!mus.in)return;
@@ -3410,6 +3444,7 @@ function arpSetup(){
   const dl=AC.createDelay(2);dl.delayTime.value=60/ARP.bpm*.75;
   const fb=AC.createGain(),wet=AC.createGain();fb.gain.value=.36;wet.gain.value=.3;
   ARP.out.connect(mus.in);ARP.out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(mus.in);
+  ARP.seed=1+Math.floor(Math.random()*999998);ARP.rs=ARP.seed;ARP.bn=0;
   ARP.ready=true;arpNewCycle();
 }
 /* selectable arpeggio voices: [oscillator type, detune cents, level, frequency multiplier]; q and cutoff shape the filter */
@@ -3424,59 +3459,106 @@ const ARPW=[
  {n:'WARM',o:[['sawtooth',-5,.3,1],['sawtooth',5,.3,1],['sine',0,.6,1]],q:1.1,b:700,ob:900,lfo:300},
  {n:'REED',o:[['square',-4,.2,1],['square',4,.2,1],['sine',0,.45,1]],q:1.3,b:850,ob:1100,lfo:350},
  {n:'ORGAN',o:[['sine',0,.8,1],['sine',0,.4,2],['sine',0,.22,3],['sine',0,.1,4]],q:.5,b:3500,ob:0},
- {n:'BELL',o:[['sine',0,.8,1],['sine',0,.28,2.76],['sine',0,.14,5.4]],q:.5,b:4000,ob:0}];
-let PULSEW=null;   /* a 25 percent pulse wave, built once */
-function pulseWave(){if(PULSEW)return PULSEW;const N=48,re=new Float32Array(N),im=new Float32Array(N),d=.25;for(let n=1;n<N;n++){const a=2/(n*Math.PI)*Math.sin(n*Math.PI*d);re[n]=a*Math.cos(n*Math.PI*d);im[n]=a*Math.sin(n*Math.PI*d)}return PULSEW=AC.createPeriodicWave(re,im)}
-function arpNote(t,m,dur,vol,dest){
-  const W=ARPW[mus.wave|0]||ARPW[1],f=mtof(m),g=AC.createGain(),lp=AC.createBiquadFilter();
+ {n:'BELL',o:[['sine',0,.8,1],['sine',0,.28,2.76],['sine',0,.14,5.4]],q:.5,b:4000,ob:0},
+ /* synth emulations: oscillator stacks, a resonant filter and its envelope in the manner of each machine */
+ {n:'MOOG BASS',o:[['sawtooth',-4,.5,1],['square',3,.35,.5],['sawtooth',0,.3,.5]],q:5,b:420,ob:1700,fe:.12,lfo:60,att:.004,g:1.25},
+ {n:'PROPHET',o:[['sawtooth',-8,.35,1],['sawtooth',8,.35,1],['pulse',0,.3,1]],q:2.2,b:1200,ob:1300,fe:.25,lfo:500},
+ {n:'ANDROMEDA',o:[['sawtooth',-16,.22,1],['sawtooth',-7,.22,1],['sawtooth',0,.22,1],['sawtooth',7,.22,1],['sawtooth',16,.22,1]],q:1.4,b:1500,ob:2000,fe:.3,lfo:800},
+ {n:'FAIRLIGHT',o:[['fair',0,.7,1],['triangle',6,.25,2]],q:1.1,b:2400,ob:500,att:.02,lfo:300},
+ {n:'OMNISPHERE',o:[['triangle',-9,.45,1],['sine',9,.45,2],['sawtooth',0,.14,1],['sine',0,.22,3],['sine',-5,.2,.5]],q:.9,b:1700,ob:900,fe:.5,att:.045,lfo:1000,hold:.9},
+ {n:'OBERHEIM',o:[['sawtooth',-10,.4,1],['sawtooth',10,.4,1],['square',0,.12,1]],q:1.5,b:1500,ob:2300,fe:.28,lfo:400}];
+/* custom wave shapes, built once per audio context: a 25 percent pulse and a vocal-ish additive wave for the Fairlight voice */
+const WAVEC=new WeakMap();
+function customWave(X,key){
+  let m=WAVEC.get(X);if(!m){m=new Map();WAVEC.set(X,m)}
+  if(m.has(key))return m.get(key);
+  const N=48,re=new Float32Array(N),im=new Float32Array(N);
+  if(key==='pulse'){const d=.25;for(let n=1;n<N;n++){const a=2/(n*Math.PI)*Math.sin(n*Math.PI*d);re[n]=a*Math.cos(n*Math.PI*d);im[n]=a*Math.sin(n*Math.PI*d)}}
+  else{const am=[0,1,.12,.75,.1,.55,.08,.28,.06,.18,.05,.1,.03];for(let n=1;n<am.length;n++)im[n]=am[n]}
+  const w=X.createPeriodicWave(re,im);m.set(key,w);return w;
+}
+/* one arpeggio note. X is the audio context (the live one unless a piece is being rendered offline).
+   vc = {a,b,x}: voice a fades into voice b as x goes from 0 to 1 (the slow synth morph); without it the chosen voice plays */
+function arpVoiceNote(W,sc,t,m,dur,vol,dest,X){
+  const f=mtof(m),g=X.createGain(),lp=X.createBiquadFilter();
   lp.type='lowpass';lp.Q.value=W.q;
   const base=W.b+(W.lfo||0)*(.5+.5*Math.sin(t*.21));
-  lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+Math.min(.3,dur*1.5));
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:.72),dur*(W.n==='BELL'?.8:.16));   // hold, then release: a long dur is legato, a short one is staccato
-  for(const [ty,dt,gv,mu] of W.o){const o=AC.createOscillator(),og=AC.createGain();og.gain.value=gv*.7;if(ty==='pulse')o.setPeriodicWave(pulseWave());else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
+  lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+(W.fe||Math.min(.3,dur*1.5)));
+  const v=vol*(W.g||1)*sc,hold=W.hold||.72;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+(W.att||.006));g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:hold),dur*(W.n==='BELL'?.8:.16));   // hold, then release: a long dur is legato, a short one is staccato
+  for(const [ty,dt,gv,mu] of W.o){const o=X.createOscillator(),og=X.createGain();og.gain.value=gv*.7;if(ty==='pulse'||ty==='fair')o.setPeriodicWave(customWave(X,ty));else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
   lp.connect(g);g.connect(dest||ARP.out);
+}
+function arpNote(t,m,dur,vol,dest,X,vc){
+  X=X||AC;
+  if(vc&&vc.b>=0&&vc.x>0.001&&vc.x<0.999){
+    arpVoiceNote(ARPW[vc.a]||ARPW[1],Math.cos(vc.x*Math.PI/2),t,m,dur,vol,dest,X);
+    arpVoiceNote(ARPW[vc.b]||ARPW[1],Math.sin(vc.x*Math.PI/2),t,m,dur,vol,dest,X);
+  }else arpVoiceNote(ARPW[vc?(vc.b>=0&&vc.x>=.999?vc.b:vc.a):(mus.wave|0)]||ARPW[1],1,t,m,dur,vol,dest,X);
 }
 /* a short phrase so the voice can be heard from the menus */
 function arpPreview(){if(!AC||AC.state!=='running'||!mus.in)return;const t=AC.currentTime+.05;[60,64,67,72,67,64].forEach((m,i)=>arpNote(t+i*.13,m+7,.5,.07,mus.in))}
-function arpPad(t,m,dur,vol){
-  const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=mtof(m);
+function arpPad(t,m,dur,vol,dest,X){
+  X=X||AC;
+  const o=X.createOscillator(),g=X.createGain();o.type='triangle';o.frequency.value=mtof(m);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.5);g.gain.setTargetAtTime(0,t+dur,.35);
-  o.connect(g);g.connect(ARP.out);o.start(t);o.stop(t+dur+1.6);
+  o.connect(g);g.connect(dest||ARP.out);o.start(t);o.stop(t+dur+1.6);
 }
 function arpIdx(q,L,d){
   const pp=q%(2*(L-1)),ud=pp<L?pp:2*(L-1)-pp;
   if(d==='up')return q%L;if(d==='down')return L-1-(q%L);if(d==='updown')return ud;if(d==='downup')return L-1-ud;return (q*5)%L;
 }
+/* notes and pad tones go to the speakers, or into ARP.sink when a piece is being recorded for the studio */
+function ARPN(tag,t,m,d,v,vc){if(ARP.sink)ARP.sink.push({k:tag,t:t,m:m,d:d,v:v,vc:vc?{a:vc.a,b:vc.b,x:vc.x}:null});else arpNote(t,m,d,v,undefined,undefined,vc)}
+function ARPP(tag,t,m,d,v){if(ARP.sink)ARP.sink.push({k:tag,t:t,m:m,d:d,v:v,pad:1});else arpPad(t,m,d,v)}
 function arpBar(t){
   if(ARP.pi>=ARP.plan.length)arpNewCycle();
   const sec=ARP.plan[ARP.pi];arpPrep(sec);
-  const N=sec.bars,ch=ARP.bar>=N-2?sec.tail[ARP.bar-(N-2)]:ARP.bar<4?sec.prog[ARP.bar]:ARP.bar<8?sec.explore[ARP.bar-4]:sec.prog2[(ARP.bar-8)%4],beat=60/ARP.bpm,bar=beat*4;
+  const N=sec.bars,EL=sec.explore.length;
+  let ch=ARP.bar>=N-2?sec.tail[ARP.bar-(N-2)]:ARP.bar<4?sec.prog[ARP.bar]:ARP.bar<4+EL?sec.explore[ARP.bar-4]:sec.prog2[(ARP.bar-4-EL)%4];
+  if(ARP.edits&&ARP.edits[ARP.bn])ch=ARP.edits[ARP.bn];   // chords changed by hand in the music studio
+  const beat=60/ARP.bpm,bar=beat*4;
+  // every couple of minutes the synth sound drifts into another over three bars (about seven seconds)
+  if(ARP.vA===undefined){ARP.vA=ARP.startVoice!==undefined?ARP.startVoice:(mus.wave|0);ARP.vB=-1}
+  if(ARP.nextMorph===undefined)ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17);
+  if(mus.morph!==false&&ARP.vB<0&&ARP.bn>=ARP.nextMorph){let nv;do{nv=Math.floor(arpR()*ARPW.length)}while(nv===ARP.vA);ARP.vB=nv;ARP.mT0=ARP.bn;ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17)}
+  const voiceAt=fr=>{if(ARP.vB<0)return {a:ARP.vA,b:-1,x:0};return {a:ARP.vA,b:ARP.vB,x:Math.min(1,(ARP.bn-ARP.mT0+fr)/3)}};
   if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how);
   if(ARP.log.length>40)ARP.log.shift();
   // one subdivision per bar
-  {const r=Math.random();ARP.sub=ARP.sub===16?(r<.09?8:r<.2?12:16):16}   // sixteenths most of the time; now and then a bar of eighths (8) or of eighth-note triplets (12, three to a beat)
+  {const r=arpR();ARP.sub=ARP.sub===16?(r<.09?8:r<.2?12:16):16}   // sixteenths most of the time; now and then a bar of eighths (8) or of eighth-note triplets (12, three to a beat)
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
   const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,T=ch.tones.length,L=T*oc;
   // inversions now and then: the arpeggio starts from the third, fifth or seventh of the chord instead of the root
   ARP.invT=(ARP.invT===undefined?0:ARP.invT)-1;
-  if(ARP.invT<=0){ARP.inv=Math.random()<.35?arpPick([1,1,2,3]):0;ARP.invT=1+Math.floor(Math.random()*3)}
-  const inv=(ARP.inv|0)%T,tn=ch.tones.map((x,j)=>j>=inv?x:x+12),ord=[];for(let j=0;j<T;j++)ord.push(tn[(j+inv)%T]);
+  if(ARP.invT<=0){ARP.inv=arpR()<.35?arpPick([1,1,2,3]):0;ARP.invT=1+Math.floor(arpR()*3)}
+  // a slash chord starts its arpeggio on the bass note
+  let forced;if(ch.ped===undefined&&ch.bass!==undefined){const ix=ch.tones.findIndex(x=>((ch.root+x)%12)===ch.bass);if(ix>0)forced=ix}
+  const inv=forced!==undefined?forced:(ARP.inv|0)%T,tn=ch.tones.map((x,j)=>j>=inv?x:x+12),ord=[];for(let j=0;j<T;j++)ord.push(tn[(j+inv)%T]);
   const lo=root+ord[0],base=start+((((lo-start)%12)+12)%12)-ord[0];
   const note=i=>base+ord[i%T]+12*Math.floor(i/T);
   // note length drifts slowly between legato (notes run into each other) and now and then staccato
   ARP.legP=(ARP.legP||0)+.157;const leg=Math.max(.55,Math.min(2.6,2.1+1.45*Math.sin(ARP.legP)));
-  const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
+  const dir=sec.dir==='mix'?(ARP.bd=(arpR()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
   // the rhythm (sixteenths or eighths), direction, size or inversion only ever changes on beat one of a bar, and the pattern then starts again from its first note on that beat
-  {const sig=n+'|'+dir+'|'+oc+'|'+inv;if(ARP.sig!==sig){ARP.sig=sig;ARP.ai=0}}
+  const ped=ch.ped,pedMidi=ped!==undefined?43+((((ped-43)%12)+12)%12):0;
+  {const sig=n+'|'+dir+'|'+oc+'|'+inv+'|'+(ped!==undefined?'P':'');if(ARP.sig!==sig){ARP.sig=sig;ARP.ai=0}}
   for(let k=0;k<n;k++){
-    const q=ARP.ai++,i=arpIdx(q,L,dir),acc=(k%(n/4))===0?1:.75;
-    arpNote(t+k*step,note(i),step*leg,.05*acc);
+    const beatStart=(k%(n/4))===0;
+    const vc=voiceAt(k/n);
+    if(ped!==undefined&&beatStart){ARPN('a',t+k*step,pedMidi,step*leg*1.8,.06,vc);continue}   // pedal point: the held bass note falls on every beat, the arpeggio fills between
+    const q=ARP.ai++,i=arpIdx(q,L,dir),acc=beatStart?1:.75;
+    ARPN('a',t+k*step,note(i),step*leg,.05*acc,vc);
   }
   // pad chord and bass: only when the PAD option is on (the default is the sequencer alone)
-  if(mus.pad||ARP.padForce){const pr=root-12;for(const o of (ch.base||ch.tones).slice(0,3))arpPad(t,pr+o,bar,.011);
-    const bm=36+(((ch.root-36)%12)+12)%12;
-    arpPad(t,bm,beat*3.6,.05);arpNote(t+beat*2,bm,beat*1.2,.035)}
+  const padOn=ARP.padOverride!==undefined?ARP.padOverride:(mus.pad||ARP.padForce);
+  if(padOn){const pr=root-12;for(const o of (ch.base||ch.tones).slice(0,3))ARPP('p',t,pr+o,bar,.011);
+    const bp=ped!==undefined?ped:ch.bass!==undefined?ch.bass:ch.root,bm=36+(((bp-36)%12)+12)%12;
+    ARPP('b',t,bm,beat*3.6,.05);ARPN('b',t+beat*2,bm,beat*1.2,.035,voiceAt(.5))}
+  if(ARP.rec)ARP.rec.push({bn:ARP.bn,si:ARP.pi,bar:ARP.bar,ch:ch,sub:n,leg:leg,dir:dir,oc:oc,inv:inv,ped:ped});
+  ARP.bn++;
+  if(ARP.vB>=0&&ARP.bn-ARP.mT0>=3){ARP.vA=ARP.vB;ARP.vB=-1;if(ARP.live)mus.wave=ARP.vA}   // the morph has finished: the new voice is the voice
   ARP.bar++;if(ARP.bar>=N){ARP.bar=0;sec.last=sec.octl[sec.octl.length-1];ARP.pi++}
 }
 function arpTick(){
@@ -3517,8 +3599,9 @@ const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'onto
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 /* master mute: works from anywhere, including during a mission */
 /* two separate switches: MUSIC (mus.on) and SOUND EFFECTS (mus.mute means effects are muted). Both are remembered for the whole game */
-function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave2')}catch(e){}mus.pad=pd==='1';mus.wave=wv===null?ARPW.findIndex(w=>w.n==='SAWTOOTH'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* sawtooth is the default voice */}
-function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;try{localStorage.setItem('idlyte_wave2',String(mus.wave))}catch(e){}arpPreview()}
+function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave2')}catch(e){}mus.pad=pd==='1';{let mo=null;try{mo=localStorage.getItem('idlyte_morph')}catch(e){}mus.morph=mo!=='0'}mus.wave=wv===null?ARPW.findIndex(w=>w.n==='SAWTOOTH'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* sawtooth is the default voice */}
+function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;if(ARP.live){ARP.vA=mus.wave;ARP.vB=-1}try{localStorage.setItem('idlyte_wave2',String(mus.wave))}catch(e){}arpPreview()}
+function setMorph(on){mus.morph=!!on;try{localStorage.setItem('idlyte_morph',mus.morph?'1':'0')}catch(e){}if(!on&&ARP.live){ARP.vB=-1}toast(mus.morph?'SYNTH MORPH ON':'SYNTH MORPH OFF')}
 function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad',mus.pad?'1':'0')}catch(e){}toast(mus.pad?'PAD AND BASS ON':'SEQUENCER ONLY')}
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
 function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND EFFECTS OFF':'SOUND EFFECTS ON')}
@@ -4048,13 +4131,14 @@ function drawTSettings(){
    ['CRT SCREEN',DISP.scan?'ON':'OFF',()=>setDisp('scan',DISP.scan?0:1)],
    ['MUSIC',mus.on?'ON':'OFF',()=>setMusic(!mus.on)],
    ['ARPEGGIO SOUND',ARPW[mus.wave|0].n,()=>setWave((mus.wave|0)+1)],
+   ['SYNTH MORPH',mus.morph!==false?'ON':'OFF',()=>setMorph(mus.morph===false)],
    ['PAD AND BASS',mus.pad?'ON':'OFF',()=>setPad(!mus.pad)],
    ['SOUND EFFECTS',mus.mute?'OFF':'ON',()=>setMute(!mus.mute)]];
-  rows.forEach((r,i)=>{const y=25+i*14;
-    uiBtn(26,y,268,12,r[2],(f)=>{ctx.fillStyle=f?'#352879':'#111111';ctx.fillRect(26,y,268,12);if(f){ctx.fillStyle='#70a4b2';ctx.fillRect(26,y,2,12)}
+  rows.forEach((r,i)=>{const y=24+i*13;
+    uiBtn(26,y,268,11,r[2],(f)=>{ctx.fillStyle=f?'#352879':'#111111';ctx.fillRect(26,y,268,11);if(f){ctx.fillStyle='#70a4b2';ctx.fillRect(26,y,2,11)}
       text(r[0],36,y+3,'#ffffff',1);textR(r[1],286,y+3,r[1]==='OFF'?'#ff9966':'#9ad284',1)})});
-  text('AUTOPILOT FLIES FOR YOU. MANUAL: YOU STEER, GUNS STILL FIRE BY THEMSELVES.',28,152,'#70a4b2',1);
-  text('MUSIC AND SOUND EFFECTS ARE SEPARATE. KEYS: M MUSIC, N SOUND EFFECTS.',28,159,'#70a4b2',1);
+  text('AUTOPILOT FLIES FOR YOU. MANUAL: YOU STEER, GUNS STILL FIRE BY THEMSELVES.',28,154,'#70a4b2',1);
+  text('MUSIC AND SOUND EFFECTS ARE SEPARATE. KEYS: M MUSIC, N SOUND EFFECTS.',28,160,'#70a4b2',1);
   uiBtn(26,166,268,18,()=>{MODE='title';UI.focus=0},(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(26,166,268,18);textC2('BACK',160,172,'#ffffff')});
 }
 function drawSlots(){
