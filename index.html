@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.78</title>
+<title>Idlyte v1.79</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1282,7 +1282,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.78';
+const VERSION='1.79';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1364,7 +1364,8 @@ function dayTick(){
     if(dv>0){SAVE.coins+=dv;SAVE.earned+=dv;toast('SHARE DIVIDENDS +'+dv+' GOLD')}
   }
 }
-function bankRate(){return .07/30.4}
+function bankPct(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+.5*n)}
+function bankRate(){return bankPct()/30.4}
 function bankAccrue(days,quiet){
   if(SAVE.bank<=0){SAVE.bankFrac=0;return}
   SAVE.bankFrac=(SAVE.bankFrac||0)+SAVE.bank*bankRate()*days;
@@ -1373,7 +1374,7 @@ function bankAccrue(days,quiet){
 }
 function advanceDays(n){for(let i=0;i<n;i++){SAVE.day++;dayTick()}}
 function nextPayout(){const d=dateOf(SAVE.day);const nd=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1));
-  return {date:nd.getUTCDate()+' '+MONTHS[nd.getUTCMonth()]+' '+nd.getUTCFullYear(),amt:Math.floor(SAVE.bank*.07)}}
+  return {date:nd.getUTCDate()+' '+MONTHS[nd.getUTCMonth()]+' '+nd.getUTCFullYear(),amt:Math.floor(SAVE.bank*bankPct())}}
 
 /* achievements and shop unlocks */
 const ACHV=[
@@ -2016,7 +2017,7 @@ function screenDef(id){
   }else if(id==='bank'){
     title='STATION BANK';const np=nextPayout();
     info.push('BALANCE '+SAVE.bank+'   WALLET '+SAVE.coins);
-    info.push('INTEREST: 7% FOR EVERY 3 MINUTES YOU FLY MISSIONS. NOT AT THE STATION.');
+    info.push('INTEREST: '+(Math.round(bankPct()*1000)/10)+'% FOR EVERY 3 MINUTES YOU FLY MISSIONS. NOT AT THE STATION. IT RISES WITH EACH SYSTEM YOU CLEAR.');
     {const f=SAVE.bankFrac||0,k=Math.round(f*24);info.push({t:'NEXT COIN '+'['+'='.repeat(k)+'-'.repeat(24-k)+'] '+Math.floor(f*100)+'%',c:'#b8c76f'});
      info.push({t:'EARNED FROM INTEREST: '+(SAVE.bankEarned||0)+' GOLD'+(HUB.bankFlash>0?'   +1':''),c:HUB.bankFlash>0?'#ffffff':'#9ad284'})}
     const dep=a=>({ic:'bank_in',n:'DEPOSIT '+(a<0?'ALL':a),d:'MOVE GOLD INTO THE BANK',ok:SAVE.coins>0&&(a<0||SAVE.coins>=a),fn:()=>{const v=a<0?SAVE.coins:a;SAVE.coins-=v;SAVE.bank+=v;SAVE.bankMax=Math.max(SAVE.bankMax,SAVE.bank);save()}});
