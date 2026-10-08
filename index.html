@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.52</title>
+<title>Idlyte v1.53</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.52';
+const VERSION='1.53';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3368,7 +3368,7 @@ function arpExtend(ch){
   let opts=null;
   if(has(4,7,11))opts=[[2],[2,9],[2,9],[6],[2,6],[2,6,9],[9]];                  // maj9, maj13, maj7#11, maj9#11, maj13#11, 6/9
   else if(has(3,7,10))opts=[[2],[5],[2,5],[2,9],[2,5],[2,5,9]];                 // m9, m11, m9/11, m13, m13/11
-  else if(has(4,7,10))opts=[[2],[2,9],[9],[1,8],[3,8],[3],[3,9],[6],[6,9],[2,6],[1,6,8]];   // 9, 13, 7b9b13, 7#9b13, 7#9, 13#9, 7#11, 13#11, alt
+  else if(has(4,7,10))opts=[[2],[2],[2,9],[2,9],[9],[9],[6,9],[6],[2,6],[3],[1,8]];   // mostly 9 and 13, now and then 7#11, 7#9 or an altered dominant (the harshest colours are rare)
   else if(has(4,8,10))opts=[[2],[6],[3]];                                         // augmented dominant: 9, #11, #9
   else if(has(4,6,10))opts=[[2],[3],[8]];                                         // V7b5: 9, #9, b13
   else if(has(3,6,10))opts=[[5],[2,5]];                                           // half-diminished with an 11th
@@ -3466,7 +3466,7 @@ function arpPrep(sec){
   if(arpR()<.55){sec.prog2[2]=Pd(X(7,[0,5,7,10]),7);sec.prog2[3]=Pd(c(4),7)}
   if(arpR()<.28)for(const ch of sec.prog)ch.ped=A%12;   // a tonic pedal under the opening chords
   const ex=(a,p)=>a.map(x=>arpR()<p?arpExtend(x):x);   // extended chords: 9ths, 11ths, 13ths, #9s and more while exploring
-  sec.prog=ex(sec.prog,.45);sec.prog2=ex(sec.prog2,.45);sec.explore=ex(sec.explore,.8);
+  sec.prog=ex(sec.prog,.32);sec.prog2=ex(sec.prog2,.32);sec.explore=ex(sec.explore,.6);
   // modal sections: three stretches on the same tonic, each in the next mode, with harmony that fits the mode
   sec.mod=null;
   {const mm=inh&&inh.mod?inh.mod:(arpR()<.3?{m:null,v:[Math.floor(arpR()*4),Math.floor(arpR()*4),Math.floor(arpR()*4)]}:null);
@@ -3502,7 +3502,7 @@ function arpPrep(sec){
   }
   if(sec.mod&&sec.tail.length)sec.tail[0]=arpModeChord(A,sec.mod.m[2],3,false);   // the chord that leads out of a modal section belongs to the mode it ends in
   if(sec.tail[1]===nextV&&arpR()<.7)nextV.ped=nextV.root;   // a dominant pedal under the arrival chord
-  sec.tail=ex(sec.tail,.5);
+  sec.tail=ex(sec.tail,.35);
 }
 function arpSetup(){
   if(ARP.ready||!AC||!mus.in)return;
@@ -3629,6 +3629,13 @@ function arpIdx(q,L,d){
 function ARPN(tag,t,m,d,v,vc){if(ARP.sink)ARP.sink.push({k:tag,t:t,m:m,d:d,v:v,vc:vc?{a:vc.a,b:vc.b,x:vc.x}:null});else arpNote(t,m,d,v,undefined,undefined,vc)}
 function ARPP(tag,t,m,d,v){if(ARP.sink)ARP.sink.push({k:tag,t:t,m:m,d:d,v:v,pad:1});else arpPad(t,m,d,v)}
 function ARPB(tag,t,m,d,v){if(ARP.sink)ARP.sink.push({k:tag,t:t,m:m,d:d,v:v,bass:1});else arpBass(t,m,d,v)}
+/* the pad plays only the consonant core of a chord (root, fifth, seventh and third in an open voicing), never the added 9ths, b9s, 11ths or altered notes of the arpeggio, so it cannot clash with them */
+function arpPadVoicing(ch){
+  const t=ch.tones,has=x=>t.includes(x);
+  const third=has(4)?4:has(3)?3:has(5)?5:has(2)?2:null,fifth=has(7)?7:has(6)?6:has(8)?8:null,seventh=has(10)?10:has(11)?11:has(9)&&has(3)&&has(6)?9:null;
+  const v=[0];if(fifth!==null)v.push(fifth);if(seventh!==null&&!(fifth===8||fifth===6&&seventh===10&&false))v.push(seventh);   // no seventh over an augmented fifth (it would sit a tone above it)if(third!==null)v.push(third+12);
+  return v;
+}
 function arpBar(t){
   if(ARP.pi>=ARP.plan.length)arpNewCycle();
   const sec=ARP.plan[ARP.pi];arpPrep(sec);
@@ -3684,7 +3691,7 @@ function arpBar(t){
   const bInvR=arpR(),bInvP=Math.floor(arpR()*6);   // drawn every bar so a piece never changes when the pad is switched on or off
   const bassInv=bInvR<.7?[1,1,1,2,2,3][bInvP]:0;   // 70 percent of the bass notes are inversions: the third, fifth or seventh of the chord
   const padOn=ARP.padOverride!==undefined?ARP.padOverride:(mus.pad||ARP.padForce);
-  if(padOn){const pb=60+((((ch.root-60)%12)+12)%12);for(const o of (ch.base||ch.tones).slice(0,4))ARPP('p',t,pb+o,bar*1.05,.016);
+  if(padOn){const pb=60+((((ch.root-60)%12)+12)%12);for(const o of arpPadVoicing(ch))ARPP('p',t,pb+o,bar*1.05,.0085);
     const bp=ped!==undefined?ped:ch.bass!==undefined?ch.bass:(ch.root+ch.tones[Math.min(bassInv,ch.tones.length-1)])%12,bm=36+(((bp-36)%12)+12)%12;
     ARPB('b',t,bm,beat*3.4,.085);ARPB('b',t+beat*2,bm,beat*1.4,.055)}
   if(ARP.rec)ARP.rec.push({bn:ARP.bn,si:ARP.pi,bar:ARP.bar,ch:ch,sub:n,leg:leg,dir:dir,oc:oc,inv:inv,ped:ped});
@@ -4434,8 +4441,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.52"></script>
-<script src="studio.js?v=1.52"></script>
+<script src="weapons.js?v=1.53"></script>
+<script src="studio.js?v=1.53"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
