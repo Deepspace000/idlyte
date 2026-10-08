@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.90</title>
+<title>Idlyte v1.91</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.90';
+const VERSION='1.91';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2081,9 +2081,11 @@ function screenDef(id){
     const yard=id==='shipyard';title=yard?'SHIPYARD':'SHIP SHOP';info.push({t:'WALLET '+SAVE.coins+' GOLD   SHIP POWER '+shipPower(),c:'#70a4b2'});
     if(yard)info.push('BIG SHIPS: MORE HULL AND GUNS. ONLY THE CORE CAN BE HIT.');
     if(yard)info.push({t:'AT THE BACK OF THE YARD: THE LUXURY SHIPS. THEY COST A FORTUNE.',c:'#b8c76f'});
-    SHIPS.forEach((s,i)=>{if(!!s.yard!==yard)return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i;
-      rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
-        fn:()=>{if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
+    const yardOk=(()=>{const sy=SHOPS.find(q=>q.id==='shipyard');return !!(sy&&sy.open()&&SAVE.built&&SAVE.built.shipyard)})();
+    if(!yard)info.push({t:yardOk?'THE LUXURY SHIPS ARE AT THE END OF THE LIST.':'THE LUXURY SHIPS ARE AT THE END. BUY THEM WITH A SHIPYARD.',c:'#b8c76f'});
+    SHIPS.forEach((s,i)=>{const lux=s.price>=2e7;if(yard?!s.yard:(s.yard&&!lux))return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i,locked=!yard&&lux&&!own&&!yardOk;
+      rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:locked?'NEEDS THE SHIPYARD. '+s.d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:locked?false:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
+        fn:()=>{if(locked){toast('BUILD THE SHIPYARD FIRST');return}if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
   }else if(id==='missions'){
     title='MISSION SHOP';info.push('CONTRACTS MAKE ANY DESTINATION HARDER AND PAY MORE GOLD.');info.push('WALLET '+SAVE.coins+' GOLD');
     MISSIONS.forEach((m,i)=>{const own=SAVE.missions.includes(i),cur=SAVE.mission===i;
