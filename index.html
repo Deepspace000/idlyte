@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.88</title>
+<title>Idlyte v1.89</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -235,7 +235,7 @@ function snapHexG(h){const n=snap64(parseInt(h.slice(1,3),16),parseInt(h.slice(3
 function buildShipSet(paint,deco,ix){
   const DEF=SHIP_DEF[ix||0];
   const cano=Object.assign({B:'#6c5eb5',c:'#70a4b2',b:'#352879'},paint,(deco&&deco.canopy&&deco.canopy!=='cyan')?CANOPY[deco.canopy]:{});
-  const HULLR=SCHEMES[(deco&&deco.color)||(DEF&&DEF.scheme)||'chrome']||SCHEMES.chrome,ACCR=ACCENTS[(deco&&deco.accent)||(DEF&&DEF.acc)||DECO_DEFAULT.accent]||ACCENTS.lime,PAT=deco?(PATTERNS[deco.pattern||'none']||PATTERNS.none):null;
+  const HULLR=SCHEMES[(deco&&deco.color&&deco.color!=='chrome'?deco.color:null)||(DEF&&DEF.scheme)||'chrome']||SCHEMES.chrome,ACCR=ACCENTS[(deco&&deco.accent&&(deco.accent!==DECO_DEFAULT.accent||!DEF)?deco.accent:null)||(DEF&&DEF.acc)||DECO_DEFAULT.accent]||ACCENTS.lime,PAT=deco?(PATTERNS[deco.pattern||'none']||PATTERNS.none):null;
   const top=(DEF?DEF.rows:SHIP_ROWS).map(r=>r.padEnd(SHIP_W,'.').slice(0,SHIP_W)),N=SHIP_N,rows=[...top,...top.slice(0,N).reverse()];
   const base=fromRows(rows,(ch,i,j)=>{
     const m=SHIP_CHAR[ch];if(!m)return null;
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.88';
+const VERSION='1.89';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
