@@ -496,7 +496,7 @@ init(){
   };
 
   /* ---------- boss: the Sky Fortress ---------- */
-  const boss={w:136,h:84,hp:.85,
+  const boss={w:136,h:84,hp:1.7,
     init(b){b.x=W+80;b.y=100;b.vx=-55;b.in=true;b.tA=1.2;b.burst=0;b.bt=0;b.tur=0;b.tS=2.5;b.spN=0;b.spT=0;b.spA=0;b.tB=1.5;b.bayOpen=0;b.baySp=1;
       b.tArc=2;b.arcTel=0;b.arcN=0;b.arcT=0;b.arcD=1;b.prev=null;b.tCan=2.5;b.charge=0;b.lockY=100;b.fireN=0;b.fireT=0;b.t0=0;
       b.hitTest=(e,x,y)=>fortHit(e,x,y)?1:0;
@@ -514,25 +514,25 @@ init(){
       if(!live)return;
       const sp=66+G.loop*5;
       // turret rings: aimed bursts, alternating rings
-      b.tA-=dt;if(b.tA<=0){b.tA=ph===1?1.6:ph===2?2.4:2;b.burst=ph===3?4:3;b.bt=0;b.tur^=1}
+      b.tA-=dt;if(b.tA<=0){b.tA=ph===1?1.15:ph===2?1.7:1.4;b.burst=ph===3?4:3;b.bt=0;b.tur^=1}
       if(b.burst>0&&(b.bt-=dt)<=0){b.bt=.14;b.burst--;const T=TUR[b.tur];if(canFire()){sfxEnemyLaser();ebAim(b.x+T[0]-OX-6,b.y+T[1]-OY,sp,rnd(-.05,.05),{sty:'shell'})}}
       // slow spirals from the dome (phases 1 and 3)
-      if(ph!==2){b.tS-=dt;if(b.tS<=0){b.tS=ph===1?3.6:2.6;b.spN=ph===1?7:10;b.spT=0}}
+      if(ph!==2){b.tS-=dt;if(b.tS<=0){b.tS=ph===1?2.8:2;b.spN=ph===1?7:10;b.spT=0}}
       if(b.spN>0&&(b.spT-=dt)<=0){b.spT=.13;b.spN--;b.spA+=.5;const v=40+G.loop*3;
         for(let k=0;k<3;k++){const a=b.spA+k*TAU/3;if(Math.cos(a)>-.2)continue;if(!canFire())break;ebShot(b.x-6,b.y-18,Math.cos(a)*v,Math.sin(a)*v,{sty:'orb'})}}
       // launch bays release fighters (phases 2 and 3), at most 3 alive
-      if(ph>=2){b.tB-=dt;if(b.tB<=0){b.tB=ph===2?5.5:7.5;b.bayOpen=1.6;b.baySp=0}
+      if(ph>=2){b.tB-=dt;if(b.tB<=0){b.tB=ph===2?4.2:5.6;b.bayOpen=1.6;b.baySp=0}
         if(b.bayOpen>0&&b.bayOpen<1.1&&!b.baySp){b.baySp=1;let n=0;for(const e of E)if(e.owner===b)n++;
-          for(const q of BAYS){if(n>=3)break;const d=spawn({type:'dart',y:b.y+q[1]-OY+3,variant:1});d.x=b.x+q[0]-OX+6;d.y=b.y+q[1]-OY+3;d.owner=b;d.launch=.45;d.vx=-25;n++}}}
+          for(const q of BAYS){if(n>=4)break;const d=spawn({type:'dart',y:b.y+q[1]-OY+3,variant:1});d.x=b.x+q[0]-OX+6;d.y=b.y+q[1]-OY+3;d.owner=b;d.launch=.45;d.vx=-25;n++}}}
       // sweeping lightning arc over the ship's half of the screen (phases 2 and 3)
-      if(ph>=2&&b.arcN<=0&&b.arcTel<=0&&b.charge<=0&&b.fireN<=0){b.tArc-=dt;if(b.tArc<=0){b.tArc=ph===2?6:8.5;b.arcTel=.9;b.arcD=P.y<b.y-20?-1:1}}
+      if(ph>=2&&b.arcN<=0&&b.arcTel<=0&&b.charge<=0&&b.fireN<=0){b.tArc-=dt;if(b.tArc<=0){b.tArc=ph===2?4.6:6.4;b.arcTel=.9;b.arcD=P.y<b.y-20?-1:1}}
       if(b.arcTel>0){b.arcTel-=dt;if(b.arcTel<=0){b.arcN=13;b.arcT=0;b.prev=null}}
       if(b.arcN>0&&(b.arcT-=dt)<=0){b.arcT=.09;const i=13-b.arcN;b.arcN--;
         const a=Math.PI-b.arcD*(.85-i/12*.73);
         if(EB.length<26){const s=ebShot(b.x-26,b.y-20,Math.cos(a)*112,Math.sin(a)*112,{sty:'arc',hw:1,hh:1});s.prev=b.prev;b.prev=s}
         if(i===0)sfxEnemyLaser()}
       // main cannon (phase 3): 1.5 s charge with an aim line, then a straight beam
-      if(ph===3&&b.charge<=0&&b.fireN<=0&&b.arcN<=0&&b.arcTel<=0){b.tCan-=dt;if(b.tCan<=0){b.tCan=6.5;b.charge=1.5;b.lockY=Math.max(TOP+40,Math.min(BOT-40,P.y))}}
+      if(ph===3&&b.charge<=0&&b.fireN<=0&&b.arcN<=0&&b.arcTel<=0){b.tCan-=dt;if(b.tCan<=0){b.tCan=5;b.charge=1.5;b.lockY=Math.max(TOP+40,Math.min(BOT-40,P.y))}}
       if(b.charge>0){b.charge-=dt;if(b.charge<=0){b.fireN=8;b.fireT=0;shake=Math.max(shake,.15)}}
       if(b.fireN>0&&(b.fireT-=dt)<=0){b.fireT=.045;b.fireN--;ebShot(b.x-OX+1,b.y+3.5,-150-G.loop*4,0,{sty:'beam',hw:2,hh:2,pierce:true});if(b.fireN===7)sfxEnemyLaser()}
     },

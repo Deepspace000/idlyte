@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.74</title>
+<title>Idlyte v1.75</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -744,7 +744,7 @@ function drawTargetFrame(cx,cy,w,h,t){
   const bx=(w>>1)+1,by=(h>>1)+1;br(cx-bx,cy-by,1,1);br(cx+bx-1,cy-by,-1,1);br(cx-bx,cy+by-1,1,-1);br(cx+bx-1,cy+by-1,-1,-1);
 }
 function drawMini(e){
-  if(e.pkMini){const A=pk();if(A&&A.mini){A.mini.draw(ctx,e,e.flash>0);return}}
+  if(e.pkMini){const A=pk();if(A&&A.mini){A.mini.draw(ctx,e,bossFlash(e));return}}
   const A=pk(),sk=A&&A.enemies?A.enemies[e.fr]:null,def={ring:SPR.ring,ringR:SPR.ringR,pod:SPR.pod},f=e.flash>0;
   let fr=sk&&sk.frames?(f&&sk.white?sk.white:sk.frames):(f?SPR[e.fr+'W']:def[e.fr]);
   if(!fr)return;const sp=fr[Math.floor(e.t*8)%fr.length],w=sp.width*2,h=sp.height*2,x=(e.x-w/2)|0,y=(e.y-h/2)|0;
@@ -1063,9 +1063,11 @@ function drawBackground(){
   const px=400-G.t*3.4;if(px>-60&&px<W+60)ctx.drawImage(TH.planet,(px-44)|0,(70)|0);
   drawStars();
 }
+/* a hit flashes a boss white, but under rapid fire the flash never ended and the boss looked pure white. now it only blinks white on every third frame */
+function bossFlash(e){return e.flash>0&&((e.t*18)|0)%3===0}
 function drawBoss(e){
-  if(e.pkBoss){const A=pk();if(A&&A.boss){A.boss.draw(ctx,e,e.flash>0);return}}
-  const f=e.flash>0,spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss),bx=(e.x-70)|0,by=(e.y-46)|0;
+  if(e.pkBoss){const A=pk();if(A&&A.boss){A.boss.draw(ctx,e,bossFlash(e));return}}
+  const f=bossFlash(e),spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss),bx=(e.x-70)|0,by=(e.y-46)|0;
   ctx.save();ctx.translate(bx,by);ctx.scale(2,2);ctx.drawImage(spr,0,0);
   if(!f){
     const pl=Math.sin(e.t*1.6)*3;ctx.fillStyle='#bbbbbb';ctx.fillRect(30+pl,20,10,2);ctx.fillRect(44-pl,27,10,2);
@@ -1279,7 +1281,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.74';
+const VERSION='1.75';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4593,7 +4595,7 @@ window.__g.dev={
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
 <script src="packs/lava.js?v=1.18"></script>
-<script src="packs/gas.js?v=1.18"></script>
+<script src="packs/gas.js?v=1.75"></script>
 <script src="packs/base.js?v=1.18"></script>
 <script src="packs/sea.js?v=1.18"></script>
 <script src="packs/desert.js?v=1.18"></script>
