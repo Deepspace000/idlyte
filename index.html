@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.79</title>
+<title>Idlyte v1.80</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1282,7 +1282,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.79';
+const VERSION='1.80';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1670,7 +1670,7 @@ function recomputeStation(){
       if(dist<=40||sx===best){e.l=Math.min(e.l,sx-9);e.r=Math.max(e.r,sx+9);const q=SHX[sx]||(SHX[sx]={lo:d,hi:d});q.lo=Math.min(q.lo,d);q.hi=Math.max(q.hi,d)}}
     e.l=Math.max(14,e.l);e.r=Math.min(WWID-14,e.r)}
 }
-function syncBuilt(){
+function syncBuilt(){setTimeout(()=>{try{labApply()}catch(e){}},0);
   if(typeof syncPets==='function')setTimeout(()=>{try{syncPets()}catch(e){}},0);
   SAVE.built=SAVE.built||{};SAVE.built.hangar=1;SAVE.built.sleep=1;applyLayout();
   SAVE.aff=SAVE.aff||{};SAVE.garden=Object.assign({plots:[],lamp:0,extra:0,pantry:{},seed:'carrot'},SAVE.garden||{});SAVE.lab=Object.assign({scan:0,nano:0},SAVE.lab||{});SAVE.costume=Object.assign({own:{suit:1},wear:'suit'},SAVE.costume||{});SAVE.costume.own=SAVE.costume.own||{suit:1};SAVE.fresh=SAVE.fresh||0;SAVE.refresh=SAVE.refresh||0;labApply();
@@ -2600,7 +2600,7 @@ const CROPS=[
  {id:'melon',n:'MELON',k:'FRUIT',seed:30,grow:5,food:5,col:'#9ad284',lv:'#2c5a2c'}];
 function gardenGrow(c){return Math.max(1,c.grow-(SAVE.garden.lamp|0))}
 function gardenPlots(){return 4+2*(SAVE.garden.extra|0)}
-function labApply(){const m=(1+.1*((SAVE.lab&&SAVE.lab.scan)|0))*(SAVE.built&&SAVE.built.cargo?1.05:1);   // a built cargo bay stores salvage well: +5% when selling
+function labApply(){const m=(1+.1*((SAVE.lab&&SAVE.lab.scan)|0))*(SAVE.built&&SAVE.built.cargo?1.05:1)*(1+.25*systemsDone());   // a built cargo bay stores salvage well: +5% when selling
   for(const it of ITEMS){if(it.v0===undefined)it.v0=it.v;it.v=Math.round(it.v0*m*100)/100}}
 function relaxAt(msg,days,refDays,fit){
   if(fit&&!(SAVE.fed>0)){toast('YOU ARE TOO HUNGRY. EAT SOMETHING FIRST.');return}
@@ -3340,7 +3340,7 @@ function drawLoot(){
 function endSortie(result){
   SAVE.sorties++;if(result==='clear')SAVE.clears++;
   {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
-  if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();
+  if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();labApply();
     if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={3:'SPEED X4 UNLOCKED',6:'SPEED X8 CAN NOW BE BOUGHT IN THE DESIGN SHOP',8:'SPEED X16 CAN NOW BE BOUGHT IN THE DESIGN SHOP'}[after];if(nu)toast(nu)}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
   if(G.score>SAVE.best)SAVE.best=G.score;
   LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
