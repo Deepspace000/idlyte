@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.73</title>
+<title>Idlyte v1.74</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -520,11 +520,13 @@ const UPG={
  salv:{n:'SALVAGE ARM',d:'PULLS IN LOOT, MORE SALVAGE',max:1,base:12500,mul:1,shop:'design',eng:2},
  missile:{n:'MISSILE POD',d:'FIRES HOMING MISSILES',max:3,base:17500,mul:2.2,shop:'design',eng:3},
  cargo:{n:'CARGO NET',d:'ENEMIES DROP MORE SALVAGE',max:6,base:1250,mul:1.7,shop:'design'}};
-const SPEED_NEED={1:0,2:0,4:1,8:2,16:3};
+const SPEED_NEED={1:0,2:0,4:3,8:6,16:8},SPEED_BUY={8:30000,16:120000};   // X4 comes with the Lava World; X8 and X16 are much later and are bought in the Design shop
+function speedLocked(sp){return systemsDone()<SPEED_NEED[sp]||!!(SPEED_BUY[sp]&&!(SAVE.speedBuy&&SAVE.speedBuy[sp]))}
+function speedLockMsg(sp){const n=SPEED_NEED[sp];return systemsDone()<n?'X'+sp+' LOCKED. CLEAR '+n+' SYSTEMS FIRST':'X'+sp+' LOCKED. BUY IT IN THE DESIGN SHOP FOR '+SPEED_BUY[sp]+' GOLD'}
 function systemsDone(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return n}
 function maxLevel(i){return Math.min(3,(SAVE.prog[i]||0)+1)}
 function setPlanet(i){SAVE.planet=i;SAVE.level=maxLevel(i)}
-function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=systemsDone()<SPEED_NEED[sp];b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
+function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=speedLocked(sp);b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
 const PLANETS=[
  {n:'OPEN SPACE',pow:0,diff:0,gold:1,loot:0,d:'EMPTY SPACE. EASY ENEMIES.',every:0},
  {n:'ASTEROID BELT',pow:20,diff:1.8,gold:1.5,loot:.04,d:'LOTS OF DRIFTING ROCKS.',every:7,waves:[['rock',6,.45],['ring',3,.6]]},
@@ -1180,8 +1182,8 @@ function draw(){
 }
 function drawSpeedTiles(){
   [1,2,4,8,16].forEach((sp,i)=>{
-    const x=W-5-(5-i)*21,y=17,lock=systemsDone()<SPEED_NEED[sp],on=SPEED===sp;
-    uiBtn(x,y,20,10,()=>{if(lock){G.msg='X'+sp+' LOCKED. CLEAR '+SPEED_NEED[sp]+(SPEED_NEED[sp]>1?' SYSTEMS':' SYSTEM')+' FIRST';G.msgT=2.5;return}SPEED=sp},(f)=>{
+    const x=W-5-(5-i)*21,y=17,lock=speedLocked(sp),on=SPEED===sp;
+    uiBtn(x,y,20,10,()=>{if(lock){G.msg=speedLockMsg(sp);G.msgT=2.5;return}SPEED=sp},(f)=>{
       ctx.fillStyle=on?'#000000':lock?'#222222':'#352879';ctx.fillRect(x,y,20,10);
       ctx.fillStyle=on?'#1c1840':'#9a8fe0';ctx.fillRect(x,y,20,1);ctx.fillRect(x,y,1,10);
       ctx.fillStyle=on?'#9a8fe0':'#1c1840';ctx.fillRect(x,y+9,20,1);ctx.fillRect(x+19,y,1,10);
@@ -1277,7 +1279,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.73';
+const VERSION='1.74';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2034,6 +2036,9 @@ function screenDef(id){
     for(const k in UPG){const u=UPG[k];if(u.shop!==id)continue;const l=SAVE.up[k]||0,p=upPrice(k),mx=l>=u.max;
       const need=u.eng&&(SAVE.crew.eng||0)<u.eng;
       rows.push({ic:k,n:u.n+(u.max>1?'  LV '+l+'/'+u.max:(l?'  (BUILT)':'')),d:need?'NEEDS ENGINEER LV '+u.eng+': '+u.d:u.d,r:mx?'MAX':need?'LOCKED':String(p),ok:!mx&&!need&&SAVE.coins>=p,pw:(!mx&&!need)?[shipPowerRaw(),powerIf(SAVE.up,k,l+1)]:null,fn:buy(p,()=>{SAVE.up[k]=l+1;checkUnlocks()})});}
+    if(id==='design')for(const sp of [8,16]){const p=SPEED_BUY[sp],need=SPEED_NEED[sp],own=!!(SAVE.speedBuy&&SAVE.speedBuy[sp]),can=systemsDone()>=need;
+      rows.push({n:'SPEED X'+sp+(own?'  (OWNED)':can?'':'  (LATER)'),d:own?'UNLOCKED. USE THE SPEED BUTTONS ON A MISSION':can?'RUN MISSIONS AT '+sp+' TIMES SPEED':'NEEDS '+need+' SYSTEMS CLEARED. PRICE '+p+' GOLD',r:own?'OWNED':can?String(p):'LATER',ok:!own&&can&&SAVE.coins>=p,msg:own?'YOU ALREADY OWN THIS':can?'NOT ENOUGH GOLD':'CLEAR '+need+' SYSTEMS FIRST',
+        fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.speedBuy=SAVE.speedBuy||{};SAVE.speedBuy[sp]=1;refreshSpeedBtns();toast('SPEED X'+sp+' UNLOCKED');save()}})}
     if(id==='weapons'&&window.WX)WX.shopRows(rows);
     if(id==='armour'&&window.WX)WX.shieldRows(rows);
     if(id==='weapons'||id==='armour')rows.push(resetRow(id));
@@ -2304,7 +2309,7 @@ function drawChanceMeter(){
   const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
   for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
-function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(SPEED_NEED[SPEED]>systemsDone()){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
+function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 
 /* ===== star map: the system laid out with a planet for every stage ===== */
 const SMAP={pl:{},t:0};
@@ -3332,7 +3337,7 @@ function endSortie(result){
   SAVE.sorties++;if(result==='clear')SAVE.clears++;
   {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();
-    if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={1:4,2:8,3:16}[after];if(nu)toast('SPEED X'+nu+' UNLOCKED')}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
+    if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={3:'SPEED X4 UNLOCKED',6:'SPEED X8 CAN NOW BE BOUGHT IN THE DESIGN SHOP',8:'SPEED X16 CAN NOW BE BOUGHT IN THE DESIGN SHOP'}[after];if(nu)toast(nu)}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
   if(G.score>SAVE.best)SAVE.best=G.score;
   LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
   refreshSpeedBtns();advanceDays(7);checkUnlocks();save();MODE='loot';UI.focus=0;
@@ -4487,7 +4492,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 addEventListener('pagehide',()=>{if(MODE==='hub'||MODE==='loot'||MODE==='arcade')save(true)});
 document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
-  const sp=+b.dataset.sp,need=SPEED_NEED[sp];if(systemsDone()<need){if(MODE==='game'&&G){G.msg='X'+sp+' LOCKED. CLEAR '+need+(need>1?' SYSTEMS':' SYSTEM')+' FIRST';G.msgT=2.5}return}
+  const sp=+b.dataset.sp;if(speedLocked(sp)){if(MODE==='game'&&G){G.msg=speedLockMsg(sp);G.msgT=2.5}return}
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
 });
 window.__g={ARP,arpBar,musMode,tellStory,checkStory,get STY(){return STY},storyNext,newGameInSlot,loadSlot,continueGame,slotsUsed,readSlot,get CURSLOT(){return CURSLOT},arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
