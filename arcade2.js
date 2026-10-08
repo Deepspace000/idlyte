@@ -18,6 +18,17 @@ function ptrX(e){const r=cv.getBoundingClientRect();return (e.clientX-r.left)/r.
 cv.addEventListener('pointermove',e=>{if(MODE==='arcade'&&AR&&AR.g2)ptr=ptrX(e)});
 cv.addEventListener('pointerdown',e=>{if(MODE==='arcade'&&AR&&AR.g2)ptr=ptrX(e)});
 
+/* Star Runner: drag a finger or the mouse anywhere to move the ship. keys and the on-screen arrows still work. */
+const SD={on:false,tid:null,id:null,x:0,y:0};
+function sdActive(){return MODE==='arcade'&&AR&&AR.g2==='shm'&&AR.state==='play'}
+function sdMove(cx,cy){const r=cv.getBoundingClientRect(),A=AR;A.x=Math.max(14,Math.min(190,A.x+(cx-SD.x)*W/r.width));A.y=Math.max(26,Math.min(180,A.y+(cy-SD.y)*H/r.height));SD.x=cx;SD.y=cy}
+document.addEventListener('pointerdown',e=>{if(!sdActive()||e.pointerType==='touch'||(e.target.closest&&e.target.closest('button')))return;SD.on=true;SD.tid=null;SD.id=e.pointerId;SD.x=e.clientX;SD.y=e.clientY},true);
+document.addEventListener('pointermove',e=>{if(SD.on&&SD.tid===null&&e.pointerId===SD.id&&sdActive())sdMove(e.clientX,e.clientY)});
+document.addEventListener('pointerup',e=>{if(SD.on&&SD.tid===null&&e.pointerId===SD.id)SD.on=false});
+document.addEventListener('touchstart',e=>{if(!sdActive()||(e.target.closest&&e.target.closest('button')))return;const t=e.changedTouches[0];SD.on=true;SD.tid=t.identifier;SD.x=t.clientX;SD.y=t.clientY;e.preventDefault()},{passive:false,capture:true});
+document.addEventListener('touchmove',e=>{if(!SD.on||SD.tid===null||!sdActive())return;for(const t of e.changedTouches)if(t.identifier===SD.tid){sdMove(t.clientX,t.clientY);e.preventDefault()}},{passive:false});
+document.addEventListener('touchend',e=>{if(SD.on&&SD.tid!==null)for(const t of e.changedTouches)if(t.identifier===SD.tid)SD.on=false});
+document.addEventListener('touchcancel',()=>{if(SD.tid!==null)SD.on=false});
 function base(A){
   AR=A;A.g2=A.g2;A.score=0;A.lives=A.lives||3;A.state='play';A.t=0;A.cd=10;A.fx=[];A.pops=[];A.fire=0;return A;
 }
@@ -110,7 +121,7 @@ const shm={
     if(A.state==='over'){over(A,dt);return}
     A.t+=dt;fxUpdate(A,dt);A.wt+=dt;if(A.invT>0)A.invT-=dt;
     let dx=(RIGHT()?1:0)-(LEFT()?1:0),dy=(DOWN()?1:0)-(UP()?1:0);A.x=Math.max(14,Math.min(190,A.x+dx*100*dt));A.y=Math.max(26,Math.min(180,A.y+dy*100*dt));
-    A.fire-=dt;if(FIREH()&&A.fire<=0){A.fire=.16;const w=A.wpn;
+    A.fire-=dt;if(A.fire<=0){A.fire=.16;const w=A.wpn;   // guns fire all the time, so a touch screen needs no fire button
       A.pb.push({x:A.x+12,y:A.y,vx:260,vy:0});if(w>=2){A.pb.push({x:A.x+8,y:A.y-5,vx:260,vy:-30},{x:A.x+8,y:A.y+5,vx:260,vy:30})}if(w>=3){A.pb.push({x:A.x+6,y:A.y-8,vx:240,vy:-70},{x:A.x+6,y:A.y+8,vx:240,vy:70})}beep(1100,.04,'square',.025)}
     for(const b of A.pb){b.x+=b.vx*dt;b.y+=b.vy*dt}A.pb=A.pb.filter(b=>b.x<W+4&&b.y>14&&b.y<H);
     // waves: enemies for 22s then a boss
@@ -152,6 +163,7 @@ const shm={
     fxDraw(A);popsDraw(A,dt);
     for(let i=0;i<A.lives-1;i++)rect(6+i*10,192,7,3,'#bbbbbb');
     hud(A,'WAVE '+A.wave,'GUN '+A.wpn);
+    if(A.t<6&&A.state==='play')textC('DRAG TO FLY. YOUR GUNS FIRE BY THEMSELVES.',BOT-14,Math.floor(A.t*3)%2?'#ffffff':'#70a4b2',1);
     if(A.state==='over')overlay(A,'GAME OVER','SCORE '+(A.score|0));
   }
 };
