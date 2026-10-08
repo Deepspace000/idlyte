@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.96</title>
+<title>Idlyte v1.97</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.96';
+const VERSION='1.97';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2142,10 +2142,10 @@ function drawMiniMap(){
   drawLevelMap(x0+3,y0+9,100,6,levelSegs(G.planet||0,G.level||1,pc),false);
   text('L'+(G.level||1)+' NOW '+Math.floor(pc)+'%  BEST '+best+'%',x0+3,y0+18,'#ffffff',1);
 }
-/* hunger: SAVE.fed is the number of days of being well fed that are left (a big dinner gives 30) */
-function foodCol(){const f=SAVE.fed||0;return f<=0?'#ff7777':f<=3?'#ff9966':f<=9?'#b8c76f':'#9ad284'}
-function foodText(){const f=SAVE.fed||0,p=f>0?Math.min(10,Math.ceil(f/3)):0;return 'FOOD ['+'='.repeat(p)+'-'.repeat(10-p)+'] '+(f>0?f+(f===1?' DAY LEFT':' DAYS LEFT'):'HUNGRY')}
-function foodGauge(x,y,w){const f=SAVE.fed||0;ctx.fillStyle='#444444';ctx.fillRect(x,y,w,3);ctx.fillStyle='#000';ctx.fillRect(x+1,y+1,w-2,1);if(f>0){ctx.fillStyle=foodCol();ctx.fillRect(x+1,y+1,Math.max(1,Math.round((w-2)*Math.min(1,f/30))),1)}}
+/* hunger: SAVE.fed is the number of days of being well fed that are left (a big dinner gives 90) */
+function foodCol(){const f=SAVE.fed||0;return f<=0?'#ff7777':f<=9?'#ff9966':f<=27?'#b8c76f':'#9ad284'}
+function foodText(){const f=SAVE.fed||0,p=f>0?Math.min(10,Math.ceil(f/9)):0;return 'FOOD ['+'='.repeat(p)+'-'.repeat(10-p)+'] '+(f>0?f+(f===1?' DAY LEFT':' DAYS LEFT'):'HUNGRY')}
+function foodGauge(x,y,w){const f=SAVE.fed||0;ctx.fillStyle='#444444';ctx.fillRect(x,y,w,3);ctx.fillStyle='#000';ctx.fillRect(x+1,y+1,w-2,1);if(f>0){ctx.fillStyle=foodCol();ctx.fillRect(x+1,y+1,Math.max(1,Math.round((w-2)*Math.min(1,f/90))),1)}}
 function foodHud(x){const f=SAVE.fed||0;text(f>0?'FED '+f:'HUNGRY',x,4,foodCol(),1);foodGauge(x,10,26)}
 function gymPace(){return SAVE.fed>0?2:1} // being fed doubles progress in the gym
 function fitNeed(){return Math.round(300*Math.pow(1.45,SAVE.fitLv||0))}
@@ -3273,12 +3273,12 @@ function extraScreen(id,rows,info){
   if(id==='dining'){
     L('FOOD KEEPS YOU WELL FED. BEING FED DOUBLES GYM PROGRESS AND ADDS 15% SHIP SPEED.');L(foodText(),foodCol());
     const eat=(n,cost,days,txt)=>({n:n+'  ('+cost+' GOLD)',d:'WELL FED FOR '+days+' DAYS',r:String(cost),ok:SAVE.coins>=cost,fn:()=>{if(SAVE.coins<cost){toast('NOT ENOUGH GOLD');return}SAVE.coins-=cost;SAVE.fed=Math.max(SAVE.fed||0,days);toast(txt);save()}});
-    rows.push(eat('MEAL',5,10,'YOU EAT A HOT MEAL.'),eat('BIG DINNER',20,30,'YOU EAT A BIG DINNER.'));
+    rows.push(eat('MEAL',5,30,'YOU EAT A HOT MEAL.'),eat('BIG DINNER',20,90,'YOU EAT A BIG DINNER.'));
     return 'DINING';
   }
   if(id==='foodm'){
     L('A BASIC FOOD MACHINE. CHEAP AND FILLING ENOUGH.');L(foodText(),foodCol());
-    rows.push({n:'SNACK BAR  (1 GOLD)',d:'ADDS 2 DAYS OF FOOD. STACKS UP TO 4 DAYS (ABOUT 2 MINUTES)',r:'1',ok:SAVE.coins>=1&&(SAVE.fed||0)<4,fn:()=>{if((SAVE.fed||0)>=4){toast('YOU ARE FULL. THE MACHINE KEEPS 4 DAYS OF FOOD AT MOST.');return}if(SAVE.coins<1){toast('NOT ENOUGH GOLD');return}SAVE.coins-=1;SAVE.fed=Math.min(4,(SAVE.fed||0)+2);toast('THE MACHINE DROPS A SNACK BAR.');save()}});
+    rows.push({n:'SNACK BAR  (1 GOLD)',d:'ADDS 6 DAYS OF FOOD. STACKS UP TO 12 DAYS (ABOUT 6 MINUTES)',r:'1',ok:SAVE.coins>=1&&(SAVE.fed||0)<12,fn:()=>{if((SAVE.fed||0)>=12){toast('YOU ARE FULL. THE MACHINE KEEPS 12 DAYS OF FOOD AT MOST.');return}if(SAVE.coins<1){toast('NOT ENOUGH GOLD');return}SAVE.coins-=1;SAVE.fed=Math.min(12,(SAVE.fed||0)+6);toast('THE MACHINE DROPS A SNACK BAR.');save()}});
     return 'FOOD MACHINE';
   }
   if(id==='garden'){
@@ -3294,7 +3294,7 @@ function extraScreen(id,rows,info){
         if(left>0)rows.push({n:'PLOT '+(i+1)+': '+c.n+' GROWING',d:'READY IN '+left+' DAY'+(left>1?'S':'')+'. TIME PASSES WHEN YOU WALK AROUND THE STATION.',r:'',ok:false,icon:'#444444',msg:'IT IS STILL GROWING.',fn:()=>{}});
         else rows.push({n:'PLOT '+(i+1)+': '+c.n+' READY!',d:'HARVEST IT AND PUT IT IN THE PANTRY',r:'HARVEST',ok:true,icon:c.col,fn:()=>{G2.pantry[c.id]=(G2.pantry[c.id]||0)+1;G2.plots[i]=null;toast('HARVESTED A '+c.n);save()}})}}
     for(const c of CROPS){const n=G2.pantry[c.id]||0;if(!n)continue;
-      rows.push({n:'EAT A '+c.n+'  (YOU HAVE '+n+')',d:'+'+c.food+' DAYS OF FOOD AND FRESH FOR 4 DAYS',r:'EAT',ok:true,icon:c.col,fn:()=>{G2.pantry[c.id]--;SAVE.fed=Math.min(12,(SAVE.fed||0)+c.food);SAVE.fresh=Math.max(SAVE.fresh||0,4);toast('YUM! FRESH '+c.n+'. YOU FEEL GREAT.');save()}})}
+      rows.push({n:'EAT A '+c.n+'  (YOU HAVE '+n+')',d:'+'+c.food*3+' DAYS OF FOOD AND FRESH FOR 4 DAYS',r:'EAT',ok:true,icon:c.col,fn:()=>{G2.pantry[c.id]--;SAVE.fed=Math.min(36,(SAVE.fed||0)+c.food*3);SAVE.fresh=Math.max(SAVE.fresh||0,4);toast('YUM! FRESH '+c.n+'. YOU FEEL GREAT.');save()}})}
     return 'GARDEN';
   }
   if(id==='plantlab'){
@@ -3332,7 +3332,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='cafe'){
     L('A SMALL CAFE ON THE MALL DECK.');L(foodText(),foodCol());
-    rows.push({n:'COFFEE  (2 GOLD)',d:'WELL FED FOR 3 DAYS',r:'2',ok:SAVE.coins>=2,fn:()=>{if(SAVE.coins<2){toast('NOT ENOUGH GOLD');return}SAVE.coins-=2;SAVE.fed=Math.max(SAVE.fed||0,3);toast('YOU DRINK A COFFEE.');save()}});
+    rows.push({n:'COFFEE  (2 GOLD)',d:'WELL FED FOR 9 DAYS',r:'2',ok:SAVE.coins>=2,fn:()=>{if(SAVE.coins<2){toast('NOT ENOUGH GOLD');return}SAVE.coins-=2;SAVE.fed=Math.max(SAVE.fed||0,9);toast('YOU DRINK A COFFEE.');save()}});
     return 'CAFE';
   }
   if(id==='sleep'){
