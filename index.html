@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.97</title>
+<title>Idlyte v1.98</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.97';
+const VERSION='1.98';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2085,7 +2085,7 @@ function screenDef(id){
     if(!yard)info.push({t:yardOk?'THE LUXURY SHIPS ARE AT THE END OF THE LIST.':'THE LUXURY SHIPS ARE AT THE END. BUY THEM WITH A SHIPYARD.',c:'#b8c76f'});
     SHIPS.forEach((s,i)=>{const lux=s.price>=2e7;if(yard?!s.yard:(s.yard&&!lux))return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i,locked=!yard&&lux&&!own&&!yardOk;
       rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:locked?'NEEDS THE SHIPYARD. '+s.d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:locked?false:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
-        fn:()=>{if(locked){toast('BUILD THE SHIPYARD FIRST');return}if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast('NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
+        fn:()=>{if(locked){toast('BUILD THE SHIPYARD FIRST');return}if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
   }else if(id==='missions'){
     title='MISSION SHOP';info.push('CONTRACTS MAKE ANY DESTINATION HARDER AND PAY MORE GOLD.');info.push('WALLET '+SAVE.coins+' GOLD');
     MISSIONS.forEach((m,i)=>{const own=SAVE.missions.includes(i),cur=SAVE.mission===i;
@@ -3087,7 +3087,7 @@ function extraScreen(id,rows,info){
       add(0,q.n+'   '+shortGold(q.price)+' GOLD'+(can?'   YOU CAN AFFORD IT':''),can?G_:'#ffffaa');
       add(1,bl[0],'#ffffff');add(2,bl[1],'#ffffff');
       add(3,'HULL +'+q.hp+'   DAMAGE X'+q.dm+'   FIRE RATE X'+q.fr+'   POWER +'+gain,'#70a4b2');
-      L('')});
+      if(can)L('');else info.push({t:'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.',c:'#8f84d6',ind:1})});
     if(SHIPS.some((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i)))L('  BUY THEM AT THE SHIP SHOP. THEY NEED THE SHIPYARD.','#6c6c6c');
     return 'SHIP STATS';
   }
