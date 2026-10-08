@@ -89,10 +89,11 @@ function stuApply(mut){
     STU.edits[x.bn]={root:((nr%12)+12)%12,tones:QUALS[((qi%QUALS.length)+QUALS.length)%QUALS.length][1].slice()};
   }
   studioBuild();
+  studioAudition();
 }
 function stuRoot(d){const c=stuCurChord();if(c)stuApply({root:c.root+d})}
 function stuType(d){const c=stuCurChord();if(!c)return;const q=QKEY[c.tones.join()];stuApply({q:(q!==undefined?q:6)+d})}
-function stuReset(){const b=STU.bars[STU.cur];if(!b)return;delete STU.edits[b.bn];studioBuild();stuFlash('BAR RESET')}
+function stuReset(){const b=STU.bars[STU.cur];if(!b)return;delete STU.edits[b.bn];studioBuild();stuFlash('BAR RESET');studioAudition()}
 function stuPreset(){
   const b=STU.bars[STU.cur];if(!b)return;const sec=STU.plan[b.si],pr=PRESETS[STU.preset%PRESETS.length];
   STU.bars.forEach(x=>{if(x.si!==b.si)return;const idx=x.bar;if(idx>=sec.bars-2)return;
@@ -102,19 +103,43 @@ function stuPreset(){
 
 /* ---- listening ---- */
 function studioStop(){
+  if(STU.au){stuFade(STU.au,1500);STU.au=null}
   const pv=STU.pv;if(!pv)return;
   clearInterval(pv.timer);try{for(const o of [pv.out,pv.bassOut,pv.padOut])o.gain.setTargetAtTime(0,AC.currentTime,.08);const os=[pv.out,pv.bassOut,pv.padOut];setTimeout(()=>{for(const o of os){try{o.disconnect()}catch(e){}}},1500)}catch(e){}
   STU.pv=null;STU.playBar=-1;
 }
-function studioPlay(){
-  studioStop();
-  if(!AC||AC.state!=='running'||!mus.in){stuFlash('CLICK OR PRESS A KEY IN THE GAME FIRST SO SOUND CAN START');return}
-  const out=AC.createGain(),dl=AC.createDelay(2),fb=AC.createGain(),wet=AC.createGain();
-  dl.delayTime.value=60/104*.75;fb.gain.value=.36;wet.gain.value=.3;out.connect(mus.in);out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(mus.in);
+/* the studio's own sound chain (the hub muzak bus is silent while the studio is open): arpeggio with echo and reverb, bass dry, pad in a long reverb */
+function stuChain(){
+  // the preview has its own chain straight to the master (the hub muzak bus is silent while the studio is open)
+  const out=AC.createGain(),mi=AC.createGain(),dl=AC.createDelay(2),fb=AC.createGain(),wet=AC.createGain();
+  dl.delayTime.value=60/104*.75;fb.gain.value=.36;wet.gain.value=.3;out.connect(mi);out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(mi);mi.connect(mus.gain);
+  {const sr=AC.sampleRate,len=Math.floor(sr*2.4),ir=AC.createBuffer(1,len,sr),d=ir.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);
+   const cv=AC.createConvolver();cv.buffer=ir;const cw=AC.createGain();cw.gain.value=.6;mi.connect(cv);cv.connect(cw);cw.connect(mus.gain);
+   const d2=AC.createDelay(1),f2=AC.createGain(),w2=AC.createGain();d2.delayTime.value=.32;f2.gain.value=.3;w2.gain.value=.26;mi.connect(d2);d2.connect(f2);f2.connect(d2);d2.connect(w2);w2.connect(mus.gain)}
   // bass dry to the master, pad into a long reverb
   const bassOut=AC.createGain();bassOut.connect(mus.gain);
   const padOut=AC.createGain(),pcv=AC.createConvolver(),sr0=AC.sampleRate,pl=Math.floor(sr0*4.2),pir=AC.createBuffer(2,pl,sr0);for(let c=0;c<2;c++){const d=pir.getChannelData(c);for(let i=0;i<pl;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/pl,2.2)}
   pcv.buffer=pir;const pw=AC.createGain(),pd=AC.createGain();pw.gain.value=.95;pd.gain.value=.22;padOut.connect(pcv);pcv.connect(pw);pw.connect(mus.gain);padOut.connect(pd);pd.connect(mus.gain);
+  return {out,bassOut,padOut};
+}
+function stuFade(c,ms){try{for(const o of [c.out,c.bassOut,c.padOut])o.gain.setTargetAtTime(0,AC.currentTime,.06);setTimeout(()=>{for(const o of [c.out,c.bassOut,c.padOut]){try{o.disconnect()}catch(e){}}},ms||2500)}catch(e){}}
+/* hear the arpeggio of the selected bar: whenever a chord is picked or changed */
+function studioAudition(){
+  if(!AC||AC.state!=='running'||!mus.in||STU.busy)return;
+  if(STU.pv){studioPlay();return}          // while the piece is playing, picking a chord carries the playback on from that bar
+  if(STU.au){stuFade(STU.au,1800);STU.au=null}
+  const bd=stuBarDur(),a=(STU.start+STU.cur)*bd,b=a+bd,ch=stuChain(),t0=AC.currentTime+.04;
+  for(const e of STU.events){
+    if(e.t<a-1e-6)continue;if(e.t>=b-1e-6)break;
+    const ts=t0+e.t-a;
+    if(e.pad)arpPad(ts,e.m,Math.min(e.d,bd),e.v,ch.padOut);else if(e.bass)arpBass(ts,e.m,e.d,e.v,ch.bassOut);else arpNote(ts,e.m,e.d,e.v,ch.out,undefined,e.vc);
+  }
+  STU.au=ch;const mine=ch;setTimeout(()=>{if(STU.au===mine){stuFade(mine,3000);STU.au=null}},bd*1000+1500);
+}
+function studioPlay(){
+  studioStop();
+  if(!AC||AC.state!=='running'||!mus.in){stuFlash('CLICK OR PRESS A KEY IN THE GAME FIRST SO SOUND CAN START');return}
+  const {out,bassOut,padOut}=stuChain();
   const bd=stuBarDur(),from=(STU.start+STU.cur)*bd;let idx=0;while(idx<STU.events.length&&STU.events[idx].t<from-1e-6)idx++;
   STU.pv={out,bassOut,padOut,t0:AC.currentTime+.25,from,idx,end:0,timer:setInterval(studioPvTick,150)};
 }
@@ -212,10 +237,10 @@ function studioKey(k){
     if(k==='escape'){STU.typing=false;return true}
   }
   const n=STU.bars.length;
-  if(k==='arrowright'||k==='d'){STU.cur=Math.min(n-1,STU.cur+1);return true}
-  if(k==='arrowleft'||k==='a'){STU.cur=Math.max(0,STU.cur-1);return true}
-  if(k==='arrowdown'||k==='s'){STU.cur=Math.min(n-1,STU.cur+8);return true}
-  if(k==='arrowup'||k==='w'){STU.cur=Math.max(0,STU.cur-8);return true}
+  if(k==='arrowright'||k==='d'){STU.cur=Math.min(n-1,STU.cur+1);studioAudition();return true}
+  if(k==='arrowleft'||k==='a'){STU.cur=Math.max(0,STU.cur-1);studioAudition();return true}
+  if(k==='arrowdown'||k==='s'){STU.cur=Math.min(n-1,STU.cur+8);studioAudition();return true}
+  if(k==='arrowup'||k==='w'){STU.cur=Math.max(0,STU.cur-8);studioAudition();return true}
   if(k==='pagedown'){STU.cur=Math.min(n-1,STU.cur+48);return true}
   if(k==='pageup'){STU.cur=Math.max(0,STU.cur-48);return true}
   if(k===']'){stuType(1);return true}
@@ -282,7 +307,7 @@ function drawStudio(){
     for(let a=r.from;a<r.to;a++){
       const b=STU.bars[a],x=44+(a-r.from)*32,sel=a===STU.cur,pl=a===STU.playBar,edited=STU.edits[b.bn]!==undefined;
       const part=b.bar>=sec.bars-2?'tail':b.bar<4?'a':b.bar<4+sec.explore.length?'x':'b';
-      uiBtn(x,y,31,9,()=>{STU.cur=a},()=>{
+      uiBtn(x,y,31,9,()=>{STU.cur=a;studioAudition()},()=>{
         ctx.fillStyle=sel?'#4d40a8':pl?'#2c5a2c':part==='x'?'#1e1648':part==='tail'?'#2a1c18':'#14102a';ctx.fillRect(x,y,31,9);
         if(sel){ctx.fillStyle=Math.floor(performance.now()/300)%2?'#ffffff':'#9a8fe0';ctx.fillRect(x,y,31,1);ctx.fillRect(x,y+8,31,1);ctx.fillRect(x,y,1,9);ctx.fillRect(x+30,y,1,9)}
         text(fitText(chordName(b.ch),29),x+2,y+2,edited?'#b8c76f':sel?'#ffffff':'#bbbbbb',1);

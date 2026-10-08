@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.47</title>
+<title>Idlyte v1.48</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.47';
+const VERSION='1.48';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1362,6 +1362,9 @@ const ACHV=[
  {id:'ship',n:'NEW WHEELS',d:'BUY A NEW SHIP',t:()=>SAVE.ships.length>1},
  {id:'y41',n:'NEW YEAR',d:'REACH THE YEAR 2041',t:()=>SAVE.day>=366},
  {id:'g10k',n:'GOLD BARON',d:'EARN 10000 GOLD IN TOTAL',t:()=>SAVE.earned>=10000}];
+/* an achievement for every level of every system, and for the systems cleared so far */
+for(let i=0;i<PLANETS.length;i++)for(let lv=1;lv<=3;lv++)ACHV.push({id:'p'+i+'l'+lv,n:PLANETS[i].n+' L'+lv,d:'CLEAR LEVEL '+lv+' OF '+PLANETS[i].n,t:()=>(SAVE.prog[i]||0)>=lv});
+for(const [n,nm] of [[2,'TWO SYSTEMS'],[3,'THREE SYSTEMS'],[5,'FIVE SYSTEMS'],[7,'SEVEN SYSTEMS'],[9,'NINE SYSTEMS'],[10,'EVERY SYSTEM']])ACHV.push({id:'sysn'+n,n:nm,d:'CLEAR '+n+' SYSTEMS',t:()=>systemsDone()>=n});
 const cleared1=()=>(SAVE.prog[0]||0)>=3;
 const EXTRAS=[
  {id:'dog',n:'DOG',d:'A DOG WANDERS THE STATION',price:1200,need:['garden']},
@@ -1393,7 +1396,8 @@ function shopById(id){return SHOPS.find(s=>s.id===id)}
 function checkUnlocks(){
   if(typeof BOOKS!=='undefined'&&booksAvailable()>(SAVE.booksSeen||1)){SAVE.booksSeen=booksAvailable();SAVE.newBook=true;toast('A NEW BOOK IS FOR SALE IN THE LIBRARY!');toast(BOOKS[SAVE.booksSeen-1].title+' ('+BOOKS[SAVE.booksSeen-1].genre+')');save()}
   for(let i=1;i<PLANETS.length;i++)if(!SAVE.pSeen[i]&&planetOpen(i)){SAVE.pSeen[i]=1;toast('NEW DESTINATION: '+PLANETS[i].n);save()}
-  for(const a of ACHV)if(!SAVE.ach[a.id]&&a.t()){SAVE.ach[a.id]=1;toast('ACHIEVEMENT: '+a.n);save()}
+  {const got=[];for(const a of ACHV)if(!SAVE.ach[a.id]&&a.t()){SAVE.ach[a.id]=1;got.push(a)}
+   if(got.length){if(got.length>3)toast(got.length+' NEW ACHIEVEMENTS');else for(const a of got)toast('ACHIEVEMENT: '+a.n);save()}}
   for(const s of SHOPS)if(s.open()&&!SAVE.opened[s.id]){SAVE.opened[s.id]=1;toast('NEW SHOP UNLOCKED: '+s.n+'. BUY IT IN THE STATION MENU.');save()}
 }
 
@@ -1595,6 +1599,11 @@ const ROOMS=[
  {id:'atrium',d:6,x0:36,x1:228,t:'atrium',n:'ATRIUM',c:'#588d43'},
  {id:'mall',d:6,x0:312,x1:564,t:'mall',n:'GRAND MALL',c:'#cc99ff'},
  {id:'shipyard',d:6,x0:232,x1:288,t:'shop',shop:'shipyard'}];
+/* an achievement for every room built, and for how many rooms the station has */
+for(const r of ROOMS)if(r.id!=='hangar'&&r.id!=='sleep')ACHV.push({id:'rm_'+r.id,n:'BUILT: '+(r.n||(r.shop||r.id).toUpperCase()),d:'BUILD THE '+(r.n||(r.shop||r.id).toUpperCase()),t:()=>!!r.built});
+for(const n of [5,10,15,20,25,30])ACHV.push({id:'rooms'+n,n:n+' ROOMS',d:'HAVE '+n+' ROOMS BUILT ON THE STATION',t:()=>ROOMS.filter(r=>r.built).length>=n});
+ACHV.push({id:'allshops',n:'EVERY SHOP',d:'BUILD EVERY SHOP',t:()=>ROOMS.filter(r=>r.shop).every(r=>r.built)});
+ACHV.push({id:'allrooms',n:'EVERY ROOM',d:'BUILD EVERY ROOM ON THE STATION',t:()=>ROOMS.every(r=>r.built)});
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
 const SLOTS=ROOMS.map(r=>({d:r.d,x0:r.x0,x1:r.x1}));ROOMS.forEach((r,i)=>{r.slot0=i;r.slot=i});
 const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200};
@@ -3639,7 +3648,11 @@ function musMode(m){
 
 function musTick(){
   if(!AC)return;if(AC.state==='suspended'){AC.resume();return}
-  if(window.STU&&STU.pv){if(MODE==='studio'||(MODE==='hub'&&HUB.screen==='studio'))return;studioStop()}
+  // no hub music while the music studio is open: the muzak bus is silenced and nothing new is scheduled. the studio's own preview has its own chain
+  {const inStudio=MODE==='studio'||(MODE==='hub'&&HUB.screen==='studio');
+   if(mus.in)mus.in.gain.setTargetAtTime(inStudio?0:1,AC.currentTime,.1);
+   if(inStudio)return;
+   if(window.STU&&STU.pv)studioStop()}
   if(mus.mode==='arp'){if(!ARP.ready){arpSetup();if(ARP.out){ARP.barT=AC.currentTime+.35;ARP.out.gain.value=1;ARP.bassOut.gain.value=1;ARP.padOut.gain.value=1}}if(ARP.ready){arpTick();return}}
   const eighth=60/74/2;
   if(!(mus.next>AC.currentTime-2))mus.next=AC.currentTime+.2;   // after a long pause (a hidden tab, a suspended context) do not replay the missed notes
@@ -4361,8 +4374,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.47"></script>
-<script src="studio.js?v=1.47"></script>
+<script src="weapons.js?v=1.48"></script>
+<script src="studio.js?v=1.48"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
