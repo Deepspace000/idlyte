@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.95</title>
+<title>Idlyte v1.96</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1300,7 +1300,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.95';
+const VERSION='1.96';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2424,7 +2424,9 @@ function drawScreen(){
   if(HUB.scrId!==HUB.screen){HUB.scrId=HUB.screen;HUB.iscroll=0;HUB.rscroll=0}
   const over=def.rows.length===0&&def.info.length>17;HUB.infoMax=over?def.info.length-17:0;
   HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));
-  for(const l of (over?def.info.slice(HUB.iscroll,HUB.iscroll+17):def.info)){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;if(o.t)text(o.t,22,y,o.c,1);y+=8}
+  for(const l of (over?def.info.slice(HUB.iscroll,HUB.iscroll+17):def.info)){const o=typeof l==='string'?{t:l,c:'#bbbbbb'}:l;
+    if(o.ship!=null){const im=SPR.shipSets[o.ship][0],sy=o.part*im.height/4;ctx.imageSmoothingEnabled=false;ctx.drawImage(im,0,sy,im.width,im.height/4,22,y,46,8)}
+    if(o.t)text(o.t,(o.ship!=null||o.ind)?74:22,y,o.c,1);y+=8}
   if(over){const bx=HUB.iscroll>0,by=HUB.iscroll<HUB.infoMax;text(bx?'^':' ',296,38,'#70a4b2',1);text(by?'v':' ',296,168,'#70a4b2',1)}
   y+=4;
   // each row is an icon tile plus a name, one short line and a price pill, with a gap between rows; the focused row's full text shows in the strip at the bottom
@@ -3078,10 +3080,14 @@ function extraScreen(id,rows,info){
     L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(shipPower()+1),'#70a4b2');
 
     if(SHIPS.some((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i))){L('');L('SHIPS FOR SALE','#fff')}
+    const BLURB={8:['A BIG BLUE WARSHIP WITH 30 EXTRA HULL.','IT SOAKS UP HITS AND FIRES MUCH HARDER.'],9:['A GOLD FLAGSHIP FOR PEOPLE WHO LIKE TO WIN.','FOUR TIMES THE DAMAGE OF THE DRIFTER.'],10:['A WHITE LUXURY SHIP WITH 50 EXTRA HULL.','FIVE TIMES THE DAMAGE. LOOKS EXPENSIVE.'],11:['TWIN ENGINES AND A RED HOT HULL.','65 EXTRA HULL AND 6.5 TIMES THE DAMAGE.'],12:['THE BEST SHIP THERE IS. NOTHING IS BIGGER.','90 EXTRA HULL AND NINE TIMES THE DAMAGE.']};
     SHIPS.forEach((q,ad)=>{if(q.price<2e7||SAVE.ships.includes(ad))return;   // adverts for the luxury ships
-      const gain=Math.round(powerIf(SAVE,'ship',ad)-shipPowerRaw());
-      L('  '+q.n+'   '+shortGold(q.price)+' GOLD'+(SAVE.coins>=q.price?'   YOU CAN AFFORD IT':''),SAVE.coins>=q.price?G_:'#ffffaa');
-      L('    '+q.d+'. POWER +'+gain,'#70a4b2')});
+      const gain=Math.round(powerIf(SAVE,'ship',ad)-shipPowerRaw()),can=SAVE.coins>=q.price,bl=BLURB[ad]||[q.d,''];
+      const add=(k,t,c)=>info.push({t,c:c||'#bbbbbb',ship:ad,part:k});
+      add(0,q.n+'   '+shortGold(q.price)+' GOLD'+(can?'   YOU CAN AFFORD IT':''),can?G_:'#ffffaa');
+      add(1,bl[0],'#ffffff');add(2,bl[1],'#ffffff');
+      add(3,'HULL +'+q.hp+'   DAMAGE X'+q.dm+'   FIRE RATE X'+q.fr+'   POWER +'+gain,'#70a4b2');
+      L('')});
     if(SHIPS.some((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i)))L('  BUY THEM AT THE SHIP SHOP. THEY NEED THE SHIPYARD.','#6c6c6c');
     return 'SHIP STATS';
   }
