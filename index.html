@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.50</title>
+<title>Idlyte v1.51</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.50';
+const VERSION='1.51';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3436,7 +3436,10 @@ function arpPrep(sec){
     ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,[0,1,4,7,10]),7)],   // V prolonged over a dominant pedal: V7, i6/4, V7sus4, V7b9
     ()=>[X(0,[0,3,7]),Bs(X(0,m7),10),Bs(X(5,[0,3,7]),8),X(7,d7)],               // lament bass i, i7/b7, iv6, V7 (A G F E)
     ()=>[X(0,[0,3,7]),Bs(X(2,[0,3,6,10]),0),Bs(X(7,d7),11),X(0,[0,3,7]),Bs(X(8,[0,4,7]),0),Bs(X(2,d7),0),Bs(X(7,[0,4,7]),11),Bs(X(0,[0,3,7,11]),11)],   // in the manner of Bach, prelude no. 1: i, iio7/i, V7/3, i, VI/i, V7/V over tonic, V/3, i(maj7)/7
-    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d))                            // the Baroque circle of fifths sequence: i iv VII III VI iio V i
+    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d)),                           // the Baroque circle of fifths sequence: i iv VII III VI iio V i
+    ()=>[Pd(c(3),0),Pd(c(5),0),Pd(c(6),0),Pd(c(4),0)],            // tonic pedal under iv, VI, VII, V7
+    ()=>[Pd(c(0),7),Pd(c(3),7),Pd(c(1),7),Pd(X(7,[0,1,4,7,10]),7)],   // dominant pedal under i, iv, iio, V7b9
+    ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,d7),7),Pd(c(1),7),Pd(c(0),7),Pd(X(7,[0,1,4,7,10]),7),Pd(X(7,d7),7)]   // a long dominant pedal in the Bach manner: V7, i6/4, V7sus4, V7, iio, i6/4, V7b9, V7
   ]:[
     ()=>[c(0),X(0,d7),c(3),X(7,[0,4,8,10])],                      // I, I7, IV, augmented V
     ()=>[c(0),X(5,m7),X(10,[0,4,7,11]),c(0)],                     // I, borrowed minor iv, bVII (mixolydian), I
@@ -3446,15 +3449,20 @@ function arpPrep(sec){
     ()=>[X(4,m7),X(3,m7),X(2,m7),c(4)],                           // chromatic planing down: iii7, biii7, ii7, V7
     ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,[0,1,4,7,10]),7)],   // V prolonged over a dominant pedal
     ()=>[X(0,[0,4,7]),Bs(X(2,m7),0),Bs(X(7,d7),11),X(0,[0,4,7]),Bs(X(9,[0,3,7]),0),Bs(X(2,d7),0),Bs(X(7,[0,4,7]),11),Bs(X(0,[0,4,7,11]),11)],   // in the manner of Bach, prelude no. 1 in C: I, ii7/I, V7/3, I, vi/I, V7/V over tonic, V/3, Imaj7/7
-    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d))                            // the Baroque circle of fifths sequence: I IV viio iii vi ii V I
+    ()=>[0,3,6,2,5,1,4,0].map(d=>c(d)),                           // the Baroque circle of fifths sequence: I IV viio iii vi ii V I
+    ()=>[Pd(c(3),0),Pd(c(1),0),Pd(c(5),0),Pd(c(4),0)],            // tonic pedal under IV, ii, vi, V7
+    ()=>[Pd(c(0),7),Pd(c(3),7),Pd(c(1),7),Pd(X(7,[0,1,4,7,10]),7)],   // dominant pedal under I, IV, ii, V7b9
+    ()=>[Pd(X(7,d7),7),Pd(c(0),7),Pd(X(7,[0,5,7,10]),7),Pd(X(7,d7),7),Pd(c(1),7),Pd(c(0),7),Pd(X(7,[0,1,4,7,10]),7),Pd(X(7,d7),7)]   // a long dominant pedal in the Bach manner
   ];
-  sec.expI=inh?inh.expI:Math.floor(arpR()*EXP.length);
+  const PEDI=am?[8,12,13,14]:[6,9,10,11];   // the templates with a pedal point
+  sec.expI=inh?inh.expI:(arpR()<.4?PEDI[Math.floor(arpR()*PEDI.length)]:Math.floor(arpR()*EXP.length));
   sec.explore=EXP[sec.expI]();
   // a tiny bit of negative harmony: now and then a single chord is mirrored around the root-fifth axis
   const neg=a=>a.map(x=>arpR()<.05?arpNegChord(x,A):x);
   sec.prog=neg(sec.prog);sec.prog2=neg(sec.prog2);sec.explore=neg(sec.explore);
   // prolong some dominants: the last two strong bars become V7sus4 then V7 over a dominant pedal
-  if(arpR()<.35){sec.prog2[2]=Pd(X(7,[0,5,7,10]),7);sec.prog2[3]=Pd(c(4),7)}
+  if(arpR()<.55){sec.prog2[2]=Pd(X(7,[0,5,7,10]),7);sec.prog2[3]=Pd(c(4),7)}
+  if(arpR()<.28)for(const ch of sec.prog)ch.ped=A%12;   // a tonic pedal under the opening chords
   const ex=(a,p)=>a.map(x=>arpR()<p?arpExtend(x):x);   // extended chords: 9ths, 11ths, 13ths, #9s and more while exploring
   sec.prog=ex(sec.prog,.45);sec.prog2=ex(sec.prog2,.45);sec.explore=ex(sec.explore,.8);
   // modal sections: three stretches on the same tonic, each in the next mode, with harmony that fits the mode
@@ -3465,6 +3473,7 @@ function arpPrep(sec){
      sec.mod=mm;
      const mk=(mi,vi)=>ARPMODES[mi].v[vi%4].map(d=>arpModeChord(A,mi,d,arpR()<.6));
      sec.prog=mk(mm.m[0],mm.v[0]);sec.explore=mk(mm.m[1],mm.v[1]);sec.prog2=mk(mm.m[2],mm.v[2]);
+     for(const arr of [sec.prog,sec.explore,sec.prog2])if(arpR()<.4)for(const ch of arr)ch.ped=A%12;   // a drone on the tonic under a modal stretch
      sec.modes=mm.m.map(i=>ARPMODES[i].n);
      const last=ARPMODES[mm.m[2]].s;sec.lastMinor=last[2]===3;
    }}
@@ -3490,7 +3499,7 @@ function arpPrep(sec){
     default:sec.tail=[c(3),c(4)];sec.how='lift';
   }
   if(sec.mod&&sec.tail.length)sec.tail[0]=arpModeChord(A,sec.mod.m[2],3,false);   // the chord that leads out of a modal section belongs to the mode it ends in
-  if(sec.tail[1]===nextV&&arpR()<.45)nextV.ped=nextV.root;   // a dominant pedal under the arrival chord
+  if(sec.tail[1]===nextV&&arpR()<.7)nextV.ped=nextV.root;   // a dominant pedal under the arrival chord
   sec.tail=ex(sec.tail,.5);
 }
 function arpSetup(){
@@ -3525,27 +3534,62 @@ const ARPW=[
  {n:'ANDROMEDA',o:[['sawtooth',-16,.22,1],['sawtooth',-7,.22,1],['sawtooth',0,.22,1],['sawtooth',7,.22,1],['sawtooth',16,.22,1]],q:1.4,b:1500,ob:2000,fe:.3,lfo:800},
  {n:'FAIRLIGHT',o:[['fair',0,.7,1],['triangle',6,.25,2]],q:1.1,b:2400,ob:500,att:.02,lfo:300},
  {n:'OMNISPHERE',o:[['triangle',-9,.45,1],['sine',9,.45,2],['sawtooth',0,.14,1],['sine',0,.22,3],['sine',-5,.2,.5]],q:.9,b:1700,ob:900,fe:.5,att:.045,lfo:1000,hold:.9},
- {n:'OBERHEIM',o:[['sawtooth',-10,.4,1],['sawtooth',10,.4,1],['square',0,.12,1]],q:1.5,b:1500,ob:2300,fe:.28,lfo:400}];
-/* custom wave shapes, built once per audio context: a 25 percent pulse and a vocal-ish additive wave for the Fairlight voice */
-const WAVEC=new WeakMap();
+ {n:'OBERHEIM',o:[['sawtooth',-10,.4,1],['sawtooth',10,.4,1],['square',0,.12,1]],q:1.5,b:1500,ob:2300,fe:.28,lfo:400},
+ /* Commodore 64 (SID chip) lead sounds: pulse waves of different widths, sawtooth, triangle, pulse width modulation, delayed vibrato, ring modulation,
+    filter sweeps and noise chiffs, with the short attack and bright, buzzy edge of the real thing */
+ {n:'C64 PULSE 50',o:[['square',0,.32,1]],q:.6,b:5200,ob:0,att:.003,hold:.8},
+ {n:'C64 PULSE 25',o:[['pulse',0,.5,1]],q:.6,b:5200,ob:0,att:.003,hold:.8},
+ {n:'C64 PULSE 12',o:[['pulse12',0,.6,1]],q:.6,b:5200,ob:0,att:.003,hold:.8},
+ {n:'C64 SOFT PULSE',o:[['pulse37',0,.5,1]],q:.8,b:1800,ob:600,fe:.15,att:.006},
+ {n:'C64 PWM',o:[['pulse',-11,.4,1],['pulse12',11,.4,1],['square',0,.12,1]],q:.7,b:4800,ob:0,att:.004,vib:{r:5.2,c:6,d:.05}},
+ {n:'C64 SAW',o:[['sawtooth',0,.45,1]],q:.6,b:5200,ob:0,att:.003,hold:.8},
+ {n:'C64 TRIANGLE',o:[['triangle',0,.9,1]],q:.5,b:6000,ob:0,att:.004,vib:{r:5.5,c:14,d:.2}},
+ {n:'C64 VIBRATO',o:[['pulse',0,.5,1]],q:.6,b:5000,ob:0,att:.004,vib:{r:5.6,c:32,d:.15}},
+ {n:'C64 SYNC',o:[['sync',0,.55,1]],q:3,b:1400,ob:3000,fe:.4,att:.004},
+ {n:'C64 RING',ring:.5,o:[['sine',0,1,1]],q:.7,b:3500,ob:0,att:.004,g:1.1},
+ {n:'C64 FILTER SWEEP',o:[['sawtooth',-4,.35,1],['sawtooth',4,.35,1]],q:7,b:450,ob:3600,fe:.38,att:.004},
+ {n:'C64 PLUCK',o:[['pulse',0,.55,1]],q:1.2,b:2400,ob:2000,fe:.07,att:.002,hold:.22,chiff:.5},
+ {n:'C64 BRASS',o:[['sawtooth',-6,.32,1],['sawtooth',6,.32,1],['pulse',0,.22,1]],q:1,b:1500,ob:1800,fe:.12,att:.035,vib:{r:5.3,c:16,d:.25}},
+ {n:'C64 FLUTE',o:[['triangle',0,.7,1],['sine',0,.25,2]],q:.5,b:4000,ob:0,att:.06,vib:{r:5,c:18,d:.3},chiff:.15},
+ {n:'C64 ORGAN',o:[['square',0,.3,1],['square',0,.18,2],['square',0,.1,4]],q:.6,b:3600,ob:0,att:.006},
+ {n:'C64 GRIT',o:[['pulse12',0,.5,1],['sawtooth',7,.2,1]],q:2.4,b:2600,ob:1500,fe:.1,att:.002,chiff:.6},
+ {n:'C64 CHORUS PULSE',o:[['pulse',-14,.34,1],['pulse',14,.34,1],['square',0,.14,.5]],q:.7,b:4600,ob:0,att:.004,vib:{r:4.8,c:7,d:.1}},
+ {n:'C64 ROCK LEAD',o:[['sawtooth',-5,.3,1],['pulse12',5,.3,1]],q:1.6,b:3000,ob:1000,fe:.15,att:.005,vib:{r:5.7,c:24,d:.2},g:.9},
+ {n:'C64 SQUARE+TRI',o:[['square',0,.26,1],['triangle',0,.5,.5]],q:.6,b:4200,ob:0,att:.004}];
+/* custom wave shapes, built once per audio context: pulse waves of several widths, a vocal-ish additive wave (Fairlight) and a sync-like wave rich in upper harmonics */
+const WAVEC=new WeakMap(),CWAVES=new Set(['pulse','pulse12','pulse37','fair','sync']),PDUTY={pulse:.25,pulse12:.125,pulse37:.375};
 function customWave(X,key){
   let m=WAVEC.get(X);if(!m){m=new Map();WAVEC.set(X,m)}
   if(m.has(key))return m.get(key);
   const N=48,re=new Float32Array(N),im=new Float32Array(N);
-  if(key==='pulse'){const d=.25;for(let n=1;n<N;n++){const a=2/(n*Math.PI)*Math.sin(n*Math.PI*d);re[n]=a*Math.cos(n*Math.PI*d);im[n]=a*Math.sin(n*Math.PI*d)}}
+  if(PDUTY[key]!==undefined){const d=PDUTY[key];for(let n=1;n<N;n++){const a=2/(n*Math.PI)*Math.sin(n*Math.PI*d);re[n]=a*Math.cos(n*Math.PI*d);im[n]=a*Math.sin(n*Math.PI*d)}}
+  else if(key==='sync'){for(let n=1;n<N;n++)im[n]=(1/n)*(1+3*Math.exp(-((n-5)*(n-5))/6))}
   else{const am=[0,1,.12,.75,.1,.55,.08,.28,.06,.18,.05,.1,.03];for(let n=1;n<am.length;n++)im[n]=am[n]}
   const w=X.createPeriodicWave(re,im);m.set(key,w);return w;
 }
+const NOISEB=new WeakMap();
+function noiseBuf(X){let b=NOISEB.get(X);if(!b){b=X.createBuffer(1,Math.floor(X.sampleRate*.12),X.sampleRate);const d=b.getChannelData(0);let sd=99;for(let i=0;i<d.length;i++){sd=(sd*1103515245+12345)&0x7fffffff;d[i]=(sd/0x7fffffff)*2-1}NOISEB.set(X,b)}return b}
 /* one arpeggio note. X is the audio context (the live one unless a piece is being rendered offline).
    vc = {a,b,x}: voice a fades into voice b as x goes from 0 to 1 (the slow synth morph); without it the chosen voice plays */
 function arpVoiceNote(W,sc,t,m,dur,vol,dest,X){
-  const f=mtof(m),g=X.createGain(),lp=X.createBiquadFilter();
+  const f=mtof(m),g=X.createGain(),lp=X.createBiquadFilter(),life=t+dur*2.6+.1;
   lp.type='lowpass';lp.Q.value=W.q;
   const base=W.b+(W.lfo||0)*(.5+.5*Math.sin(t*.21));
   lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+(W.fe||Math.min(.3,dur*1.5)));
   const v=vol*(W.g||1)*sc,hold=W.hold||.72;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+(W.att||.006));g.gain.setTargetAtTime(0,t+dur*hold,dur*.16);   // hold, then release: a long dur is legato, a short one is staccato
-  for(const [ty,dt,gv,mu] of W.o){const o=X.createOscillator(),og=X.createGain();og.gain.value=gv*.7;if(ty==='pulse'||ty==='fair')o.setPeriodicWave(customWave(X,ty));else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
+  // delayed vibrato: a slow LFO on the pitch that fades in after the note has started
+  let vib=null;
+  if(W.vib){const lf=X.createOscillator();vib=X.createGain();lf.frequency.value=W.vib.r;vib.gain.setValueAtTime(0,t);vib.gain.setValueAtTime(0,t+W.vib.d);vib.gain.linearRampToValueAtTime(W.vib.c,t+W.vib.d+.25);lf.connect(vib);lf.start(t);lf.stop(life)}
+  if(W.ring){
+    // ring modulation: the carrier is multiplied by a second oscillator (the SID ring mod voice)
+    const car=X.createOscillator(),mod=X.createOscillator(),rg=X.createGain();car.type='sine';mod.type='sine';car.frequency.value=f;mod.frequency.value=f*W.ring;rg.gain.value=0;
+    car.connect(rg);mod.connect(rg.gain);if(vib){vib.connect(car.detune);vib.connect(mod.detune)}rg.connect(lp);car.start(t);mod.start(t);car.stop(life);mod.stop(life);
+  }else for(const [ty,dt,gv,mu] of W.o){const o=X.createOscillator(),og=X.createGain();og.gain.value=gv*.7;if(CWAVES.has(ty))o.setPeriodicWave(customWave(X,ty));else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;if(vib)vib.connect(o.detune);o.connect(og);og.connect(lp);o.start(t);o.stop(life)}
+  if(W.chiff){   // a short burst of noise at the start of the note, the percussive edge of a C64 lead
+    const ns=X.createBufferSource(),hp=X.createBiquadFilter(),ng=X.createGain();ns.buffer=noiseBuf(X);hp.type='bandpass';hp.frequency.value=3200;hp.Q.value=.9;
+    ng.gain.setValueAtTime(0,t);ng.gain.linearRampToValueAtTime(v*W.chiff*1.6,t+.002);ng.gain.exponentialRampToValueAtTime(.0001,t+.07);ns.connect(hp);hp.connect(ng);ng.connect(g);ns.start(t);ns.stop(t+.1);
+  }
   lp.connect(g);g.connect(dest||ARP.out);
 }
 function arpNote(t,m,dur,vol,dest,X,vc){
@@ -3624,9 +3668,11 @@ function arpBar(t){
     ARPN('a',t+k*step,note(i),step*leg,.05*acc,vc);
   }
   // pad chord and bass: only when the PAD option is on (the default is the sequencer alone)
+  const bInvR=arpR(),bInvP=Math.floor(arpR()*6);   // drawn every bar so a piece never changes when the pad is switched on or off
+  const bassInv=bInvR<.7?[1,1,1,2,2,3][bInvP]:0;   // 70 percent of the bass notes are inversions: the third, fifth or seventh of the chord
   const padOn=ARP.padOverride!==undefined?ARP.padOverride:(mus.pad||ARP.padForce);
   if(padOn){const pb=60+((((ch.root-60)%12)+12)%12);for(const o of (ch.base||ch.tones).slice(0,4))ARPP('p',t,pb+o,bar*1.05,.016);
-    const bp=ped!==undefined?ped:ch.bass!==undefined?ch.bass:ch.root,bm=36+(((bp-36)%12)+12)%12;
+    const bp=ped!==undefined?ped:ch.bass!==undefined?ch.bass:(ch.root+ch.tones[Math.min(bassInv,ch.tones.length-1)])%12,bm=36+(((bp-36)%12)+12)%12;
     ARPB('b',t,bm,beat*3.4,.085);ARPB('b',t+beat*2,bm,beat*1.4,.055)}
   if(ARP.rec)ARP.rec.push({bn:ARP.bn,si:ARP.pi,bar:ARP.bar,ch:ch,sub:n,leg:leg,dir:dir,oc:oc,inv:inv,ped:ped});
   ARP.bn++;
@@ -4375,8 +4421,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.50"></script>
-<script src="studio.js?v=1.50"></script>
+<script src="weapons.js?v=1.51"></script>
+<script src="studio.js?v=1.51"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
