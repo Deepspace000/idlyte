@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.66</title>
+<title>Idlyte v1.67</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -647,11 +647,20 @@ function buildScript(pl,level){
   {const pd=PACKS[PLANETS.indexOf(pl)];if(pd&&pd.script)pd.script(sc,{add,vwave,level:lv,LEN:LEVEL_LEN})}
   sc.sort((a,b)=>a.t-b.t);return sc;
 }
+/* System power: every system from the Ice Moon on is 30% stronger than its listed power (Open Space and the Asteroid Belt are not).
+   If your ship power is more than 20% above that, the system rises to within 10% of yours; if you are below or close, it stays put.
+   The Open Space tutorial never scales. The unlock requirement for a system is unchanged. */
+function sysBase(i){const p=PLANETS[i];return i>=2?p.pow*1.3:p.pow}
+function sysPower(i){
+  const p=PLANETS[i],b=sysBase(i);if(i===0)return 0;
+  const me=shipPower();return me>b*1.2?Math.round(me/1.1):Math.round(b);
+}
+function sysScale(i){const p=PLANETS[i];if(i===0||!p.pow)return 1;return Math.max(1,Math.min(3,sysPower(i)/p.pow))}
 function newRun(){
   SHIPSC=(SHIPS[SAVE.ship]||SHIPS[0]).sc||1;
-  const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,loop=MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6;
-  const st=baseStats(),fedB=SAVE.fed>0;if(fedB)st.speed*=1.15;if(SAVE.fresh>0){st.speed*=1.1;st.fire*=1.1}if(SAVE.refresh>0)st.startShield=(st.startShield||0)+3;
-  G={fedB,t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],fg:[],fgT:5,flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl,msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
+  const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,sc=sysScale(SAVE.planet||0),loop=(MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6)*sc;
+  const st=baseStats(),fedB=SAVE.fed>0;st.coinMul*=1+(sc-1)*.5;if(fedB)st.speed*=1.15;if(SAVE.fresh>0){st.speed*=1.1;st.fire*=1.1}if(SAVE.refresh>0)st.startShield=(st.startShield||0)+3;
+  G={fedB,t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],fg:[],fgT:5,flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl+(SAVE.planet?'  POWER '+sysPower(SAVE.planet||0):''),msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
   P={x:40,y:100,hp:st.hp,inv:1.5,fireT:0,wpn:st.startGun,wpnT:0,shield:st.startShield,shHit:st.startShield>0?st.shieldHits:0,mag:0,anim:0,trail:[]};
   E=[];PB=[];EB=[];PK=[];FX=[];
 }
@@ -812,7 +821,7 @@ function hurtPlayer(){
   if(P.inv>0||G.state!=='play')return;
   if(P.shield>0){const br=--P.shHit<=0;if(br)P.shield=0;P.inv=1;boom(P.x,P.y,10,false);if(window.WX)WX.shieldHit(br);return}
   P.hp--;P.inv=G.stats.damper;shake=.3;BORDER='#883232';borderT=.12;boom(P.x,P.y,14,false);
-  if(P.wpn>G.stats.startGun){P.wpn--;P.wpnT=10}
+  if(P.wpn>=3&&P.wpn>G.stats.startGun){P.wpn--;P.wpnT=10}   // a hit only costs a gun level once the gun is at level 3 or more
   if(P.hp<=0){G.state='dead';G.timer=3.2;boom(P.x,P.y,60,true);shake=.8;SAVE.runs++;if(G.score>SAVE.best)SAVE.best=G.score;save()}
 }
 function killEnemy(e){
@@ -1255,7 +1264,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.66';
+const VERSION='1.67';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3168,7 +3177,7 @@ function extraScreen(id,rows,info){
     const pw=shipPower();
     L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(pw+1),'#70a4b2');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
     PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=i===0||(SAVE.prog[i-1]||0)>=3;
-      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3':(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
+      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3'+(i?'  POWER '+sysPower(i):''):(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
         fn:()=>{setPlanet(i);toast('DESTINATION SET: '+p.n+' LEVEL '+SAVE.level);save()}})});
     return 'STAR MAP';
   }
