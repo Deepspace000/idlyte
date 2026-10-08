@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.46</title>
+<title>Idlyte v1.47</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.46';
+const VERSION='1.47';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4199,7 +4199,7 @@ function drawTSettings(){
    ['MUSIC',mus.on?'ON':'OFF',()=>setMusic(!mus.on)],
    ['ARPEGGIO SOUND',ARPW[mus.wave|0].n,()=>setWave((mus.wave|0)+1)],
    ['SYNTH MORPH',mus.morph!==false?'ON':'OFF',()=>setMorph(mus.morph===false)],
-   ['MUSIC STUDIO',(()=>{let o=false;try{o=localStorage.getItem('idlyte_studio')==='1'}catch(e){}return o?'OPEN':'BUY IN STATION SETTINGS'})(),()=>{let o=false;try{o=localStorage.getItem('idlyte_studio')==='1'}catch(e){}if(o){MODE='studio';UI.focus=0}}],
+   ['MUSIC STUDIO','OPEN',()=>{MODE='studio';UI.focus=0}],   // always available from the main menu settings
    ['PAD AND BASS',mus.pad?'ON':'OFF',()=>setPad(!mus.pad)],
    ['SOUND EFFECTS',mus.mute?'OFF':'ON',()=>setMute(!mus.mute)]];
   rows.forEach((r,i)=>{const y=24+i*12;
@@ -4361,8 +4361,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.46"></script>
-<script src="studio.js?v=1.46"></script>
+<script src="weapons.js?v=1.47"></script>
+<script src="studio.js?v=1.47"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
