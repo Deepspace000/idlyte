@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.55</title>
+<title>Idlyte v1.56</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -478,7 +478,9 @@ let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0,ratio:0,size:0,sharp:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
 if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
-function save(){if(!CURSLOT)return;SAVE.savedAt=Date.now();try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
+function save(force){if(!CURSLOT)return;if(document.hidden&&!force)return;
+  if(force){const ex=readSlot(CURSLOT);if(ex&&(ex.savedAt||0)>(SAVE.savedAt||0)+50)return}   // another window saved more recently: do not overwrite it with this older copy
+  SAVE.savedAt=Date.now();try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
 const SHIPS=[
  {n:'DRIFTER',price:0,hp:0,sp:1,fr:1,dm:1,opt:0,d:'THE STANDARD SHIP'},
@@ -1253,7 +1255,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.55';
+const VERSION='1.56';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2858,7 +2860,7 @@ function drawRoom(r,t){
   drawTradeBadge(r,x,y);
 }
 function leaveToTitle(){
-  save();HUB.screen=null;MODE='title';UI.focus=0;TITLE_INIT=false;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display='none';
+  save(true);CURSLOT=0;HUB.screen=null;MODE='title';UI.focus=0;TITLE_INIT=false;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display='none';
 }
 function menuBtn(x,y,w,h,confirm,fn){
   uiBtn(x,y,w,h,fn,(f)=>{ctx.fillStyle=confirm?'#9a3a3a':f?'#6c5eb5':'#352879';ctx.fillRect(x,y,w,h);ctx.fillStyle=confirm?'#ff7777':'#9a8fe0';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);ctx.fillStyle='#1c1840';ctx.fillRect(x,y+h-1,w,1);ctx.fillRect(x+w-1,y,1,h);textC2(confirm?'SURE?':'MENU',x+(w>>1),y+3,confirm?'#ffffff':'#bbbbbb')});
@@ -4361,7 +4363,19 @@ document.querySelectorAll('#menu button').forEach(b=>b.addEventListener('click',
 initSaves();mus.on=SAVE.set.music!==0;muteInit();mus.vol=[.4,.7,1][SAVE.set.vol]||1;applySettings();
 refreshSpeedBtns();
 requestAnimationFrame(frame);
-setInterval(save,5000);
+/* The game used to write its in-memory save into the slot every 5 seconds from any screen, even from a hidden tab or the title screen.
+   With the game open twice (a home-screen icon plus a browser tab, or an old tab) two stale copies overwrote each other, so one slot kept flipping
+   between different gold and planet counts. Now only the visible tab, and only while playing, writes; a tab that comes back adopts a newer save. */
+setInterval(()=>{if(MODE==='hub'||MODE==='game'||MODE==='loot'||MODE==='arcade')save()},5000);
+function adoptNewer(){
+  if(!CURSLOT||MODE!=='hub')return;
+  const o=readSlot(CURSLOT);
+  if(o&&(o.savedAt||0)>(SAVE.savedAt||0)+50){SAVE=Object.assign(freshSave(),o);finishLoad();syncBuilt();toast('SAVE UPDATED FROM ANOTHER WINDOW')}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(MODE==='hub'||MODE==='loot'||MODE==='arcade')save(true)}else adoptNewer();
+});
+addEventListener('pagehide',()=>{if(MODE==='hub'||MODE==='loot'||MODE==='arcade')save(true)});
 document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   const sp=+b.dataset.sp,need=SPEED_NEED[sp];if(systemsDone()<need){if(MODE==='game'&&G){G.msg='X'+sp+' LOCKED. CLEAR '+need+(need>1?' SYSTEMS':' SYSTEM')+' FIRST';G.msgT=2.5}return}
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
