@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.71</title>
+<title>Idlyte v1.72</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -572,6 +572,17 @@ function drawPowerMeter(x,y){
   ctx.fillStyle='#70a4b2';ctx.fillRect(bx+1,y+1,Math.max(0,Math.round((bw-2)*f)),3);
 }
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&(SAVE.prog[i-1]||0)>=3&&shipPower()>=PLANETS[i].pow)}
+function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=Math.round(u.base*Math.pow(u.mul,j)/5)*5;return t}
+const RESET_FEE=1000;
+function resetRow(shop){
+  let spent=0,any=false;for(const k in UPG)if(UPG[k].shop===shop&&(SAVE.up[k]||0)>0){spent+=upSpent(k);any=true}
+  const cf=HUB.resetShop===shop&&HUB.resetAt&&performance.now()-HUB.resetAt<4000;
+  return {n:cf?'PRESS AGAIN TO RESET':'RESET UPGRADES',d:any?'GIVES BACK ALL '+spent+' GOLD YOU SPENT HERE. THE FEE IS '+RESET_FEE+' GOLD':'YOU HAVE NOTHING TO RESET HERE YET',r:String(RESET_FEE),ok:any&&SAVE.coins>=RESET_FEE,
+    msg:any?'YOU NEED '+RESET_FEE+' GOLD TO RESET':'NOTHING TO RESET',
+    fn:()=>{if(!(cf)){HUB.resetShop=shop;HUB.resetAt=performance.now();toast('PRESS AGAIN TO RESET YOUR '+shop.toUpperCase()+' UPGRADES');return}
+      let back=0;for(const k in UPG)if(UPG[k].shop===shop&&(SAVE.up[k]||0)>0){back+=upSpent(k);SAVE.up[k]=0}
+      SAVE.coins+=back-RESET_FEE;HUB.resetAt=0;toast('UPGRADES RESET. +'+back+' GOLD BACK, '+RESET_FEE+' FEE');checkUnlocks();save()}};
+}
 function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return Math.round(u.base*Math.pow(u.mul,l)/5)*5}
 const CREW=[
  {id:'nav',n:'NAVIGATOR',d:'FASTER SHIP, BETTER DODGING',cost:[1500,6000,20000]},
@@ -1266,7 +1277,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.71';
+const VERSION='1.72';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2025,6 +2036,7 @@ function screenDef(id){
       rows.push({ic:k,n:u.n+(u.max>1?'  LV '+l+'/'+u.max:(l?'  (BUILT)':'')),d:need?'NEEDS ENGINEER LV '+u.eng+': '+u.d:u.d,r:mx?'MAX':need?'LOCKED':String(p),ok:!mx&&!need&&SAVE.coins>=p,pw:(!mx&&!need)?[shipPowerRaw(),powerIf(SAVE.up,k,l+1)]:null,fn:buy(p,()=>{SAVE.up[k]=l+1;checkUnlocks()})});}
     if(id==='weapons'&&window.WX)WX.shopRows(rows);
     if(id==='armour'&&window.WX)WX.shieldRows(rows);
+    if(id==='weapons'||id==='armour')rows.push(resetRow(id));
   }else if(id==='crew'){
     title='CREW AGENCY';info.push('CREW HELP YOUR SHIP BY THEMSELVES. BETTER CREW HELP MORE.');info.push({t:'WALLET '+SAVE.coins+' GOLD   SHIP POWER '+shipPower(),c:'#70a4b2'});
     for(const c of CREW){const l=SAVE.crew[c.id]||0,mx=l>=3,p=mx?0:c.cost[l];
