@@ -21,7 +21,7 @@ cv.addEventListener('pointerdown',e=>{if(MODE==='arcade'&&AR&&AR.g2)ptr=ptrX(e)}
 /* Star Runner: drag a finger or the mouse anywhere to move the ship. keys and the on-screen arrows still work. */
 const SD={on:false,tid:null,id:null,x:0,y:0};
 function sdActive(){return MODE==='arcade'&&AR&&AR.g2==='shm'&&AR.state==='play'}
-function sdMove(cx,cy){const r=cv.getBoundingClientRect(),A=AR;A.x=Math.max(14,Math.min(190,A.x+(cx-SD.x)*W/r.width));A.y=Math.max(26,Math.min(180,A.y+(cy-SD.y)*H/r.height));SD.x=cx;SD.y=cy}
+function sdMove(cx,cy){const r=cv.getBoundingClientRect(),A=AR;A.x=Math.max(14,Math.min(190,A.x+(cx-SD.x)*W/r.width));A.y=Math.max(26,Math.min(166,A.y+(cy-SD.y)*H/r.height));SD.x=cx;SD.y=cy}
 document.addEventListener('pointerdown',e=>{if(!sdActive()||e.pointerType==='touch'||(e.target.closest&&e.target.closest('button')))return;SD.on=true;SD.tid=null;SD.id=e.pointerId;SD.x=e.clientX;SD.y=e.clientY},true);
 document.addEventListener('pointermove',e=>{if(SD.on&&SD.tid===null&&e.pointerId===SD.id&&sdActive())sdMove(e.clientX,e.clientY)});
 document.addEventListener('pointerup',e=>{if(SD.on&&SD.tid===null&&e.pointerId===SD.id)SD.on=false});
@@ -48,11 +48,11 @@ function overlay(A,msg,sub){
   textC('CONTINUE IN '+Math.ceil(A.cd)+'   FIRE = CONTINUE (1 CREDIT)',110,'#70a4b2',1);
 }
 function lose(A){A.state='over';A.cd=10;beep(150,.5,'sawtooth',.05)}
-function boom(A,x,y,n,c){for(let i=0;i<(n||8);i++){const a=Math.random()*6.28,s=rnd(20,90);A.fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rnd(.3,.7),c:c||['#ffffff','#b8c76f','#ff9966','#ff7777'][i%4]})}}
+function boom(A,x,y,n,c){A.fx.push({x:x-3,y:y-3,vx:0,vy:0,t:.08,c:'#ffffff',big:1});for(let i=0;i<(n||8);i++){const a=Math.random()*6.28,s=rnd(20,90);A.fx.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rnd(.3,.7),c:c||['#ffffff','#b8c76f','#ff9966','#ff7777'][i%4]})}}
 function fxUpdate(A,dt){for(const f of A.fx){f.t-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt}A.fx=A.fx.filter(f=>f.t>0)}
-function fxDraw(A){for(const f of A.fx)rect(f.x,f.y,2,2,f.c)}
+function fxDraw(A){for(const f of A.fx){if(f.big)rect(f.x,f.y,7,7,f.c);else rect(f.x,f.y,f.t>.4?3:2,f.t>.4?3:2,f.c)}}
 function addScore(A,n,x,y){A.score+=n;if(x!==undefined)A.pops.push({x,y,t:.7,s:String(n)});const k='arcadeHi_'+A.g2}
-function popsDraw(A,dt){for(const p of A.pops){p.t-=dt;text(p.s,p.x|0,(p.y-(0.7-p.t)*14)|0,'#ffffff',1)}A.pops=A.pops.filter(p=>p.t>0)}
+function popsDraw(A,dt,col){for(const p of A.pops){p.t-=dt;text(p.s,p.x|0,(p.y-(0.7-p.t)*14)|0,col||'#ffffff',1)}A.pops=A.pops.filter(p=>p.t>0)}
 function over(A,dt,fire){A.cd-=dt;if(A.cd<=0)arcadeExit()}
 function cont(A){
   if((SAVE.credits||0)<1){toast('NO CREDITS LEFT');return false}
@@ -102,12 +102,17 @@ const brk={
   fire(A){const b=A.balls.find(q=>q.stuck);if(b){b.stuck=false;const a=rnd(-.4,.4);b.vx=Math.sin(a)*130;b.vy=-Math.cos(a)*130;beep(600,.06,'square',.03)}},
   draw(A,dt){
     for(const s of STARS){if(s.l===2)continue;ctx.fillStyle=s.c;ctx.fillRect(s.x|0,s.y|0,1,1)}
-    for(const k of A.br){if(!k.a)continue;const c=PC[k.r%7];rect(k.x,k.y,23,7,c);rect(k.x,k.y,23,1,'#ffffff55');rect(k.x,k.y+6,23,1,'#00000066');rect(k.x+22,k.y,1,7,'#00000055');if(k.hp>1)rect(k.x+2,k.y+2,19,3,'#ffffff33')}
+    for(let y=14;y<H;y+=6)rect(0,y,W,3,'#0a0a1e');
+    rect(0,14,3,H-14,'#352879');rect(W-3,14,3,H-14,'#352879');rect(0,14,1,H-14,'#6c5eb5');rect(W-1,14,1,H-14,'#6c5eb5');rect(0,14,W,2,'#352879');
+    for(const k of A.br){if(!k.a)continue;const c=PC[k.r%7];rect(k.x+1,k.y,22,7,c);rect(k.x+1,k.y,22,2,'#ffffffaa');rect(k.x+1,k.y,1,7,'#ffffff77');rect(k.x+1,k.y+5,22,2,'#00000077');rect(k.x+22,k.y,1,7,'#00000099');if(k.hp>1){rect(k.x+3,k.y+2,18,2,'#ffffff55');rect(k.x+1,k.y,22,1,'#ffffff')}}
     for(const p of A.pu){rect(p.x-6,p.y-3,12,7,'#000');rect(p.x-5,p.y-2,10,5,{W:'#70a4b2',M:'#cc99ff',S:'#b8c76f',L:'#ff7777'}[p.k]);text(p.k,p.x-2,p.y-2,'#fff',1)}
-    const pw=A.pw;rect(A.px-pw/2,184,pw,5,'#bbbbbb');rect(A.px-pw/2,184,pw,1,'#ffffff');rect(A.px-pw/2,188,pw,1,'#444');rect(A.px-pw/2,184,4,5,'#ff7777');rect(A.px+pw/2-4,184,4,5,'#ff7777');
-    for(const b of A.balls){rect(b.x-2,b.y-2,5,5,'#ffffff');rect(b.x-1,b.y-1,3,3,'#b8c76f')}
-    fxDraw(A);popsDraw(A,dt);
-    for(let i=0;i<A.lives-1;i++)rect(6+i*14,192,10,3,'#bbbbbb');
+    const pw=A.pw;rect(A.px-pw/2,184,pw,5,'#959595');rect(A.px-pw/2,184,pw,1,'#ffffff');rect(A.px-pw/2,185,pw,1,'#bbbbbb');rect(A.px-pw/2,188,pw,1,'#444');rect(A.px-pw/2,184,3,5,'#ff7777');rect(A.px+pw/2-3,184,3,5,'#ff7777');rect(A.px-pw/2,184,3,1,'#ffffff');rect(A.px+pw/2-3,184,3,1,'#ffffff');
+    for(const b of A.balls){b.tr=b.tr||[];b.tr.push(b.x,b.y);if(b.tr.length>12)b.tr.splice(0,2);
+      for(let i=0;i<b.tr.length;i+=4){const g=i/b.tr.length;rect(b.tr[i]-1,b.tr[i+1]-1,3,3,g<.4?'#352879':g<.75?'#70a4b2':'#9ad2e0')}
+      rect(b.x-2,b.y-2,4,4,'#ffffff');rect(b.x-2,b.y-2,1,1,'#9ad2e0');rect(b.x+1,b.y+1,1,1,'#bbbbbb')}
+    fxDraw(A);popsDraw(A,dt,'#b8c76f');
+    for(let i=0;i<A.lives-1;i++){rect(8+i*16,190,12,4,'#bbbbbb');rect(8+i*16,190,12,1,'#ffffff');rect(8+i*16,193,12,1,'#444');rect(8+i*16,190,2,4,'#ff7777');rect(18+i*16,190,2,4,'#ff7777')}
+    text('X'+Math.max(0,A.lives-1),W-20,191,'#ffffff',1);
     hud(A,'LEVEL '+A.level,A.wide>0?'WIDE':A.slow>0?'SLOW':'');
     if(A.balls.some(b=>b.stuck)&&A.state==='play')textC('FIRE TO LAUNCH',150,'#ffffff',1);
     if(A.state==='over')overlay(A,'GAME OVER','SCORE '+(A.score|0));
@@ -116,11 +121,11 @@ const brk={
 
 /* ================= STAR RUNNER (horizontal shoot em up) ================= */
 const shm={
-  start(){const A=base({g2:'shm'});A.x=40;A.y=100;A.pb=[];A.en=[];A.eb=[];A.pu=[];A.wave=1;A.spawnT=1;A.wt=0;A.wpn=1;A.invT=1.5;A.boss=null;A.bgx=0;return A},
+  start(){const A=base({g2:'shm'});A.x=40;A.y=100;A.st=[];for(let i=0;i<90;i++){const l=i%3;A.st.push({x:Math.random()*W,y:16+Math.random()*160,l})}A.scroll=0;A.pb=[];A.en=[];A.eb=[];A.pu=[];A.wave=1;A.spawnT=1;A.wt=0;A.wpn=1;A.invT=1.5;A.boss=null;A.bgx=0;return A},
   tick(A,dt){
     if(A.state==='over'){over(A,dt);return}
     A.t+=dt;fxUpdate(A,dt);A.wt+=dt;if(A.invT>0)A.invT-=dt;
-    let dx=(RIGHT()?1:0)-(LEFT()?1:0),dy=(DOWN()?1:0)-(UP()?1:0);A.x=Math.max(14,Math.min(190,A.x+dx*100*dt));A.y=Math.max(26,Math.min(180,A.y+dy*100*dt));
+    let dx=(RIGHT()?1:0)-(LEFT()?1:0),dy=(DOWN()?1:0)-(UP()?1:0);A.x=Math.max(14,Math.min(190,A.x+dx*100*dt));A.y=Math.max(26,Math.min(166,A.y+dy*100*dt));
     A.fire-=dt;if(A.fire<=0){A.fire=.16;const w=A.wpn;   // guns fire all the time, so a touch screen needs no fire button
       A.pb.push({x:A.x+12,y:A.y,vx:260,vy:0});if(w>=2){A.pb.push({x:A.x+8,y:A.y-5,vx:260,vy:-30},{x:A.x+8,y:A.y+5,vx:260,vy:30})}if(w>=3){A.pb.push({x:A.x+6,y:A.y-8,vx:240,vy:-70},{x:A.x+6,y:A.y+8,vx:240,vy:70})}beep(1100,.04,'square',.025)}
     for(const b of A.pb){b.x+=b.vx*dt;b.y+=b.vy*dt}A.pb=A.pb.filter(b=>b.x<W+4&&b.y>14&&b.y<H);
@@ -151,17 +156,24 @@ const shm={
       if(hit){A.lives--;boom(A,A.x,A.y,16);A.wpn=Math.max(1,A.wpn-1);A.invT=2;A.x=40;A.y=100;if(A.lives<=0)lose(A)}}
   },
   draw(A,dt){
-    for(const s of STARS){s.x-=STAR_V[s.l]*dt*1.2;if(s.x<0){s.x+=W;s.y=14+Math.random()*180}ctx.fillStyle=s.c;ctx.fillRect(s.x|0,s.y|0,s.l===4?4:1,1)}
+    A.scroll+=dt*60;
+    for(const s of A.st){s.x-=(14+s.l*30)*dt*(A.state==='over'?.3:1);if(s.x<0){s.x+=W;s.y=16+Math.random()*160}ctx.fillStyle=['#444444','#959595','#ffffff'][s.l];ctx.fillRect(s.x|0,s.y|0,s.l===2?2:1,1)}
+    {const sc=A.scroll;for(let x=0;x<W;x+=4){const wx=Math.floor((x+sc)/4);const hh=6+((wx*7919)%11)+Math.round(4*Math.sin(wx*.21));rect(x,H-hh,4,hh,'#1c1840');rect(x,H-hh,4,2,'#352879');if(wx%5===0)rect(x+1,H-hh-3,2,3,'#6c5eb5')}
+      for(let x=0;x<W;x+=3){const wx=Math.floor((x+sc*1.8)/3);if((wx*31)%9===0)rect(x,H-4,2,2,'#6f3d86')}}
     for(const p of A.pu){rect(p.x-5,p.y-4,10,8,'#000');rect(p.x-4,p.y-3,8,6,p.k==='P'?'#ff9966':'#ff7777');text(p.k,p.x-2,p.y-2,'#fff',1)}
     for(const e of A.en){const fr=SPR[e.k==='ring'?'ring':e.k==='dart'?'dart':e.k==='cross'?'cross':'pod'];const f=fr[Math.floor(A.t*8)%fr.length];ctx.drawImage(f,(e.x-f.width/2)|0,(e.y-f.height/2)|0)}
     const B=A.boss;if(B){const x=B.x,y=B.y;rect(x-26,y-30,52,60,'#222');rect(x-24,y-28,48,56,'#6c6c6c');rect(x-24,y-28,48,6,'#bbbbbb');rect(x-30,y-8,10,16,'#ff7777');rect(x-14,y-12,28,24,'#444');rect(x-10,y-8,20,16,Math.floor(A.t*6)%2?'#ff7777':'#9a3a3a');rect(x-4,y-3,8,6,'#fff');
       rect(x-26,y-34,52,3,'#000');rect(x-26,y-34,52*B.hp/B.mhp,3,'#ff7777')}
-    for(const b of A.pb){rect(b.x-3,b.y-1,6,2,'#70a4b2');rect(b.x,b.y-1,3,1,'#ffffff')}
+    for(const b of A.pb){rect(b.x-4,b.y-1,7,2,'#b8c76f');rect(b.x+1,b.y-1,3,2,'#ffffff');rect(b.x-8,b.y,4,1,'#6f4f25')}
     for(const b of A.eb){rect(b.x-2,b.y-2,5,5,'#9a3a3a');rect(b.x-1,b.y-1,3,3,'#ff7777');rect(b.x,b.y,1,1,'#fff')}
-    if(A.state!=='over'&&(A.invT<=0||Math.floor(A.t*14)%2)){const f=SPR.shipSets[SAVE.ship||0][Math.floor(A.t*6.5)%16];
-      rect(A.x-18-Math.random()*5,A.y-1,12,3,'#ff9966');rect(A.x-16,A.y,8,1,'#ffffff');ctx.drawImage(f,(A.x-12)|0,(A.y-8)|0,24,17)}
+    if(A.state!=='over'&&(A.invT<=0||Math.floor(A.t*14)%2)){const x=A.x|0,y=A.y|0,fl=Math.floor(A.t*20)%3;
+      rect(x-17-fl*2,y-1,5+fl*2,3,'#ff9966');rect(x-15-fl,y,3+fl,1,'#ffffaa');rect(x-13,y-1,2,3,'#ffffff');
+      rect(x-12,y-6,12,3,'#6c6c6c');rect(x-12,y-6,12,1,'#bbbbbb');rect(x-12,y+3,12,3,'#6c6c6c');rect(x-12,y+5,12,1,'#444444');
+      rect(x-11,y-3,22,6,'#959595');rect(x-11,y-3,22,1,'#ffffff');rect(x-11,y-2,20,1,'#bbbbbb');rect(x-11,y+2,22,1,'#444444');
+      rect(x+9,y-2,5,4,'#bbbbbb');rect(x+13,y-1,3,2,'#ffffff');rect(x+16,y,1,1,'#ffffff');
+      rect(x+1,y-4,7,3,'#70a4b2');rect(x+2,y-4,3,1,'#ffffff');rect(x-6,y-1,5,2,'#444444');rect(x-10,y-1,2,2,'#ff7777')}
     fxDraw(A);popsDraw(A,dt);
-    for(let i=0;i<A.lives-1;i++)rect(6+i*10,192,7,3,'#bbbbbb');
+    for(let i=0;i<A.lives-1;i++){rect(6+i*12,18,9,3,'#bbbbbb');rect(6+i*12,18,9,1,'#ffffff');rect(11+i*12,16,3,2,'#70a4b2')}
     hud(A,'WAVE '+A.wave,'GUN '+A.wpn);
     if(A.t<6&&A.state==='play')textC('DRAG TO FLY. YOUR GUNS FIRE BY THEMSELVES.',BOT-14,Math.floor(A.t*3)%2?'#ffffff':'#70a4b2',1);
     if(A.state==='over')overlay(A,'GAME OVER','SCORE '+(A.score|0));
@@ -247,12 +259,12 @@ const fgt={
     if(DOWN())this.doAtk(p,'fire');else if(gx!==undefined&&gx>=160)this.doAtk(p,'kick');else this.doAtk(p,'punch');
   },
   key(A,k){if(k==='x')this.doAtk(A.p,'kick');else if(k==='z'||k===' '||k==='enter'||k==='e'){if(DOWN())this.doAtk(A.p,'fire');else this.doAtk(A.p,'punch')}},
-  drawF(f,A){
+  drawF(f,A,sil){
     const P=f.pal,fx=f.x|0,fy=f.y|0,s=f.face,st=f.st;
     const lie=f.ko&&f.y>=GY;
-    const R=(dx,dy,w,h,c)=>{rect(fx+(s>0?dx:-dx-w),fy+dy,w,h,c)};
-    ctx.fillStyle='#00000066';ctx.fillRect(fx-12,GY,24,2);
-    if(lie){rect(fx-22,fy-8,44,8,P.gi);rect(fx-24,fy-9,10,8,P.skin);rect(fx-24,fy-10,10,3,P.hair);rect(fx+14,fy-5,10,4,P.pants);return}
+    const R=(dx,dy,w,h,c)=>{rect(fx+(s>0?dx:-dx-w),fy+dy,w,h,sil?'#000000':c)};
+    if(!sil){ctx.fillStyle='#00000088';ctx.fillRect(fx-14,GY-1,28,3);ctx.fillRect(fx-10,GY+2,20,1)}
+    if(lie){if(sil)return;rect(fx-22,fy-8,44,8,P.gi);rect(fx-24,fy-9,10,8,P.skin);rect(fx-24,fy-10,10,3,P.hair);rect(fx+14,fy-5,10,4,P.pants);return}
     const crouch=f.crouch||st==='crouch',air=f.y<GY-2;
     const by=crouch?-8:0;
     // legs
@@ -279,19 +291,21 @@ const fgt={
     rect(0,GY,W,H-GY,'#6f4f25');rect(0,GY,W,2,'#9a6759');for(let x=0;x<W;x+=22)rect(x,GY+8,12,1,'#68372b');for(let x=0;x<W;x+=40)rect(x,GY+18,18,1,'#68372b');
     for(let i=0;i<24;i++){const cx=i*14+4,bob=Math.sin(A.t*4+i)>0.4?1:0;rect(cx,GY-14-bob,6,8,['#ff7777','#70a4b2','#b8c76f','#cc99ff'][i%4]);rect(cx+1,GY-19-bob,4,5,'#d8a878')}
     rect(0,GY-6,W,6,'#222');
-    const fs=[A.p,A.o].sort((a,b)=>a.y-b.y);for(const f of fs)this.drawF(f,A);
+    const fs=[A.p,A.o].sort((a,b)=>a.y-b.y);for(const f of fs){ctx.save();for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]]){ctx.translate(ox,oy);this.drawF(f,A,true);ctx.translate(-ox,-oy)}ctx.restore();this.drawF(f,A)}
     for(const s of A.shots){rect(s.x-5,s.y-4,10,8,'#70a4b2');rect(s.x-3,s.y-2,6,4,'#ffffff');rect(s.x-s.vx*.04,s.y-1,6,2,'#70a4b255')}
     fxDraw(A);popsDraw(A,dt);
     // bars
     rect(0,0,W,14,'#000');rect(0,13,W,1,'#352879');
     const bar=(x,w,hp,rev,col)=>{rect(x,3,w,7,'#444');rect(x+1,4,w-2,5,'#222');const fw=Math.round((w-2)*hp/100);rect(rev?x+w-1-fw:x+1,4,fw,5,col);rect(rev?x+w-1-fw:x+1,4,fw,1,'#ffffff55')};
-    bar(4,118,A.p.hp,false,A.p.hp>30?'#9ad284':'#ff7777');bar(198,118,A.o.hp,true,A.o.hp>30?'#9ad284':'#ff7777');
+    A.p.tr=Math.max(A.p.hp,(A.p.tr===undefined?A.p.hp:A.p.tr)-.5);A.o.tr=Math.max(A.o.hp,(A.o.tr===undefined?A.o.hp:A.o.tr)-.5);
+    bar(4,118,A.p.tr,false,'#ff7777');bar(198,118,A.o.tr,true,'#ff7777');
+    bar(4,118,A.p.hp,false,A.p.hp>30?'#b8c76f':'#ff9966');bar(198,118,A.o.hp,true,A.o.hp>30?'#b8c76f':'#ff9966');
     textC2(String(Math.ceil(A.rt)).padStart(2,'0'),160,4,'#fff');
     text(A.p.pal.n,6,12,'#ffffff',1);textR(A.o.pal.n,314,12,'#ffffff',1);
     for(let i=0;i<2;i++){rect(124+i*8,5,5,5,i<A.p.wins?'#b8c76f':'#444');rect(190-i*8,5,5,5,i<A.o.wins?'#b8c76f':'#444')}
     uiBtn(0,0,0,0,()=>{},()=>{});
     uiBtn(280,34,36,10,()=>{if(A.state==='over')arcadeExit();else{A.state='over';A.cd=10}},(f)=>{rect(280,34,36,10,f?'#ff7777':'#6c5eb5');textC2('QUIT',298,36,'#fff')});
-    text('SCORE '+String(A.score|0).padStart(5,'0'),6,28,'#70a4b2',1);text('STAGE '+A.stage,252,28,'#9ad284',1);
+    text('SCORE '+String(A.score|0).padStart(5,'0'),6,21,'#70a4b2',1);textC2('STAGE '+A.stage,160,16,'#9ad284');
     if(A.intro>0)textC(A.intro>.6?'ROUND '+A.rnum:'FIGHT!',90,'#ffffff',2);
     if(A.rend>0)textC(A.p.ko?'YOU LOSE':A.o.ko?(A.p.wins>=2?'YOU WIN!':'K.O.!'):'TIME UP',90,'#ff7777',2);
     if(A.state==='over')overlay(A,'GAME OVER','SCORE '+(A.score|0));
@@ -336,8 +350,8 @@ const rac={
       dxAcc+=curveAt(wz)*.9*(1/(depth*depth))*3.0;
       const half=Math.max(2,t*(158)),x0=cx-half*A.x*.0+dxAcc*(1)*6-(A.x*half*.55);
       const band=Math.floor(wz/(SEG*.5))%2;
-      ctx.fillStyle=band?'#2c5a2c':'#3d7a3d';ctx.fillRect(0,y,W,1);
-      const rl=half*1.12;ctx.fillStyle=band?'#ff7777':'#ffffff';ctx.fillRect((W/2+x0-W/2)|0,y,0,0);
+      ctx.fillStyle=band?'#2c5a2c':'#588d43';ctx.fillRect(0,y,W,1);
+      const rl=half+Math.max(1,t*9);ctx.fillStyle=band?'#ff7777':'#ffffff';ctx.fillRect((W/2+x0-W/2)|0,y,0,0);
       const cxr=W/2+dxAcc*6-A.x*half*.55*0+0;
       const left=cxr-rl,right=cxr+rl;
       ctx.fillRect(left|0,y,(right-left)|0,1);
