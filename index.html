@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.51</title>
+<title>Idlyte v1.52</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.51';
+const VERSION='1.52';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3273,6 +3273,8 @@ function musInit(){
   if(AC){if(AC.state==='suspended')AC.resume();return}
   try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null;return}
   mus.gain=AC.createGain();mus.gain.gain.value=0;mus.in=AC.createGain();mus.in.gain.value=1;
+  // the hub music goes through two high-pass filters (24 dB per octave) that drop everything below 70 Hz
+  mus.hub=AC.createGain();{const h1=AC.createBiquadFilter(),h2=AC.createBiquadFilter();h1.type='highpass';h2.type='highpass';h1.frequency.value=70;h2.frequency.value=70;h1.Q.value=.707;h2.Q.value=.707;mus.hub.connect(h1);h1.connect(h2);h2.connect(mus.in)}
   const len=AC.sampleRate*2.4,buf=AC.createBuffer(2,len,AC.sampleRate);
   for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
   const conv=AC.createConvolver();conv.buffer=buf;const wet=AC.createGain();wet.gain.value=.6;
@@ -3288,7 +3290,7 @@ const mtof=m=>440*Math.pow(2,(m-69+MUSTR)/12);
 function tone(t,m,dur,type,vol,att,rel){
   const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=mtof(m);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setTargetAtTime(0,t+dur,rel/3);
-  o.connect(g);g.connect(mus.in);o.start(t);o.stop(t+dur+rel+.3);
+  o.connect(g);g.connect(mus.hub||mus.in);o.start(t);o.stop(t+dur+rel+.3);
 }
 
 
@@ -3637,8 +3639,19 @@ function arpBar(t){
   // every couple of minutes the synth sound drifts into another over three bars (about seven seconds)
   if(ARP.vA===undefined){ARP.vA=ARP.startVoice!==undefined?ARP.startVoice:(mus.wave|0);ARP.vB=-1}
   if(ARP.nextMorph===undefined)ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17);
-  if(mus.morph!==false&&ARP.vB<0&&ARP.bn>=ARP.nextMorph){let nv;do{nv=Math.floor(arpR()*ARPW.length)}while(nv===ARP.vA);ARP.vB=nv;ARP.mT0=ARP.bn;ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17)}
-  const voiceAt=fr=>{if(ARP.vB<0)return {a:ARP.vA,b:-1,x:0};return {a:ARP.vA,b:ARP.vB,x:Math.min(1,(ARP.bn-ARP.mT0+fr)/3)}};
+  if(mus.morph!==false&&ARP.vB<0&&ARP.bn>=ARP.nextMorph){
+    // the next synth is chosen at random: first one of three families (the plain waves, the synth emulations, the C64 leads), then any voice in it that has not been heard lately
+    const fams=[[0,10],[10,16],[16,ARPW.length]],fw=arpR(),fam=fw<.3?fams[0]:fw<.6?fams[1]:fams[2];
+    ARP.vHist=ARP.vHist||[];
+    let cands=[];for(let i=fam[0];i<fam[1];i++)if(i!==ARP.vA&&!ARP.vHist.includes(i))cands.push(i);
+    if(!cands.length)for(let i=0;i<ARPW.length;i++)if(i!==ARP.vA&&!ARP.vHist.includes(i))cands.push(i);
+    if(!cands.length)cands=[(ARP.vA+1)%ARPW.length];
+    const nv=cands[Math.floor(arpR()*cands.length)];
+    ARP.vHist.push(ARP.vA);if(ARP.vHist.length>8)ARP.vHist.shift();
+    ARP.vB=nv;ARP.mT0=ARP.bn;ARP.mDur=2+Math.floor(arpR()*3);   // the change takes two to four bars, about five to nine seconds
+    ARP.nextMorph=ARP.bn+40+Math.floor(arpR()*25);
+  }
+  const voiceAt=fr=>{if(ARP.vB<0)return {a:ARP.vA,b:-1,x:0};return {a:ARP.vA,b:ARP.vB,x:Math.min(1,(ARP.bn-ARP.mT0+fr)/(ARP.mDur||3))}};
   if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how+(sec.modes?' ['+sec.modes.join('>')+']':''));
   if(ARP.log.length>40)ARP.log.shift();
   // one subdivision per bar
@@ -3676,7 +3689,7 @@ function arpBar(t){
     ARPB('b',t,bm,beat*3.4,.085);ARPB('b',t+beat*2,bm,beat*1.4,.055)}
   if(ARP.rec)ARP.rec.push({bn:ARP.bn,si:ARP.pi,bar:ARP.bar,ch:ch,sub:n,leg:leg,dir:dir,oc:oc,inv:inv,ped:ped});
   ARP.bn++;
-  if(ARP.vB>=0&&ARP.bn-ARP.mT0>=3){ARP.vA=ARP.vB;ARP.vB=-1;if(ARP.live)mus.wave=ARP.vA}   // the morph has finished: the new voice is the voice
+  if(ARP.vB>=0&&ARP.bn-ARP.mT0>=(ARP.mDur||3)){ARP.vA=ARP.vB;ARP.vB=-1;if(ARP.live)mus.wave=ARP.vA}   // the morph has finished: the new voice is the voice
   ARP.bar++;if(ARP.bar>=N){ARP.bar=0;sec.last=sec.octl[sec.octl.length-1];ARP.pi++}
 }
 function arpTick(){
@@ -4421,8 +4434,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.51"></script>
-<script src="studio.js?v=1.51"></script>
+<script src="weapons.js?v=1.52"></script>
+<script src="studio.js?v=1.52"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
