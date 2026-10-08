@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.61</title>
+<title>Idlyte v1.64</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1255,7 +1255,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.61';
+const VERSION='1.64';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2337,6 +2337,7 @@ function drawScreen(){
   const pitch=26,avail=174-y,nAll=def.rows.length,maxVis=Math.max(2,Math.min(nAll,Math.floor(avail/pitch)));
   HUB.rowsMax=Math.max(0,nAll-maxVis);HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,HUB.rscroll||0));
   const visRows=def.rows.slice(HUB.rscroll,HUB.rscroll+maxVis);
+  HUB.rowsTop=y;HUB.rowsVis=maxVis;HUB.rowsAll=nAll;
   let focRow=null;
   visRows.forEach((r,i)=>{
     const ry=y+i*pitch,i0=UI.list.length,cnt=r.btns?r.btns.length:1,fo=UI.focus>=i0&&UI.focus<i0+cnt;
@@ -2374,6 +2375,15 @@ function drawScreen(){
   uiBtn(288,19,16,13,()=>{HUB.screen=null},(f)=>{ctx.fillStyle=f?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1)});
   if(HUB.screenDraw){HUB.screenDraw();HUB.screenDraw=null}
   UI.nrows=UI.list.length-1;
+  /* scroll bar on the right edge. drag the handle or tap the track */
+  HUB.sb=null;
+  {let kind=null,top=0,tot=0,vis=0,pos=0,mx=0;
+   if(HUB.rowsMax>0){kind='r';top=HUB.rowsTop;tot=HUB.rowsAll;vis=HUB.rowsVis;pos=HUB.rscroll;mx=HUB.rowsMax}
+   else if(HUB.infoMax>0){kind='i';top=36;tot=def.info.length;vis=17;pos=HUB.iscroll;mx=HUB.infoMax}
+   if(kind){const bot=176,h=bot-top,th=Math.max(12,Math.round(h*vis/tot)),ty=top+Math.round((h-th)*pos/mx);
+     HUB.sb={kind,top,bot,th,ty,max:mx};
+     ctx.fillStyle='#1c1840';ctx.fillRect(301,top,5,h);ctx.fillStyle='#000';ctx.fillRect(302,top,3,h);
+     ctx.fillStyle=SBD.on?'#ffffff':'#9a8fe0';ctx.fillRect(301,ty,5,th);ctx.fillStyle='#ffffff55';ctx.fillRect(301,ty,5,1);ctx.fillStyle='#1c1840';ctx.fillRect(301,ty+th-1,5,1);ctx.fillRect(303,ty+(th>>1)-1,1,3)}}
   if(HUB.rowsMax>0){const up=HUB.rscroll>0,dn=HUB.rscroll<HUB.rowsMax;text(up?'^':' ',22,181,'#ffffff',1);text(dn?'v':' ',292,181,'#ffffff',1);UI.list.push({x:16,y:176,w:34,h:12,fn:()=>{HUB.rscroll=Math.max(0,HUB.rscroll-1)}});UI.list.push({x:268,y:176,w:34,h:12,fn:()=>{HUB.rscroll=Math.min(HUB.rowsMax,HUB.rscroll+1)}})}
   if(UI.focus>=UI.list.length)UI.focus=0;
   if(HUB.infoMax>0){UI.list.push({x:20,y:36,w:270,h:68,fn:()=>{HUB.iscroll=Math.max(0,HUB.iscroll-4)}});UI.list.push({x:20,y:104,w:270,h:72,fn:()=>{HUB.iscroll=Math.min(HUB.infoMax,HUB.iscroll+4)}})}
@@ -3709,7 +3719,7 @@ function arpBar(t){
   const bInvR=arpR(),bInvP=Math.floor(arpR()*6);   // drawn every bar so a piece never changes when the pad is switched on or off
   const bassInv=bInvR<.7?[1,1,1,2,2,3][bInvP]:0;   // 70 percent of the bass notes are inversions: the third, fifth or seventh of the chord
   const padOn=ARP.padOverride!==undefined?ARP.padOverride:(mus.pad||ARP.padForce);
-  if(padOn){const pb=60+((((ch.root-60)%12)+12)%12);for(const o of arpPadVoicing(ch))ARPP('p',t,pb+o,bar*1.05,.0085);
+  if(padOn){const pb=60+((((ch.root-60)%12)+12)%12);for(const o of arpPadVoicing(ch))ARPP('p',t,pb+o,bar*1.05,.012);
     const bp=ped!==undefined?ped:ch.bass!==undefined?ch.bass:(ch.root+ch.tones[Math.min(bassInv,ch.tones.length-1)])%12,bm=36+(((bp-36)%12)+12)%12;
     ARPB('b',t,bm,beat*3.4,.085);ARPB('b',t+beat*2,bm,beat*1.4,.055)}
   if(ARP.rec)ARP.rec.push({bn:ARP.bn,si:ARP.pi,bar:ARP.bar,ch:ch,sub:n,leg:leg,dir:dir,oc:oc,inv:inv,ped:ped});
@@ -3744,7 +3754,7 @@ function musTick(){
   while(mus.next<AC.currentTime+.5&&guard++<40){
     const st=mus.step++,t=mus.next,sub=st%8,ch=MCH[Math.floor(st/8)%4];
     // less bass: the chord is kept out of the low register, and the bass note is a soft one an octave higher, once a bar
-    if(sub===0){for(const n0 of ch){const n=n0>=50?n0:n0+12;tone(t,n,3,'sine',.03,.6,2.2);tone(t,n+12,3,'triangle',.008,.8,2.4)}}
+    if(sub===0){for(const n0 of ch){const n=n0>=50?n0:n0+12;tone(t,n,3,'sine',.037,.6,2.2);tone(t,n+12,3,'triangle',.01,.8,2.4)}}
     if(sub===0)tone(t,ch[0],.5,'sine',.032,.03,.35);
     if(sub===3||sub===6){for(let i=1;i<4;i++)tone(t,ch[i]+12,.1,'sine',.016,.01,.6)}
     if([0,2,3,5,6].includes(sub)&&Math.random()<.4)tone(t,PENT[Math.floor(Math.random()*PENT.length)],.1,'triangle',.04,.01,.9);
@@ -3860,11 +3870,31 @@ document.addEventListener('touchmove',e=>{if(!DRAG.on||DRAG.tid===null)return;fo
 function endDragTouch(e,cancel){if(!DRAG.on||DRAG.tid===null)return;for(const t of e.changedTouches){if(t.identifier!==DRAG.tid)continue;DRAG.on=false;DRAG.tid=null;if(!cancel&&DRAG.path<4&&performance.now()-DRAG.t<300&&MODE==='game'&&G)tapAt(DRAG.gx,DRAG.gy)}}
 document.addEventListener('touchend',e=>endDragTouch(e,false));
 document.addEventListener('touchcancel',e=>endDragTouch(e,true));
+const SBD={on:false,id:null};
+function sbSet(y){const b=HUB.sb;if(!b)return;const fr=Math.max(0,Math.min(1,(y-b.top-b.th/2)/Math.max(1,b.bot-b.top-b.th)));const v=Math.round(fr*b.max);if(b.kind==='r')HUB.rscroll=v;else HUB.iscroll=v}
+document.addEventListener('pointermove',e=>{if(SBD.on&&e.pointerId===SBD.id)sbSet(toCanvas(e)[1])});
+document.addEventListener('pointerup',e=>{if(SBD.on&&e.pointerId===SBD.id)SBD.on=false});
+document.addEventListener('pointercancel',e=>{if(SBD.on&&e.pointerId===SBD.id)SBD.on=false});
+/* menus scroll by dragging a finger or the mouse, like a phone list */
+const MD={on:false,id:null,y0:0,idx:-1,moved:false,rs0:0,is0:0,fn:null};
+function startMenuDrag(e,i,y){MD.on=true;MD.id=e.pointerId;MD.y0=y;MD.idx=i;MD.moved=false;MD.rs0=HUB.rscroll||0;MD.is0=HUB.iscroll||0;MD.fn=UI.list[i].fn}
+document.addEventListener('pointermove',e=>{
+  if(!MD.on||e.pointerId!==MD.id)return;const dy=toCanvas(e)[1]-MD.y0;
+  if(!MD.moved&&Math.abs(dy)>5)MD.moved=true;
+  if(MD.moved){
+    if(HUB.rowsMax>0)HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,Math.round(MD.rs0-dy/20)));
+    if(HUB.infoMax>0)HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,Math.round(MD.is0-dy/8)));
+  }
+});
+document.addEventListener('pointerup',e=>{if(!MD.on||e.pointerId!==MD.id)return;MD.on=false;if(!MD.moved&&MODE==='hub'&&HUB.screen&&MD.fn)MD.fn()});
+document.addEventListener('pointercancel',e=>{if(MD.on&&e.pointerId===MD.id)MD.on=false});
 cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
   if(MODE==='game'){const [gx,gy]=toCanvas(e);if(G&&G.slot&&slotTap(gx,gy))return;const bi=uiAt(gx,gy);if(bi>=0){UI.list[bi].fn();return}if(dragMode()){if(e.pointerType!=='touch')startDrag(e);return}tapAt(gx,gy);return}
   musInit();
+  if(MODE==='hub'&&HUB.screen&&HUB.sb){const g=toCanvas(e);if(g[0]>=295&&g[0]<=309&&g[1]>=HUB.sb.top&&g[1]<=HUB.sb.bot){SBD.on=true;SBD.id=e.pointerId;sbSet(g[1]);return}}
   const [x,y]=toCanvas(e),i=(MOUSE.x=x,MOUSE.y=y,uiAt(x,y));
+  if(i>=0&&MODE==='hub'&&HUB.screen&&!UI.list[i].noRepeat){UI.focus=i;startMenuDrag(e,i,y);return}   // drag to scroll; a plain tap still presses on release
   if(i>=0){UI.focus=i;UI.list[i].fn();return}
   if(MODE==='hub'&&HUB.screen){if(x<14||x>306||y<18||y>190)HUB.screen=null;return}
   if(MODE==='arcade'){arcadeFire(toCanvas(e)[0]);return}
