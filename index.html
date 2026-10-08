@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.41</title>
+<title>Idlyte v1.42</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1251,7 +1251,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.41';
+const VERSION='1.42';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3337,6 +3337,22 @@ function arpNewCycle(){
   const start=ARP.plan.length?ARP.plan[ARP.plan.length-1].next:9;   // the first cycle starts on A minor
   ARP.plan=arpCycle(start,ARP.plan.length?ARP.leadMinor:true);ARP.pi=0;ARP.bar=0;
 }
+/* extended chords: add 9ths, 11ths and 13ths to a chord according to what kind of seventh chord it is. the extra tones are folded into the octave
+   (a 9th is a 2nd, a 13th a 6th) so the arpeggio still climbs in order. chord.base keeps the plain chord for the pad */
+function arpExtend(ch){
+  const t=ch.tones;if(t.length!==4||t.length>=7)return ch;
+  const has=(a,b,c,d)=>t[1]===a&&t[2]===b&&t[3]===c;
+  let opts=null;
+  if(has(4,7,11))opts=[[2],[2],[2,9],[6],[2,6],[9]];                          // maj9, maj13 (no 11th), maj7#11, maj9#11, 6/9 colours
+  else if(has(3,7,10))opts=[[2],[2],[5],[2,5],[2,9]];                         // m9, m11, m9/11, m13
+  else if(has(4,7,10))opts=[[2],[2,9],[1,8],[3,8],[6],[2,6]];                // dominant 9, 13, 7b9b13, 7#9b13, 7#11, 9#11
+  else if(has(4,8,10))opts=[[2],[6]];                                         // augmented dominant with a 9th, or the whole-tone #11
+  else if(has(4,6,10))opts=[[2]];                                             // V7b5 with a 9th
+  else if(has(3,6,10))opts=[[5]];                                             // half-diminished with an 11th
+  if(!opts)return ch;
+  const add=arpPick(opts),all=Array.from(new Set(t.concat(add))).sort((a,b)=>a-b);
+  return {root:ch.root,tones:all,base:t};
+}
 function arpPrep(sec){
   if(sec.ready)return;sec.ready=true;
   const A=sec.key,B=sec.next,am=sec.minor,bm=sec.nm,nextV=arpChord(B,4,bm),iv=((B-A)%12+12)%12;
@@ -3363,6 +3379,8 @@ function arpPrep(sec){
   ];
   sec.expI=inh?inh.expI:Math.floor(Math.random()*EXP.length);
   sec.explore=EXP[sec.expI]();
+  const ex=(a,p)=>a.map(x=>Math.random()<p?arpExtend(x):x);   // extended chords: more of them while exploring
+  sec.prog=ex(sec.prog,.3);sec.prog2=ex(sec.prog2,.3);sec.explore=ex(sec.explore,.7);
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.bars=12+Math.floor(Math.random()*3);   // 12 to 14 bars, about 28 to 32 seconds, in each key
   sec.octl=[];for(let b=0;b<Math.ceil(sec.bars/4);b++){let oc=ARP.octs[ARP.oi++%ARP.octs.length];if(b===0&&sec.last===oc)oc=1+(oc%4);sec.octl.push(oc)}   // the arpeggio size changes every four bars
@@ -3384,6 +3402,7 @@ function arpPrep(sec){
     case 'dim7':sec.tail=[c(4),{root:(B+11)%12,tones:[0,3,6,9]}];sec.how='dim7';break;
     default:sec.tail=[c(3),c(4)];sec.how='lift';
   }
+  sec.tail=ex(sec.tail,.4);
 }
 function arpSetup(){
   if(ARP.ready||!AC||!mus.in)return;
@@ -3438,13 +3457,13 @@ function arpBar(t){
   {const r=Math.random();ARP.sub=ARP.sub===16?(r<.09?8:r<.2?12:16):16}   // sixteenths most of the time; now and then a bar of eighths (8) or of eighth-note triplets (12, three to a beat)
   const n=ARP.sub,step=bar/n;
   // chord tones across the chosen number of octaves, up and down
-  const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,L=4*oc;
+  const oc=sec.octl[Math.min(sec.octl.length-1,Math.floor(ARP.bar/4))],start=[56,50,46,41][oc-1],root=start+(((ch.root-start)%12)+12)%12,T=ch.tones.length,L=T*oc;
   // inversions now and then: the arpeggio starts from the third, fifth or seventh of the chord instead of the root
   ARP.invT=(ARP.invT===undefined?0:ARP.invT)-1;
   if(ARP.invT<=0){ARP.inv=Math.random()<.35?arpPick([1,1,2,3]):0;ARP.invT=1+Math.floor(Math.random()*3)}
-  const inv=ARP.inv|0,tn=ch.tones.map((x,j)=>j>=inv?x:x+12),ord=[];for(let j=0;j<4;j++)ord.push(tn[(j+inv)%4]);
+  const inv=(ARP.inv|0)%T,tn=ch.tones.map((x,j)=>j>=inv?x:x+12),ord=[];for(let j=0;j<T;j++)ord.push(tn[(j+inv)%T]);
   const lo=root+ord[0],base=start+((((lo-start)%12)+12)%12)-ord[0];
-  const note=i=>base+ord[i%4]+12*Math.floor(i/4);
+  const note=i=>base+ord[i%T]+12*Math.floor(i/T);
   // note length drifts slowly between legato (notes run into each other) and now and then staccato
   ARP.legP=(ARP.legP||0)+.157;const leg=Math.max(.55,Math.min(2.6,2.1+1.45*Math.sin(ARP.legP)));
   const dir=sec.dir==='mix'?(ARP.bd=(Math.random()<.45&&ARP.bd)||arpPick(['up','down','updown','downup','skip'])):sec.dir;
@@ -3455,7 +3474,7 @@ function arpBar(t){
     arpNote(t+k*step,note(i),step*leg,.05*acc);
   }
   // pad chord and bass: only when the PAD option is on (the default is the sequencer alone)
-  if(mus.pad||ARP.padForce){const pr=root-12;for(const o of ch.tones.slice(0,3))arpPad(t,pr+o,bar,.011);
+  if(mus.pad||ARP.padForce){const pr=root-12;for(const o of (ch.base||ch.tones).slice(0,3))arpPad(t,pr+o,bar,.011);
     const bm=36+(((ch.root-36)%12)+12)%12;
     arpPad(t,bm,beat*3.6,.05);arpNote(t+beat*2,bm,beat*1.2,.035)}
   ARP.bar++;if(ARP.bar>=N){ARP.bar=0;sec.last=sec.octl[sec.octl.length-1];ARP.pi++}
