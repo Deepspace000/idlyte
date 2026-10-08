@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.44</title>
+<title>Idlyte v1.45</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.44';
+const VERSION='1.45';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3470,7 +3470,6 @@ const ARPW=[
  {n:'WARM',o:[['sawtooth',-5,.3,1],['sawtooth',5,.3,1],['sine',0,.6,1]],q:1.1,b:700,ob:900,lfo:300},
  {n:'REED',o:[['square',-4,.2,1],['square',4,.2,1],['sine',0,.45,1]],q:1.3,b:850,ob:1100,lfo:350},
  {n:'ORGAN',o:[['sine',0,.8,1],['sine',0,.4,2],['sine',0,.22,3],['sine',0,.1,4]],q:.5,b:3500,ob:0},
- {n:'BELL',o:[['sine',0,.8,1],['sine',0,.28,2.76],['sine',0,.14,5.4]],q:.5,b:4000,ob:0},
  /* synth emulations: oscillator stacks, a resonant filter and its envelope in the manner of each machine */
  {n:'MOOG BASS',o:[['sawtooth',-4,.5,1],['square',3,.35,.5],['sawtooth',0,.3,.5]],q:5,b:420,ob:1700,fe:.12,lfo:60,att:.004,g:1.25},
  {n:'PROPHET',o:[['sawtooth',-8,.35,1],['sawtooth',8,.35,1],['pulse',0,.3,1]],q:2.2,b:1200,ob:1300,fe:.25,lfo:500},
@@ -3496,7 +3495,7 @@ function arpVoiceNote(W,sc,t,m,dur,vol,dest,X){
   const base=W.b+(W.lfo||0)*(.5+.5*Math.sin(t*.21));
   lp.frequency.setValueAtTime(base+W.ob,t);lp.frequency.exponentialRampToValueAtTime(base,t+(W.fe||Math.min(.3,dur*1.5)));
   const v=vol*(W.g||1)*sc,hold=W.hold||.72;
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+(W.att||.006));g.gain.setTargetAtTime(0,t+dur*(W.n==='BELL'?1.2:hold),dur*(W.n==='BELL'?.8:.16));   // hold, then release: a long dur is legato, a short one is staccato
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+(W.att||.006));g.gain.setTargetAtTime(0,t+dur*hold,dur*.16);   // hold, then release: a long dur is legato, a short one is staccato
   for(const [ty,dt,gv,mu] of W.o){const o=X.createOscillator(),og=X.createGain();og.gain.value=gv*.7;if(ty==='pulse'||ty==='fair')o.setPeriodicWave(customWave(X,ty));else o.type=ty;o.frequency.value=f*mu;o.detune.value=dt;o.connect(og);og.connect(lp);o.start(t);o.stop(t+dur*2.6+.1)}
   lp.connect(g);g.connect(dest||ARP.out);
 }
@@ -3625,10 +3624,10 @@ const isTouch=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)||'onto
 function promptKey(){return INP.last==='pad'?'A':INP.last==='touch'?'TAP':'E'}
 /* master mute: works from anywhere, including during a mission */
 /* two separate switches: MUSIC (mus.on) and SOUND EFFECTS (mus.mute means effects are muted). Both are remembered for the whole game */
-function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad');wv=localStorage.getItem('idlyte_wave2')}catch(e){}mus.pad=pd==='1';{let mo=null;try{mo=localStorage.getItem('idlyte_morph')}catch(e){}mus.morph=mo!=='0'}mus.wave=wv===null?ARPW.findIndex(w=>w.n==='SAWTOOTH'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* sawtooth is the default voice */}
+function muteInit(){let v=null,m=null;try{v=localStorage.getItem('idlyte_mute');m=localStorage.getItem('idlyte_music')}catch(e){}mus.mute=v===null?!!(SAVE&&SAVE.set&&SAVE.set.mute):v==='1';if(m!==null)mus.on=m==='1';let pd=null,wv=null;try{pd=localStorage.getItem('idlyte_pad2');wv=localStorage.getItem('idlyte_wave2')}catch(e){}mus.pad=pd!=='0';   /* pad and bass are on by default */{let mo=null;try{mo=localStorage.getItem('idlyte_morph')}catch(e){}mus.morph=mo!=='0'}mus.wave=wv===null?ARPW.findIndex(w=>w.n==='SAWTOOTH'):Math.max(0,Math.min(ARPW.length-1,+wv|0))   /* sawtooth is the default voice */}
 function setWave(i){mus.wave=((i%ARPW.length)+ARPW.length)%ARPW.length;if(ARP.live){ARP.vA=mus.wave;ARP.vB=-1}try{localStorage.setItem('idlyte_wave2',String(mus.wave))}catch(e){}arpPreview()}
 function setMorph(on){mus.morph=!!on;try{localStorage.setItem('idlyte_morph',mus.morph?'1':'0')}catch(e){}if(!on&&ARP.live){ARP.vB=-1}toast(mus.morph?'SYNTH MORPH ON':'SYNTH MORPH OFF')}
-function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad',mus.pad?'1':'0')}catch(e){}toast(mus.pad?'PAD AND BASS ON':'SEQUENCER ONLY')}
+function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad2',mus.pad?'1':'0')}catch(e){}toast(mus.pad?'PAD AND BASS ON':'SEQUENCER ONLY')}
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
 function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND EFFECTS OFF':'SOUND EFFECTS ON')}
 function handleKey(k){
@@ -4322,8 +4321,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.44"></script>
-<script src="studio.js?v=1.44"></script>
+<script src="weapons.js?v=1.45"></script>
+<script src="studio.js?v=1.45"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>
