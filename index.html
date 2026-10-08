@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.76</title>
+<title>Idlyte v1.77</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -533,7 +533,7 @@ const PLANETS=[
  {n:'ICE MOON',pow:50,diff:2,gold:1.7,loot:.06,d:'RING ENEMIES IN LARGE GROUPS.',every:9,waves:[['ring',6,.45],['ringR',3,.6]]},
  {n:'LAVA WORLD',pow:90,diff:3,gold:2.2,loot:.08,d:'FAST DARTS FROM EVERY SIDE.',every:7,waves:[['dart',6,.4],['cross',2,1]]},
  {n:'GAS GIANT',pow:140,diff:4,gold:3,loot:.1,d:'CROSSES AND CARRIER PODS.',every:8,waves:[['cross',4,.8],['pod',1,0]]},
- {n:'ENEMY BASE',pow:200,diff:6,gold:4.5,loot:.14,d:'EVERYTHING AT ONCE.',every:6,waves:[['ring',4,.4],['dart',4,.4],['cross',3,.8],['pod',1,0]]},
+ {n:'ENEMY BASE',pow:200,diff:7.5,gold:4.5,loot:.14,d:'EVERYTHING AT ONCE.',every:6,waves:[['ring',4,.4],['dart',4,.4],['cross',3,.8],['pod',1,0]]},
  {n:'STORMTIDE SEA',pow:300,diff:7,gold:6,loot:.16,d:'ELITE. A STORM OVER THE OCEAN.',every:6,elite:1,waves:[['ring',5,.4],['dart',4,.4],['cross',3,.8]]},
  {n:'SUNFIRE WASTES',pow:420,diff:8,gold:8,loot:.18,d:'ELITE. A BLAZING DESERT.',every:6,elite:1,waves:[['ring',5,.4],['dart',5,.35],['cross',3,.8]]},
  {n:'THE HOLLOW DEEP',pow:600,diff:9,gold:10,loot:.2,d:'ELITE. DARK CAVES UNDER THE GROUND.',every:5,elite:1,waves:[['ring',5,.4],['dart',5,.35],['cross',4,.8]]},
@@ -680,7 +680,7 @@ function newRun(){
 G=null;newRun(false);
 function loopScale(){return 1+G.loop*.45}
 /* ordinary enemies are tougher from the Asteroid Belt on (x1.25), the Ice Moon (x1.6) and from the Lava World on (x2). Bosses and mini bosses keep loopScale */
-const ENEMY_MUL=[1,1.25,1.6,2,3,3.6,4.2,4.8,5.4,6];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
+const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,7.6];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
 function enemyScale(){return loopScale()*ENEMY_MUL[Math.min(ENEMY_MUL.length-1,G.planet||0)]}
 
 /* ===== salvage drops and option drones ===== */
@@ -1282,7 +1282,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.76';
+const VERSION='1.77';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
