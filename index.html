@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.54</title>
+<title>Idlyte v1.55</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -478,7 +478,7 @@ let SAVE=freshSave(),CURSLOT=0;
 SAVE.crew=Object.assign({nav:0,weap:0,tech:0,eng:0},SAVE.crew||{});
 SAVE.set=Object.assign({vol:1,scan:1,music:1,clock:0,ratio:0,size:0,sharp:0},SAVE.set||{});if(!SAVE.set.crt1){SAVE.set.crt1=1;SAVE.set.scan=1}
 if(!SAVE.arcadeGift){SAVE.arcadeGift=1;SAVE.credits=(SAVE.credits||0)+3}
-function save(){if(!CURSLOT)return;try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
+function save(){if(!CURSLOT)return;SAVE.savedAt=Date.now();try{localStorage.setItem('idlyte_slot_'+CURSLOT,JSON.stringify(SAVE));localStorage.setItem('idlyte_last',String(CURSLOT))}catch(e){}}
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
 const SHIPS=[
  {n:'DRIFTER',price:0,hp:0,sp:1,fr:1,dm:1,opt:0,d:'THE STANDARD SHIP'},
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.54';
+const VERSION='1.55';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4318,7 +4318,8 @@ function drawSlots(){
         const sys=Object.values(o.prog||{}).filter(v=>v>=3).length;
         text(o.shipName||'DRIFTER',44,y+3,conf?'#ff7777':'#ffffff',1);
         textR(dateStr(o.day||0),288,y+3,'#70a4b2',1);
-        text((SHIPS[o.ship||0]?SHIPS[o.ship||0].n:'DRIFTER')+'   GOLD '+(o.coins||0)+'   SYSTEMS '+sys+'   SHOPS '+Object.keys(o.opened||{}).length,44,y+11,'#9ad284',1);
+        text((SHIPS[o.ship||0]?SHIPS[o.ship||0].n:'DRIFTER')+'  GOLD '+(o.coins||0)+'  SYSTEMS '+sys+'  SHOPS '+Object.keys(o.opened||{}).length,44,y+11,'#9ad284',1);
+        if(o.savedAt){const d=new Date(o.savedAt);textR('SAVED '+d.getDate()+' '+MONTHS[d.getMonth()]+' '+String(d.getFullYear()).slice(2)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),288,y+11,'#959595',1)}
       }else text('EMPTY SLOT',44,y+7,'#6c6c6c',1)});
   }
   uiBtn(26,160+10,268,18,()=>{MODE='title';UI.focus=0},(f)=>{ctx.fillStyle=f?'#6c5eb5':'#352879';ctx.fillRect(26,170,268,18);textC2('BACK',160,176,'#ffffff')});
