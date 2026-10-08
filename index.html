@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.82</title>
+<title>Idlyte v1.83</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1219,7 +1219,7 @@ function drawHud(){
   text('P'+((G.planet||0)+1)+'-'+(G.level||1),270,4,'#bbb');foodHud(290);
   // overall level completion
   const pc=runPct();text(Math.floor(pc)+'%',4,BOT+2,'#ffffff',1);
-  const bankOn=SAVE.bank>0,bx=28,bw=W-bx-12-(bankOn?118:0);
+  const bankOn=SAVE.bank>0,bx=28,shOn=shareCount()>0,bw=W-bx-12-(bankOn?118:0)-(shOn?80:0);
   ctx.fillStyle='#352879';ctx.fillRect(bx-1,BOT+3,bw+2,6);
   ctx.fillStyle='#70a4b2';ctx.fillRect(bx,BOT+4,Math.floor(Math.min(90,pc)/100*bw),4);
   if(pc>90){ctx.fillStyle='#ff7777';ctx.fillRect(bx+Math.floor(bw*.9),BOT+4,Math.floor((pc-90)/100*bw),4)}
@@ -1229,6 +1229,11 @@ function drawHud(){
     text('BANK',kx,BOT+2,'#70a4b2',1);text(num,nx,BOT+2,'#ffffff',1);
     if(run)text(run,rx,BOT+2,fl?'#ffffff':'#9ad284',1);
     if(gw>12){ctx.fillStyle='#352879';ctx.fillRect(gx-1,BOT+3,gw+2,6);ctx.fillStyle='#000';ctx.fillRect(gx,BOT+4,gw,4);ctx.fillStyle=fl?'#ffffff':'#b8c76f';ctx.fillRect(gx,BOT+4,Math.max(0,Math.round(gw*f)),4)}
+  }
+  if(shOn){
+    const sx=W-124-(bankOn?0:-118)-80+(bankOn?0:0),fl=HUB.shareFlash>0,f=SAVE.shareFrac||0,num=String(Math.round(shareValue())),run=G.shareRun?'+'+G.shareRun:'',nx=sx+28,rx=nx+num.length*4+3;
+    text('SHARES',sx,BOT+2,'#ff9966',1);text(num,nx,BOT+2,'#ffffff',1);if(run)text(run,rx,BOT+2,fl?'#ffffff':'#9ad284',1);
+    ctx.fillStyle='#352879';ctx.fillRect(sx,BOT+8,74,1);ctx.fillStyle=fl?'#ffffff':'#ff9966';ctx.fillRect(sx,BOT+8,Math.round(74*f),1);
   }
   drawMiniMap();
   if(G.msgT>0&&G.msg){
@@ -1282,7 +1287,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.82';
+const VERSION='1.83';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1361,12 +1366,18 @@ function dayTick(){
   const m=monthIdx(SAVE.day);
   while(SAVE.monthsPaid<m){
     SAVE.monthsPaid++;
-    const dv=expectedDiv();
-    if(dv>0){SAVE.coins+=dv;SAVE.earned+=dv;toast('SHARE DIVIDENDS +'+dv+' GOLD')}
   }
 }
 function bankPct(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+n)}
 function bankRate(){return bankPct()/30.4}
+function shareValue(){let t=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];t+=s.own*s.p}return t}
+function shareAccrue(days){   // dividends only grow while flying a mission, like the bank
+  let t=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];t+=s.own*s.p*divYield(c)}
+  if(t<=0){SAVE.shareFrac=0;return}
+  SAVE.shareFrac=(SAVE.shareFrac||0)+t/30.4*days;
+  const w=Math.floor(SAVE.shareFrac);
+  if(w>0){SAVE.shareFrac-=w;SAVE.coins+=w;SAVE.earned+=w;SAVE.shareEarned=(SAVE.shareEarned||0)+w;if(MODE==='game'&&G)G.shareRun=(G.shareRun||0)+w;HUB.shareFlash=.5}
+}
 function bankAccrue(days,quiet){
   if(SAVE.bank<=0){SAVE.bankFrac=0;return}
   SAVE.bankFrac=(SAVE.bankFrac||0)+SAVE.bank*bankRate()*days;
@@ -2027,7 +2038,7 @@ function screenDef(id){
   }else if(id==='shares'){
     title='SHARE SHOP';
     info.push('SHARES PAY DIVIDENDS EVERY MONTH. PRICES GO UP AND DOWN.');
-    info.push('WALLET '+SAVE.coins+'   NEXT MONTH DIVIDENDS +'+expectedDiv());
+    info.push('WALLET '+SAVE.coins+'   DIVIDENDS EARNED '+(SAVE.shareEarned||0)+'. THEY GROW ONLY WHILE YOU FLY MISSIONS.');
     for(const c of COMPANIES){const s=SAVE.sh[c.id],bp=Math.ceil(s.p),sp=Math.floor(s.p);
       rows.push({ic:'chart',n:c.n,d:'PRICE '+s.p.toFixed(1)+'  OWN '+s.own+'  PAYS '+(divYield(c)*100).toFixed(1)+'%',
         btns:[{l:'BUY',ok:SAVE.coins>=bp,fn:buy(bp,()=>{s.own++})},
@@ -4452,7 +4463,7 @@ function frame(now){
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
   else if(MODE==='tset'){drawTSettings()}else if(MODE==='slots'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawSlots()}else if(MODE==='game'){
     acc+=dt*SPEED;let n=0;while(acc>=1/60&&n<600){update(1/60);acc-=1/60;n++}
-    bankAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;
+    bankAccrue(dt/6);shareAccrue(dt/6);if(HUB.bankFlash>0)HUB.bankFlash-=dt;if(HUB.shareFlash>0)HUB.shareFlash-=dt;
     musMode('arp');musVol(.5);draw();
   }else if(MODE==='loot'){lootTick(dt);musVol(lostPage?.5:.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
