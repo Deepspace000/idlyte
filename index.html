@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.45</title>
+<title>Idlyte v1.46</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1253,7 +1253,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.45';
+const VERSION='1.46';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3366,6 +3366,34 @@ function arpExtend(ch){
   const add=arpPick(opts),all=Array.from(new Set(t.concat(add))).sort((a,b)=>a-b);
   return Object.assign({},ch,{tones:all,base:t});
 }
+/* the modes. a modal section stays on its tonic and goes through the modes one after another (ionian, dorian, phrygian, lydian, lydian b7, mixolydian, aeolian, locrian);
+   every chord is built from the notes of the mode it is in, and the vamps are the ones that bring out each mode's character */
+const ARPMODES=[
+  {n:'IONIAN',s:[0,2,4,5,7,9,11],v:[[0,3,4,0],[0,5,3,4],[0,1,4,0],[0,2,3,4]]},
+  {n:'DORIAN',s:[0,2,3,5,7,9,10],v:[[0,3,0,3],[0,6,3,0],[0,2,6,3],[0,3,6,0]]},
+  {n:'PHRYGIAN',s:[0,1,3,5,7,8,10],v:[[0,1,0,1],[0,1,2,1],[0,1,0,6],[0,5,6,1]]},
+  {n:'LYDIAN',s:[0,2,4,6,7,9,11],v:[[0,1,0,1],[0,1,4,0],[0,4,1,0],[0,1,5,1]]},
+  {n:'LYDIAN b7',s:[0,2,4,6,7,9,10],v:[[0,1,0,1],[0,1,5,0],[0,1,0,5],[0,5,1,0]]},
+  {n:'MIXOLYDIAN',s:[0,2,4,5,7,9,10],v:[[0,6,3,0],[0,3,6,0],[0,6,3,6],[0,4,6,3]]},
+  {n:'AEOLIAN',s:[0,2,3,5,7,8,10],v:[[0,5,2,6],[0,6,5,6],[0,3,6,0],[0,5,3,6]]},
+  {n:'LOCRIAN',s:[0,1,3,5,6,8,10],v:[[0,1,0,1],[0,1,5,1],[0,6,1,0],[0,1,5,6]]}];
+/* a seventh chord on a degree of a mode, with extensions only from the mode's own notes (9ths, 11ths on minor chords, 13ths, #11 on major chords, b9 on the phrygian and locrian tonic) */
+function arpModeChord(key,m,deg,ext){
+  const S=ARPMODES[m].s,o=i=>S[(deg+i)%7]+((deg+i)>=7?12:0),b=o(0),tones=[0,o(2)-b,o(4)-b,o(6)-b];
+  const root=(key+S[deg])%12,pcs=new Set(S.map(x=>(key+x)%12)),inS=x=>pcs.has((root+x)%12);
+  const minor=tones[1]===3,major=tones[1]===4;let add=[];
+  if(ext){
+    const cand=[];
+    if(inS(2)&&!(minor&&tones[2]===6&&false))cand.push([2]);                       // 9th
+    if(minor&&inS(5)&&tones[2]===7){cand.push([5]);if(inS(2))cand.push([2,5])}                            // 11th on a minor chord
+    if(inS(9)&&(major||minor)&&tones[2]===7&&(tones[3]===10||tones[3]===11)){cand.push([9]);if(inS(2))cand.push([2,9])}   // 13th
+    if(major&&inS(6)&&tones[2]===7){cand.push([6]);if(inS(2))cand.push([2,6])}                             // #11 on a major chord (lydian)
+    if(minor&&inS(1)&&deg===0)cand.push([1]);                                        // b9 on the phrygian or locrian tonic
+    if(cand.length)add=cand[Math.floor(arpR()*cand.length)];
+  }
+  const all=Array.from(new Set(tones.concat(add))).sort((a,b2)=>a-b2);
+  const out={root:root,tones:all};if(add.length)out.base=tones;return out;
+}
 /* negative harmony: mirror a chord around the axis between the key's root and fifth. G7 in C becomes a Fm6 (Dm7b5), the major tonic becomes the minor tonic */
 const ARPQ=[[0,4,7,11],[0,3,7,10],[0,4,7,10],[0,3,6,10],[0,3,6,9],[0,3,7,9],[0,4,7,9],[0,3,7,11],[0,4,8,10],[0,4,7],[0,3,7]];
 function arpNegChord(ch,key){
@@ -3420,6 +3448,17 @@ function arpPrep(sec){
   if(arpR()<.35){sec.prog2[2]=Pd(X(7,[0,5,7,10]),7);sec.prog2[3]=Pd(c(4),7)}
   const ex=(a,p)=>a.map(x=>arpR()<p?arpExtend(x):x);   // extended chords: 9ths, 11ths, 13ths, #9s and more while exploring
   sec.prog=ex(sec.prog,.45);sec.prog2=ex(sec.prog2,.45);sec.explore=ex(sec.explore,.8);
+  // modal sections: three stretches on the same tonic, each in the next mode, with harmony that fits the mode
+  sec.mod=null;
+  {const mm=inh&&inh.mod?inh.mod:(arpR()<.3?{m:null,v:[Math.floor(arpR()*4),Math.floor(arpR()*4),Math.floor(arpR()*4)]}:null);
+   if(mm){
+     if(!mm.m){const i0=ARP.modeI|0;mm.m=[i0%8,(i0+1)%8,(i0+2)%8];ARP.modeI=i0+3}
+     sec.mod=mm;
+     const mk=(mi,vi)=>ARPMODES[mi].v[vi%4].map(d=>arpModeChord(A,mi,d,arpR()<.6));
+     sec.prog=mk(mm.m[0],mm.v[0]);sec.explore=mk(mm.m[1],mm.v[1]);sec.prog2=mk(mm.m[2],mm.v[2]);
+     sec.modes=mm.m.map(i=>ARPMODES[i].n);
+     const last=ARPMODES[mm.m[2]].s;sec.lastMinor=last[2]===3;
+   }}
   sec.dir=ARP.dirs[Math.min(2,Math.floor(ARP.pi/(ARP.plan.length/3)))];
   sec.bars=(sec.explore.length>4?16:12)+Math.floor(arpR()*3);   // 12 to 14 bars (16 to 18 with an 8-bar exploration), about 30 seconds, in each key
   sec.octl=[];for(let b=0;b<Math.ceil(sec.bars/4);b++){let oc=ARP.octs[ARP.oi++%ARP.octs.length];if(b===0&&sec.last===oc)oc=1+(oc%4);sec.octl.push(oc)}   // the arpeggio size changes every four bars
@@ -3441,6 +3480,7 @@ function arpPrep(sec){
     case 'dim7':sec.tail=[c(4),{root:(B+11)%12,tones:[0,3,6,9]}];sec.how='dim7';break;
     default:sec.tail=[c(3),c(4)];sec.how='lift';
   }
+  if(sec.mod&&sec.tail.length)sec.tail[0]=arpModeChord(A,sec.mod.m[2],3,false);   // the chord that leads out of a modal section belongs to the mode it ends in
   if(sec.tail[1]===nextV&&arpR()<.45)nextV.ped=nextV.root;   // a dominant pedal under the arrival chord
   sec.tail=ex(sec.tail,.5);
 }
@@ -3546,7 +3586,7 @@ function arpBar(t){
   if(ARP.nextMorph===undefined)ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17);
   if(mus.morph!==false&&ARP.vB<0&&ARP.bn>=ARP.nextMorph){let nv;do{nv=Math.floor(arpR()*ARPW.length)}while(nv===ARP.vA);ARP.vB=nv;ARP.mT0=ARP.bn;ARP.nextMorph=ARP.bn+44+Math.floor(arpR()*17)}
   const voiceAt=fr=>{if(ARP.vB<0)return {a:ARP.vA,b:-1,x:0};return {a:ARP.vA,b:ARP.vB,x:Math.min(1,(ARP.bn-ARP.mT0+fr)/3)}};
-  if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how);
+  if(ARP.bar===0)ARP.log.push(KEYN[sec.key]+(sec.minor?'m':'')+' '+sec.kind+' '+sec.oct+'oct '+sec.dir+' '+sec.how+(sec.modes?' ['+sec.modes.join('>')+']':''));
   if(ARP.log.length>40)ARP.log.shift();
   // one subdivision per bar
   {const r=arpR();ARP.sub=ARP.sub===16?(r<.09?8:r<.2?12:16):16}   // sixteenths most of the time; now and then a bar of eighths (8) or of eighth-note triplets (12, three to a beat)
@@ -4321,8 +4361,8 @@ window.__g.dev={
 };
 
 </script>
-<script src="weapons.js?v=1.45"></script>
-<script src="studio.js?v=1.45"></script>
+<script src="weapons.js?v=1.46"></script>
+<script src="studio.js?v=1.46"></script>
 <script src="arcade2.js?v=1.24.3"></script>
 <script src="packs/asteroid.js?v=1.18"></script>
 <script src="packs/ice.js?v=1.18"></script>

@@ -299,6 +299,7 @@ function drawStudio(){
   if(cur){
     const sec=STU.plan[cur.si],part=cur.bar>=sec.bars-2?'LEADS TO THE NEXT KEY':cur.bar<4?'STRONG CHORDS':cur.bar<4+sec.explore.length?'EXPLORING':'STRONG CHORDS';
     text('BAR '+(cur.bn+1)+'   SECTION '+(cur.si+1)+' OF '+STU.plan.filter(x=>x.ready&&x.bars).length+'   '+KEYN[sec.key]+(sec.minor?' MINOR':' MAJOR')+'   '+part,20,133,'#70a4b2',1);
+    if(sec.modes){const ph=cur.bar>=sec.bars-2?2:cur.bar<4?0:cur.bar<4+sec.explore.length?1:2;text(KEYN[sec.key]+' '+sec.modes[ph],226,143,'#ffaa66',1)}
     const nm=chordName(cur.ch);text(nm,20,143,'#ffffff',2);
     const qi=QKEY[cur.ch.tones.join()];
     text('NOTES '+cur.ch.tones.map(x=>KEYN[(cur.ch.root+x)%12]).join(' '),20+Math.max(60,textW(nm,2)+10),147,'#959595',1);
