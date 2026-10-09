@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.64</title>
+<title>Idlyte v2.65</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.64';
+const VERSION='2.65';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4225,9 +4225,15 @@ addEventListener('keydown',e=>{
   UI.keys[k]=1;INP.last='key';INP.repeat=!!e.repeat;
   handleKey(k);
 });
+addEventListener('gamepadconnected',e=>{try{toast('CONTROLLER CONNECTED')}catch(x){}});
+addEventListener('gamepaddisconnected',e=>{try{toast('CONTROLLER DISCONNECTED')}catch(x){}});
 function padPoll(dt){
   const gps=(navigator.getGamepads?navigator.getGamepads():[])||[];let gp=null;
-  for(const p of gps)if(p&&p.connected){gp=p;break}
+  /* take the first real controller: connected, with a full set of buttons, and the standard layout if there is a choice
+     (some Windows utilities add virtual pads that report almost nothing) */
+  for(const p of gps)if(p&&p.connected&&p.buttons&&p.buttons.length>=12&&p.mapping==='standard'){gp=p;break}
+  if(!gp)for(const p of gps)if(p&&p.connected&&p.buttons&&p.buttons.length>=12){gp=p;break}
+  if(!gp)for(const p of gps)if(p&&p.connected){gp=p;break}
   if(!gp){PAD.x=0;PAD.y=0;return}
   const b=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed),ax=gp.axes[0]||0,ay=gp.axes[1]||0;
   const cur={L:b(14)||ax<-.5,R:b(15)||ax>.5,U:b(12)||ay<-.5,D:b(13)||ay>.5,A:b(0),B:b(1),X:b(2),Y:b(3),S:b(9),RB:b(5),RT:b(7)};
