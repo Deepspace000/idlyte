@@ -11,7 +11,7 @@ const rgb=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 
 /* ---------------- the five worlds ---------------- */
 const WORLDS=[
- {n:'FUNGAL JUNGLE',sub:'GIANT MUSHROOMS, SPRING CAPS AND ROOT CAVES',lw:560,
+ {n:'FUNGAL JUNGLE',sub:'GIANT MUSHROOMS, SPRING CAPS AND ROOT CAVES',lw:1120,lh:192,
   sky:['#2a0a5a','#6f3d86',mg,OR],skyY:.55,ridge:[['#4a1a6a','#8a3aa6'],['#8a3aa6','#ff77ff']],
   rock:['#2a0a3a','#6f3d86',mg,MG],topc:['#2c8a2c','#9ad284','#ccff99'],plat:['#cc44cc','#ffffaa'],mush:1,glow:MG,plant:{leaf:['#2c5a2c','#588d43','#9ad284'],fl:[MG,YL,OR],kind:'jungle'},
   en:[
@@ -20,7 +20,7 @@ const WORLDS=[
    {id:'vinesnap',n:'VINESNAP',ai:'turret',kit:'turretk',o:{shape:'plant'},pal:['#102010',GD,GR,LG,PG],w:14,h:20,hp:3,cd:2.2,range:130,bul:{n:1,sp:80},gold:2},
    {id:'glowmoth',n:'GLOWMOTH',ai:'flyer',kit:'wing',o:{wing:'moth'},pal:[PU,LP,LV,CY,WH],w:18,h:12,hp:2,spd:34,gold:2,fly:1,shoot:{cd:2.6,sp:70}},
    {id:'shroombrute',n:'SHROOM BRUTE',ai:'charger',kit:'golem',o:{cap:1,fist:4.2,inset:4},pal:[BR,TN,OR,YL,WH],w:22,h:22,hp:8,spd:18,gold:5}]},
- {n:'CRYSTAL DESERT',sub:'RED SAND, CRUMBLING BRIDGES AND CRYSTAL SPIRES',lw:620,
+ {n:'CRYSTAL DESERT',sub:'RED SAND, CRUMBLING BRIDGES AND CRYSTAL SPIRES',lw:1240,lh:208,
   sky:['#1c5a8a','#70a4b2','#ffffaa','#ffffff'],skyY:.5,ridge:[['#9a3a3a','#ff7777'],['#ff9966','#ffffaa']],
   rock:['#68372b','#9a3a3a',RD,OR],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#9a3a3a','#ffffaa'],crumble:1,glow:CY,plant:{leaf:['#2c5a2c','#9ad284','#ccff99'],fl:[MG,RD,YL],kind:'desert'},
   en:[
@@ -29,7 +29,7 @@ const WORLDS=[
    {id:'shardturret',n:'SHARD TURRET',ai:'turret',kit:'turretk',o:{shape:'crystal'},pal:[VI,mg,MG,CY,WH],w:14,h:18,hp:4,cd:1.8,range:150,bul:{n:3,sp:80,sd:.35},gold:3},
    {id:'dustwisp',n:'DUST DEVIL',ai:'flyer',kit:'wing',o:{wing:'wisp'},pal:[BR,TN,OR,YL,WH],w:14,h:20,hp:2,spd:62,gold:2,fly:1},
    {id:'crystalgolem',n:'CRYSTAL GOLEM',ai:'charger',kit:'golem',o:{crystal:1,inset:3,fist:2.2},pal:[VI,mg,MG,CY,WH],w:22,h:24,hp:10,spd:20,gold:6}]},
- {n:'DERELICT STARSHIP',sub:'A CRASHED CARGO SHIP, OVERGROWN WITH GLOWING PLANTS',lw:700,ship:1,
+ {n:'DERELICT STARSHIP',sub:'A CRASHED CARGO SHIP, OVERGROWN WITH GLOWING PLANTS',lw:1400,lh:224,ship:1,
   sky:['#0a0630','#1c1840',VI,BL],skyY:.5,ridge:[['#1c1840','#2a1d52'],['#352879','#4a2f86']],
   rock:['#1c2a4a','#3c5a8a','#70a4b2','#ccffff'],wallc:['#060a14','#0a1220','#101a30','#2c4a6a'],topc:['#6c6c6c','#bbbbbb','#ffffaa'],plat:['#6c6c6c','#9ad2e0'],glow:CY,plant:{leaf:['#1b5a3a','#2c8a2c','#9ad284'],fl:[CY,MG,YL],kind:'ship'},
   en:[
@@ -38,7 +38,7 @@ const WORLDS=[
    {id:'ventcrawler',n:'VENT CRAWLER',ai:'hopper',kit:'crab',o:{shape:'spider'},pal:['#102010',GD,LG,PG,YL],w:14,h:12,hp:3,spd:56,gold:2},
    {id:'wallgun',n:'WALL GUN',ai:'turret',kit:'turretk',o:{shape:'pylon'},pal:[D,GM,rd,OR,YL],w:12,h:24,hp:6,cd:1.8,range:150,bul:{n:2,sp:90,sd:.3},gold:3},
    {id:'loadermech',n:'LOADER MECH',ai:'charger',kit:'golem',o:{mech:1,pad:4.6,fist:3.4},pal:[D,GM,OR,YL,WH],w:26,h:28,hp:14,spd:22,gold:8,shoot:{cd:2.6,sp:80}}]},
- {n:'MAGMA CAVERNS',sub:'LAVA POOLS, FALLING ROCKS AND FIRE BEASTS',lw:760,
+ {n:'MAGMA CAVERNS',sub:'LAVA POOLS, FALLING ROCKS AND FIRE BEASTS',lw:1520,lh:240,
   sky:['#0a0200','#2a0a08',rd,OR],skyY:.45,ridge:[['#2a0a08','#68372b'],['#68372b','#ff9966']],cavern:1,
   rock:['#2a0a08','#68372b','#9a3a3a','#ff9966'],wallc:['#05010a','#0a0204','#1c0808','#ff9966'],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#444444','#ff9966'],lava:1,glow:YL,plant:{leaf:['#68372b','#ff9966','#ffffaa'],fl:[YL,RD,WH],kind:'magma'},
   en:[
@@ -47,7 +47,7 @@ const WORLDS=[
    {id:'emberspitter',n:'EMBER SPITTER',ai:'lobber',kit:'turretk',o:{shape:'spitter'},pal:[BR,rd,OR,YL,WH],w:22,h:20,hp:5,cd:2.4,range:170,gold:3},
    {id:'magmahopper',n:'MAGMA HOPPER',ai:'hopper',kit:'blob',o:{legs:1,angry:1},pal:['#2a0a08',rd,RD,OR,YL],w:14,h:14,hp:4,spd:60,gold:3},
    {id:'obsidianknight',n:'OBSIDIAN KNIGHT',ai:'charger',kit:'golem',o:{knight:1,inset:8,fist:2.4},pal:[K,'#1c1840',VI,BL,RD],w:20,h:26,hp:14,spd:24,gold:8}]},
- {n:'ALIEN MOTHERSHIP',sub:'A LIVING SHIP: SLIME WALLS, EGG POOLS AND A HIVE GUARD',lw:840,ship:1,
+ {n:'ALIEN MOTHERSHIP',sub:'A LIVING SHIP: SLIME WALLS, EGG POOLS AND A HIVE GUARD',lw:1680,lh:256,ship:1,
   sky:['#0a0630','#352879',mg,CY],skyY:.5,ridge:[['#1c1840','#6c5eb5'],['#6c5eb5','#ff77ff']],
   rock:['#3a0a38','#8a3aa6',mg,MG],wallc:['#100210','#1c0420','#2a0a2a','#8a3aa6'],topc:['#9a3a3a','#ff77ff','#ffffaa'],plat:['#6f3d86','#ffffaa'],glow:PG,plant:{leaf:['#3a0a38','#cc44cc','#ff77ff'],fl:[PG,YL,CY],kind:'hive'},
   en:[
@@ -262,7 +262,7 @@ function mkDecor(W_,idx){
 /* ---------------- level generation ---------------- */
 function genLevel(idx){
   const Wd=WORLDS[idx],Pm=PARAM[idx],R=rng(9100+idx*977),rn=(a,b)=>a+Math.floor(R()*(b-a+1));
-  const LW=Wd.lw,LH=64,SURF=20,g=new Uint8Array(LW*LH);
+  const LW=Wd.lw,LH=Wd.lh,SURF=20,g=new Uint8Array(LW*LH);
   const L={idx,LW,LH,g,lifts:[],coins:[],chests:[],spawns:[],checks:[],ups:[],springs:[],exit:null,bgRow:new Int16Array(LW),crum:{},tick:0};
   const S=(x,y,t)=>{if(x>=0&&x<LW&&y>=0&&y<LH)g[y*LW+x]=t};
   const rect=(x,y,w,h,t)=>{for(let j=0;j<h;j++)for(let i=0;i<w;i++)S(x+i,y+j,t)};
@@ -272,15 +272,16 @@ function genLevel(idx){
   const flat=n=>{for(let i=0;i<n&&x<LW-30;i++)top[x++]=cyc};
   /* the level is a run of sections, each with its own mix of terrain, so it never repeats for long */
   const SECW={open:{flat:2,stairs:2,hill:2,mound:4,springs:5,floaters:1,tower:1,spikes:1,dropoff:1},maze:{cavezone:6,flat:1,mound:1,hill:1},
-    chasm:{gap:2,floaters:3,liftgap:3,bridge:4,crumble:2,lava:3,updraft:2,gates:2,flat:1},climb:{ladderwall:4,cliff:3,tower:3,mezz:3,stairs:2,hill:2,dropoff:2,springs:3,flat:1},
-    hazard:{spikes:4,gates:3,gap:2,crumble:2,lava:2,flat:1,floaters:1,bridge:2},nook:{nook:4,flat:1,mound:2,hill:1,spikes:1},final:{flat:3,tower:2,stairs:1,mound:1}};
-  const NEWK={bridge:1,spikes:1,ladderwall:1,nook:1,dropoff:1,secretzone:1};
+    chasm:{gap:2,floaters:3,liftgap:3,bridge:2,ravine:6,crumble:2,lava:3,updraft:2,gates:2,flat:1},climb:{ladderwall:4,cliff:3,tower:3,mezz:3,stairs:2,hill:2,dropoff:2,springs:3,ravine:1,flat:1},
+    hazard:{spikes:4,gates:3,gap:2,crumble:2,lava:2,flat:1,floaters:1,bridge:1,ravine:3},nook:{nook:4,flat:1,mound:2,hill:1,spikes:1},final:{flat:3,tower:2,stairs:1,mound:1}};
+  const NEWK={bridge:1,ravine:1,spikes:1,ladderwall:1,nook:1,dropoff:1};
   const secKinds={};for(const t in SECW){const o={};for(const k in SECW[t])if(k in Pm.wt||NEWK[k]||k==='flat'||k==='stairs')o[k]=SECW[t][k];secKinds[t]=Object.entries(o)}
   const nSec=Math.max(6,Math.round((LW-100)/80)),finalX=LW-34-64,secLen=(finalX-14)/nSec,order=['open'];
   {const base=['chasm','maze','climb','hazard','nook'];while(order.length<nSec){const b=base.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[b[i],b[j]]=[b[j],b[i]]}for(const t of b){if(order.length<nSec&&t!==order[order.length-1])order.push(t)}}}
   L.sections=order;L.secLen=secLen;L.kinds=[];
   const pickW=()=>{const e=secKinds[x>=finalX?'final':order[Math.min(nSec-1,Math.max(0,Math.floor((x-14)/secLen)))]],t=e.reduce((s,q)=>s+q[1],0);let v=R()*t;for(const [k,w] of e){v-=w;if(v<=0)return k}return 'flat'};
-  const ladders=[],nooks=[],mezzR=[];let secretAt=null;
+  const ladders=[],nooks=[],mezzR=[],ravs=[];
+  const nbands=Math.floor((LH-SURF-22)/30),bandRows=[];for(let k=0;k<nbands;k++)bandRows.push(SURF+34+k*30);
   const coinArc=(x0,y0,n,hgt)=>{for(let i=0;i<n;i++)L.coins.push({x:(x0+i)*TS+4,y:(y0-Math.sin(i/(n-1||1)*PI)*hgt)*TS,v:1})};
   const spawn=(type,sx,sy)=>L.spawns.push({type,x:sx,y:sy,t:0,e:null});
   const groundSpawns=(x0,n,y)=>{const c=Math.max(0,Math.round(n/9*Pm.dens));for(let k=0;k<c;k++){const sx=x0+2+Math.floor(R()*(n-4)),t=R();spawn(t<.4?0:t<.6?3:t<.8?1:t<.95?2:4,sx*TS,y*TS)}};
@@ -288,7 +289,7 @@ function genLevel(idx){
   flat(14);L.start={x:3*TS,y:(SURF-2)*TS};L.checks.push({x:5*TS,y:SURF*TS,on:0});
   let lastCheck=5,dryDir=1;
   while(x<LW-34){
-    let kind=pickW();const x0=x;if(idx===0&&!secretAt&&x>LW*.48&&x<LW-150)kind='secretzone';L.kinds.push({k:kind,x:x0});
+    let kind=pickW();const x0=x;L.kinds.push({k:kind,x:x0});
     if(kind==='flat'){const n=rn(6,12);flat(n);groundSpawns(x0,n,cyc-1);
       if(!Wd.ship&&!Wd.cavern&&n>=9&&R()<.6){feats.push({x:x0+2,y:cyc-6,t:1,w:n-4,h:2});for(let i=x0+3;i<x0+n-3;i+=2)L.coins.push({x:i*TS+4,y:(cyc-8)*TS,v:1})}}
     else if(kind==='stairs'||kind==='hill'){
@@ -348,6 +349,22 @@ function genLevel(idx){
     else if(kind==='cavezone'){
       const n=rn(38,52),zx=x;for(let i=0;i<n;i++)top[x++]=cyc;cavezones.push({x:zx,n,s:cyc,deep:idx>=1&&cyc<=24&&R()<.5});groundSpawns(zx,n,cyc-1);
     }
+    else if(kind==='ravine'){
+      const kr=rn(0,Math.min(nbands-1,1+idx)),fl=bandRows[kr],n=rn(14,22),gx=x;
+      for(let i=0;i<n;i++){top[x++]=-1;floorAt[x-1]=fl}
+      ravs.push({x:gx,n,kr,cyc,fl});
+      for(let i=6;i<n;i++)if(((i>>2)&1)&&R()<.7)feats.push({x:gx+i,y:fl-1,t:Wd.lava?4:3});
+      ladders.push({x:gx,y0:cyc,y1:fl-1});
+      for(let i=1;i<n-1;){const run=rn(4,8);for(let k2=0;k2<run&&i<n-1;k2++,i++)plats.push({x:gx+i,y:cyc,w:1,c:!!Wd.crumble&&R()<.4});i+=rn(2,3)}
+      let sd=0;for(let r=cyc+9;r<fl-5;r+=9){plats.push(sd?{x:gx+n-5,y:r,w:4}:{x:gx+2,y:r,w:4});if(R()<.35)L.chests.push({x:(sd?gx+n-4:gx+3)*TS,y:r*TS-10,open:0,v:5+idx*3+Math.floor(r/10)});sd^=1}
+      for(let r=cyc+14;r<fl-6;r+=12){plats.push({x:gx+Math.floor(n/2)-2,y:r,w:4});if(R()<.5)spawn(R()<.5?3:1,(gx+Math.floor(n/2))*TS,(r-3)*TS)}
+      const steps=Math.floor((fl-cyc-6)/2);for(let i=0;i<steps;i++)L.coins.push({x:(gx+n/2+Math.sin(i*.45)*n*.3)*TS,y:(cyc+3+i*2)*TS,v:1+(idx>>1)});
+      L.chests.push({x:(gx+Math.floor(n/2))*TS,y:fl*TS-10,open:0,v:10+idx*4+kr*4});
+      plats.push({x:gx+Math.floor(n/2)-2,y:cyc-13,w:4});L.chests.push({x:(gx+Math.floor(n/2))*TS,y:(cyc-13)*TS-10,open:0,v:12+idx*4});   // only a rocket pack gets up here
+      for(let i=0;i<4;i++)L.coins.push({x:(gx+Math.floor(n/2)-1+i)*TS+4,y:(cyc-16)*TS,v:2});
+      for(let q=0;q<2;q++){const pr=cyc+rn(14,Math.max(15,fl-cyc-10));if(pr<fl-8){rect(gx+n,pr,9,4,0);L.chests.push({x:(gx+n+6)*TS,y:(pr+4)*TS-10,open:0,v:8+idx*3});for(let i=0;i<3;i++)L.coins.push({x:(gx+n+2+i*2)*TS+4,y:(pr+3)*TS,v:2});if(R()<.5)spawn(0,(gx+n+3)*TS,(pr+3)*TS)}}
+      flat(2);
+    }
     else if(kind==='bridge'){
       const n=rn(14,22),fl=cyc+11,gx=x;for(let i=0;i<n;i++){top[x++]=-1;floorAt[x-1]=fl}
       for(let i=0;i<n;i++)feats.push({x:gx+i,y:fl-1,t:Wd.lava?4:3});
@@ -372,9 +389,7 @@ function genLevel(idx){
     else if(kind==='nook'){
       const n=rn(16,22),gx=x;for(let i=0;i<n;i++)top[x++]=cyc;groundSpawns(gx,n,cyc-1);nooks.push({x:gx+Math.floor(n/2),s:cyc});
     }
-    else if(kind==='secretzone'){
-      const n=28,gx=x;for(let i=0;i<n;i++)top[x++]=cyc;secretAt={x:gx+14,s:cyc};groundSpawns(gx,n,cyc-1);
-    }
+    if(kind==='tower'||kind==='springs'||kind==='ravine'||kind==='bridge')mezzR.push([x0,x]);
     /* a beam pad every so often on flat ground */
     if(x-lastCheck>46&&x<LW-40&&top[x-1]===cyc&&top[x-3]===cyc){L.checks.push({x:(x-2)*TS,y:cyc*TS,on:0});lastCheck=x}
   }
@@ -428,13 +443,6 @@ function genLevel(idx){
     for(let i=1;i<w-1;i+=2)L.coins.push({x:(x0n+i)*TS+4,y:(s0+dep+3)*TS,v:1+(idx>>1)});
     L.chests.push({x:(x0n+w-3)*TS,y:(s0+dep+4)*TS-10,open:0,v:8+idx*3});
     if(R()<.6)spawn([0,3,1][rn(0,2)],(x0n+2)*TS,(s0+dep+3)*TS)}
-  if(secretAt){const cx=secretAt.x,s0=secretAt.s,dep=12;
-    rect(cx,s0,2,dep,0);rect(cx-13,s0+dep,28,5,0);
-    for(let i=0;i<5;i++)S(cx-7+i*3,s0+dep+2,2);
-    L.jet={x:(cx-11)*TS+4,y:(s0+dep+4)*TS-12};
-    L.chests.push({x:(cx+9)*TS,y:(s0+dep+5)*TS-10,open:0,v:14});
-    for(let i=0;i<8;i++)L.coins.push({x:(cx-8+i*2)*TS+4,y:(s0+dep+4)*TS-4,v:2});
-    spawn(0,(cx+4)*TS,(s0+dep+4)*TS);spawn(3,(cx-3)*TS,(s0+dep+4)*TS)}
   /* swiss cheese: round holes through the ground, tunnels between them, and pits and shafts you can climb out of */
   {const blobs=[],nb=Math.floor(LW/1.9);
     const nzc=B.mkNoise(70+idx);
@@ -466,6 +474,74 @@ function genLevel(idx){
     /* small craters in the surface */
     for(let c=26;c<LW-30;c+=rn(7,13)){if(top[c]>=0&&top[c+4]===top[c]&&top[c-2]===top[c]&&R()<.8){const rx=rn(2,4),ry=rn(2,4);let clear=true;for(let i=-rx-1;i<=rx+1;i++)if(T0(g,LW,LH,c+i,top[c]-1)!==0||T0(g,LW,LH,c+i,top[c])!==1)clear=false;if(!clear)continue;for(let j=-1;j<=ry;j++)for(let i=-rx;i<=rx;i++){const d=(i*i)/(rx*rx)+(j*j)/(ry*ry)+(nzc.vn(c+i*.8,top[c]+j*.8)-.5)*.6;if(d<1&&T0(g,LW,LH,c+i,top[c]+j)===1)S(c+i,top[c]+j,0)}}}
   }
+  /* deeper cheese: closed caves far below the surface */
+  {const nzd=B.mkNoise(170+idx);for(let k=0;k<Math.floor(LW*(LH-60)/900);k++){
+      const cx=rn(14,LW-14),rx=rn(2,7),ry=rn(2,5),cyb=rn(SURF+30,LH-12);
+      for(let j=-ry-1;j<=ry+1;j++)for(let i=-rx-1;i<=rx+1;i++){const d=(i*i)/(rx*rx)+(j*j)/(ry*ry)+(nzd.vn(cx+i*.7,cyb+j*.7)-.5)*.5;if(d<1&&T0(g,LW,LH,cx+i,cyb+j)===1)S(cx+i,cyb+j,0)}}}
+  /* sky islands, high above the ground: only a rocket pack gets up to these */
+  if(!Wd.ship&&!Wd.cavern)for(let cx=60+rn(0,30);cx<LW-60;cx+=rn(90,140)){
+    if(top[cx]<0||top[cx+6]<0)continue;const iy=Math.min(top[cx],top[cx+6])-rn(14,17);if(iy<2)continue;
+    for(let i=0;i<7;i++)S(cx+i,iy,2);L.chests.push({x:(cx+3)*TS,y:iy*TS-10,open:0,v:10+idx*4});
+    for(let i=0;i<5;i++)L.coins.push({x:(cx+1+i)*TS+4,y:(iy-3)*TS,v:2});}
+  /* deep galleries: long caves at depth, one band every 30 rows, with pits, halls, pillars and lava lakes */
+  const fArr=[],noShaft=[];
+  for(let k=0;k<nbands;k++){
+    const rb=bandRows[k],fa=new Int16Array(LW),ns=new Uint8Array(LW);fArr.push(fa);noShaft.push(ns);
+    const inRav=c=>{for(const r of ravs)if(r.kr>k&&c>=r.x&&c<r.x+r.n)return true;return false};
+    const nearRav=c=>{for(const r of ravs)if(c>=r.x-4&&c<r.x+r.n+4)return true;return false};
+    let xx=18,f=rb,lastChk=xx;const gend=LW-26,lastBand=k===nbands-1;
+    while(xx<gend){
+      let kd=nearRav(xx)||nearRav(xx+10)?'flat':['flat','flat','steps','mound','pit','hall','pillars','plats','lake'][rn(0,8)];
+      if(kd==='lake'&&!(Wd.lava&&k>=1))kd='flat';
+      if(kd==='lake'&&k===0)kd='flat';
+      const n=kd==='hall'?rn(18,28):kd==='pit'?rn(4,5):kd==='lake'?rn(12,16):rn(8,16);
+      if(xx+n>gend)break;
+      const hgt=kd==='hall'?rn(17,22):rn(8,10),prof=new Array(n).fill(f);
+      if(kd==='steps'){let ff=f;for(let i=0;i<n;i++){if(i>0&&i%2===0&&R()<.6)ff=clamp(ff+(R()<.5?-1:1),rb-3,rb+3);prof[i]=ff}}
+      else if(kd==='mound'){const m=rn(2,3);for(let i=0;i<n;i++)prof[i]=f-Math.round(m*Math.sin(i/(n-1)*PI))}
+      else if(kd==='lake'){for(let i=2;i<n-2;i++)prof[i]=f+3}
+      for(let i=0;i<n;i++){const c=xx+i;if(c<2||c>=LW-2)continue;fa[c]=0;
+        if(inRav(c))continue;
+        const fl=prof[i],ce=fl-hgt;fa[c]=fl;
+        for(let y=ce;y<fl;y++){const t=g[y*LW+c];if(t===1||t===6)S(c,y,0)}
+        for(let y=fl;y<=fl+1;y++)if(g[y*LW+c]!==1)S(c,y,1);
+        if(g[(ce-1)*LW+c]!==1)S(c,ce-1,1)}
+      const x0g=xx,y0f=prof[0];
+      if(kd==='pit'){for(let i=0;i<n;i++){const c=xx+i;if(inRav(c))continue;for(let y=f;y<f+6;y++)S(c,y,0);for(let y=f+6;y<=f+8;y++)if(g[y*LW+c]!==1)S(c,y,1);ns[c]=1;
+          if(i>0)S(c,f+5,Wd.lava?4:3)}
+        for(let y=f;y<f+6;y++)S(xx,y,7)}
+      if(kd==='lake'){for(let i=2;i<n-2;i++){const c=xx+i;S(c,f+1,4);S(c,f+2,4);ns[c]=1}for(let i=3;i<n-3;i+=3)for(let q=0;q<3;q++)S(xx+i+q,f-1,2)}
+      if(kd==='hall'){
+        let py=f-5,px0=xx+3;for(let q=0;q<3;q++){for(let i=0;i<4;i++)S(px0+i,py,2);for(let i=0;i<3;i++)L.coins.push({x:(px0+i)*TS+4,y:(py-2)*TS,v:1});px0+=5;py-=5}
+        for(let i=0;i<4;i++)S(xx+n-8+i,f-hgt+4,2);L.chests.push({x:(xx+n-7)*TS,y:(f-hgt+4)*TS-10,open:0,v:12+idx*4+k*4});   // up near the roof
+        if(R()<.7)spawn(3,(xx+n/2)*TS,(f-8)*TS);ns.fill(1,xx,xx+n)}
+      if(kd==='pillars'){for(let i=2;i<n-2;i+=5){S(xx+i,f-1,1);S(xx+i+1,f-1,1);S(xx+i,f-2,1);S(xx+i+1,f-2,1);ns[xx+i]=ns[xx+i+1]=1}}
+      if(kd==='plats'){for(let i=1;i<n-3;i+=6){for(let q=0;q<3;q++)S(xx+i+q,f-5,2);for(let q=0;q<3;q++)L.coins.push({x:(xx+i+q)*TS+4,y:(f-7)*TS,v:1})}}
+      if(kd!=='lake'&&kd!=='pit'){groundSpawns(xx,n,prof[Math.floor(n/2)]-1);
+        for(let i=2;i<n-2;i+=3)L.coins.push({x:(xx+i)*TS+4,y:(prof[i]-2)*TS,v:1+(idx>>1)});
+        if(R()<.14)L.chests.push({x:(xx+n-4)*TS,y:prof[n-4]*TS-10,open:0,v:6+idx*3+k*4})}
+      if((kd==='flat'||kd==='steps')&&xx-lastChk>46&&prof[3]===prof[4]&&prof[2]===prof[3]){L.checks.push({x:(xx+3)*TS,y:prof[3]*TS,on:0});lastChk=xx}
+      f=prof[n-1];xx+=n;
+      if(kd==='steps')f=clamp(f,rb-3,rb+3)}
+    for(let c=18;c<xx;c++)if(fa[c]===0&&!inRav(c))fa[c]=0}
+  /* vertical shafts with a ladder: from the surface to the first gallery, then from gallery to gallery */
+  for(let k=-1;k<nbands-1;k++){
+    const fb=fArr[k+1];
+    for(let sx=rn(30,70);sx<LW-50;sx+=rn(60,110)){
+      let found=-1;
+      for(let d=0;d<30&&found<0;d++)for(const sg of [d,-d]){const c=sx+sg;if(c<20||c>LW-30)continue;
+        if(!fb[c]||fb[c+1]!==fb[c]||noShaft[k+1][c]||noShaft[k+1][c+1])continue;
+        let ok=true;
+        if(k<0){if(top[c-1]<0||top[c]<0||top[c+1]<0||top[c+2]<0||top[c]!==top[c+1]||top[c-1]!==top[c]||g[(top[c]-1)*LW+c]!==0||g[(top[c]-1)*LW+c+1]!==0||g[top[c]*LW+c]!==1||g[top[c]*LW+c+1]!==1)ok=false}
+        else{const fa=fArr[k];if(!fa[c]||fa[c]!==fa[c+1]||fa[c-1]!==fa[c]||noShaft[k][c]||noShaft[k][c+1])ok=false}
+        if(ok){found=c;break}}
+      if(found<0)continue;
+      const c=found,tr=k<0?top[c]:fArr[k][c],br=fb[c]-1;
+      for(let y=tr;y<=br;y++){S(c,y,0);S(c+1,y,0)}
+      for(let y=tr;y<=br;y++)S(c,y,7);
+      for(let y=tr+3;y<br-1;y+=3)L.coins.push({x:(c+1)*TS+4,y:y*TS,v:1});
+      noShaft[k+1][c]=noShaft[k+1][c+1]=1;if(k>=0)noShaft[k][c]=noShaft[k][c+1]=1}}
+  L.bands=bandRows;L.ravs=ravs;
   /* coins along the ground, on the surface */
   for(let cx=16;cx<LW-30;cx+=rn(6,12))if(top[cx]>=0&&R()<.8)L.coins.push({x:cx*TS+4,y:(top[cx]-2)*TS,v:1});
   fixTraps(L);
@@ -766,62 +842,64 @@ function mkStamps(idx,W_){
   return S;
 }
 
-/* paint one 256 pixel wide chunk of the ground */
-function bakeChunk(L,idx,ci){
-  const A=SURF.A,Wd=WORLDS[idx],LW=L.LW,LH=L.LH,g=L.g,H=LH*TS,M=8,W2=CHW+2*M,X0=ci*CHW-M;
+/* paint one 256 by 256 pixel chunk of the ground */
+function bakeChunk(L,idx,ci,cj){
+  const A=SURF.A,Wd=WORLDS[idx],LW=L.LW,LH=L.LH,g=L.g,M=8,CHH=CHW,HH=CHH+2*M,W2=CHW+2*M,X0=ci*CHW-M,Y0=cj*CHH-M;
   if(!A.shade){A.NZ=B.mkNoise(200+idx);A.shade=mkGround(idx,A.NZ);A.back=mkBack(idx,A.NZ);A.stamps=mkStamps(idx,Wd)}
-  const NZ=A.NZ,shade=A.shade,back=A.back;
+  const NZ=A.NZ,shade=A.shade,back=A.back,DEEPT=C32(['#14042a','#3a0a10','#02040c','#4a1006','#10020e'][idx]);
   const sol=(tx,ty)=>tx<0||tx>=LW?(ty>=LH||Wd.ship||Wd.cavern||(ty>=0&&g[ty*LW+(tx<0?0:LW-1)]===1)):ty>=LH?true:ty<0?(Wd.ship||Wd.cavern):g[ty*LW+tx]===1;
-  const mask=new Uint8Array(W2*H),dU=new Uint8Array(W2*H),dD=new Uint8Array(W2*H),dL=new Uint8Array(W2*H),dR=new Uint8Array(W2*H);
-  const tx0=Math.floor(X0/TS),tx1=Math.floor((X0+W2-1)/TS);
-  for(let ty=0;ty<LH;ty++)for(let tx=tx0;tx<=tx1;tx++){
+  const mask=new Uint8Array(W2*HH),dU=new Uint8Array(W2*HH),dD=new Uint8Array(W2*HH),dL=new Uint8Array(W2*HH),dR=new Uint8Array(W2*HH);
+  const tx0=Math.floor(X0/TS),tx1=Math.floor((X0+W2-1)/TS),ty0=Math.max(0,Math.floor(Y0/TS)),ty1=Math.min(LH-1,Math.floor((Y0+HH-1)/TS));
+  for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){
     if(!sol(tx,ty))continue;
     const aU=!sol(tx,ty-1),aD=!sol(tx,ty+1),aL=!sol(tx-1,ty),aR=!sol(tx+1,ty);
-    for(let j=0;j<TS;j++)for(let i=0;i<TS;i++){
+    for(let j=0;j<TS;j++){const r=ty*TS+j-Y0;if(r<0||r>=HH)continue;for(let i=0;i<TS;i++){
       if((i===0&&j===0&&aU&&aL)||(i===7&&j===0&&aU&&aR)||(i===0&&j===7&&aD&&aL)||(i===7&&j===7&&aD&&aR))continue;
-      const c=tx*TS+i-X0;if(c<0||c>=W2)continue;mask[(ty*TS+j)*W2+c]=1}
+      const c=tx*TS+i-X0;if(c<0||c>=W2)continue;mask[r*W2+c]=1}}
     /* ragged hanging edge under ceilings */
-    if(aD&&ty+1<LH&&g[(ty+1)*LW+tx]===0)for(let i=0;i<TS;i++){const wx=tx*TS+i,c=wx-X0;if(c<0||c>=W2)continue;const b=Math.max(0,Math.round(NZ.vn(wx*.3,ty*3.1)*4.6-1.2));for(let j=0;j<b;j++)mask[((ty+1)*TS+j)*W2+c]=1}
+    if(aD&&ty+1<LH&&g[(ty+1)*LW+tx]===0)for(let i=0;i<TS;i++){const wx=tx*TS+i,c=wx-X0;if(c<0||c>=W2)continue;const b=Math.max(0,Math.round(NZ.vn(wx*.3,ty*3.1)*4.6-1.2));for(let j=0;j<b;j++){const r=(ty+1)*TS+j-Y0;if(r>=0&&r<HH)mask[r*W2+c]=1}}
   }
-  for(let c=0;c<W2;c++)for(let y=0;y<H;y++){const i=y*W2+c;if(mask[i]){dU[i]=y>0&&mask[i-W2]?Math.min(255,dU[i-W2]+1):0}}
-  for(let c=0;c<W2;c++)for(let y=H-1;y>=0;y--){const i=y*W2+c;if(mask[i]){dD[i]=y<H-1?(mask[i+W2]?Math.min(255,dD[i+W2]+1):0):99}}
-  for(let y=0;y<H;y++){const r=y*W2;for(let c=0;c<W2;c++){const i=r+c;if(mask[i])dL[i]=c>0&&mask[i-1]?Math.min(255,dL[i-1]+1):0}
+  const run=(tx,ty,d)=>{let n=0;while(n<12&&sol(tx,ty+d*(n+1)))n++;return n};
+  for(let c=0;c<W2;c++){const tx=(X0+c)>>3,a0=run(tx,Math.floor(Y0/TS),-1),b0=sol(tx,Math.floor((Y0+HH)/TS))?99:0;
+    for(let y=0;y<HH;y++){const i=y*W2+c;if(mask[i]){dU[i]=y>0?(mask[i-W2]?Math.min(255,dU[i-W2]+1):0):Math.min(255,a0*8+8)}}
+    for(let y=HH-1;y>=0;y--){const i=y*W2+c;if(mask[i]){dD[i]=y<HH-1?(mask[i+W2]?Math.min(255,dD[i+W2]+1):0):b0}}}
+  for(let y=0;y<HH;y++){const r=y*W2;for(let c=0;c<W2;c++){const i=r+c;if(mask[i])dL[i]=c>0&&mask[i-1]?Math.min(255,dL[i-1]+1):0}
     for(let c=W2-1;c>=0;c--){const i=r+c;if(mask[i])dR[i]=c<W2-1&&mask[i+1]?Math.min(255,dR[i+1]+1):0}}
-  const out=new Uint32Array(CHW*H),litC=C32(Wd.glow||WH),isLava=!!Wd.lava;
-  for(let y=0;y<H;y++){const ty=y>>3;
+  const out=new Uint32Array(CHW*CHH),litC=C32(Wd.glow||WH);
+  for(let y=M;y<M+CHH;y++){const wy=Y0+y,ty=wy>>3,dp=clamp((ty-20)/(LH-20),0,1);
     for(let c=M;c<M+CHW;c++){const i=y*W2+c,wx=X0+c,tx=wx>>3;let col=0;
+      if(wy<0||wy>=LH*TS){out[(y-M)*CHW+c-M]=0;continue}
       if(mask[i]){
-        col=shade(wx,y,dU[i],dD[i],dL[i],dR[i]);
-        /* edge light and shade: light from the upper left */
+        col=shade(wx,wy,dU[i],dD[i],dL[i],dR[i]);
         if(dL[i]===0)col=mix32(col,WH32,.3);else if(dL[i]===1)col=mix32(col,WH32,.1);
         if(dR[i]===0)col=mix32(col,K32,.4);else if(dR[i]===1)col=mix32(col,K32,.15);
         if(dD[i]===0)col=mix32(col,K32,.45);
         if(dU[i]===0&&idx!==1&&idx!==2)col=mix32(col,WH32,.18);
+        if(dp>.12)col=mix32(col,DEEPT,Math.min(.5,(dp-.12)*.7));
       }else{
-        /* outline just outside the ground */
-        const nb=(c>0&&mask[i-1])||(c<W2-1&&mask[i+1])||(y>0&&mask[i-W2])||(y<H-1&&mask[i+W2]);
+        const nb=(c>0&&mask[i-1])||(c<W2-1&&mask[i+1])||(y>0&&mask[i-W2])||(y<HH-1&&mask[i+W2]);
         if(nb)col=K32;
         else if(tx>=0&&tx<LW&&ty<LH&&g[ty*LW+tx]!==1&&ty>L.bgRow[tx]+1){
-          col=back(wx,y);
-          /* shadow close to the walls */
-          let ao=0;for(let k=2;k<=3;k++){if((c>=k&&mask[i-k])||(c<W2-k&&mask[i+k])||(y>=k&&mask[i-k*W2])||(y<H-k&&mask[i+k*W2]))ao++}
-          if(ao)col=mix32(col,K32,ao>1?.5:.3)}
+          col=back(wx,wy);
+          let ao=0;for(let k=2;k<=3;k++){if((c>=k&&mask[i-k])||(c<W2-k&&mask[i+k])||(y>=k&&mask[i-k*W2])||(y<HH-k&&mask[i+k*W2]))ao++}
+          if(ao)col=mix32(col,K32,ao>1?.5:.3);
+          if(dp>.1)col=mix32(col,DEEPT,Math.min(.6,(dp-.1)*.9))}
         else if(tx>=0&&tx<LW&&ty<LH&&g[ty*LW+tx]===0&&Wd.ship&&!(Wd.plant&&Wd.plant.kind==='hive')&&(tx%14===0)){
-          const lx=wx&7;col=lx===0||lx===7?C32('#0a1220'):lx===1?C32('#3c5a8a'):lx===6?C32('#101a30'):C32('#1c2a4a');if((y&15)===3&&lx>1&&lx<6)col=litC}
+          const lx=wx&7;col=lx===0||lx===7?C32('#0a1220'):lx===1?C32('#3c5a8a'):lx===6?C32('#101a30'):C32('#1c2a4a');if((wy&15)===3&&lx>1&&lx<6)col=litC}
       }
-      out[y*CHW+c-M]=col}}
-  const cv_=cnv(CHW,H,()=>{}),cx=cv_.getContext('2d'),id=new ImageData(new Uint8ClampedArray(out.buffer),CHW,H);cx.putImageData(id,0,0);
+      out[(y-M)*CHW+c-M]=col}}
+  const cv_=cnv(CHW,CHH,()=>{}),cx=cv_.getContext('2d'),id=new ImageData(new Uint8ClampedArray(out.buffer),CHW,CHH);cx.putImageData(id,0,0);
   /* buried things */
-  const ST=A.stamps,ox=ci*CHW,stamp=(im,x,y)=>cx.drawImage(im,Math.round(x-ox),Math.round(y));
-  const ta=Math.floor(ox/TS)-4,tb=Math.floor((ox+CHW)/TS)+4;
-  for(let tx=Math.max(2,ta);tx<=Math.min(LW-3,tb);tx++)for(let ty=1;ty<LH-1;ty++){
+  const ST=A.stamps,ox=ci*CHW,oy=cj*CHH,stamp=(im,x,y)=>cx.drawImage(im,Math.round(x-ox),Math.round(y-oy));
+  const ta=Math.floor(ox/TS)-4,tb=Math.floor((ox+CHW)/TS)+4,tya=Math.max(1,Math.floor(oy/TS)-4),tyb=Math.min(LH-2,Math.floor((oy+CHH)/TS)+4);
+  for(let tx=Math.max(2,ta);tx<=Math.min(LW-3,tb);tx++)for(let ty=tya;ty<=tyb;ty++){
     if(g[ty*LW+tx]!==1)continue;
     const h=hh(tx,ty,idx+40),h2=hh(tx,ty,idx+90);
     let intr=true;for(let j=-1;j<=1&&intr;j++)for(let i=-1;i<=1;i++)if(g[(ty+j)*LW+tx+i]!==1){intr=false;break}
     if(intr&&h<.075){let u=0;while(ty-u-1>0&&g[(ty-u-1)*LW+tx]===1&&u<4)u++;
       if(u>=2){const im=ST.inner[(h2*ST.inner.length)|0];stamp(im,tx*TS+4-im.width/2+((hh(tx,ty,7)*6-3)|0),ty*TS+4-im.height/2)}}
-    else if(h>.93&&g[(ty-1)*LW+tx]===0&&g[ty*LW+tx-1]===1&&g[ty*LW+tx+1]===1){const im=ST.near[(h2*ST.near.length)|0];stamp(im,tx*TS+4-im.width/2,ty*TS+2)}   // roots and bits under the surface
-    else if(h>.80&&h<.9&&g[(ty+1)*LW+tx]===0&&ST.ceil.length&&ty+1<LH){const im=ST.ceil[(h2*ST.ceil.length)|0];stamp(im,tx*TS+4-im.width/2,ty*TS+7)}   // hanging from ceilings
+    else if(h>.93&&g[(ty-1)*LW+tx]===0&&g[ty*LW+tx-1]===1&&g[ty*LW+tx+1]===1){const im=ST.near[(h2*ST.near.length)|0];stamp(im,tx*TS+4-im.width/2,ty*TS+2)}
+    else if(h>.80&&h<.9&&g[(ty+1)*LW+tx]===0&&ST.ceil.length&&ty+1<LH){const im=ST.ceil[(h2*ST.ceil.length)|0];stamp(im,tx*TS+4-im.width/2,ty*TS+7)}
   }
   /* props standing on the surface */
   for(let tx=Math.max(14,ta);tx<=Math.min(LW-20,tb);tx++){
@@ -835,8 +913,9 @@ function bakeChunk(L,idx,ci){
 
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
-window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci)=>bakeChunk(L,i,ci);SURF.analyze=analyzeLevel;
-function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};return s}
+window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
+function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};if(s.lay!==2){s.cp={};s.lay=2}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
+  return s}
 SURF.state=sv;
 SURF.unlocked=i=>{const s=sv();return i===0?true:!!s.done[i-1]};
 SURF.allDone=()=>sv().done.every(v=>v);
@@ -889,7 +968,6 @@ SURF.assets_=idx=>{
     if(idx===0){ell(g,55,30,22,22,[VI,PU,mg,MG,WH]);for(let i=0;i<110;i++){const an=i/110*TAU;if(Math.sin(an)>0||Math.abs(Math.cos(an))>.4)px(g,i%2?YL:OR,55+Math.cos(an)*38,30+Math.sin(an)*9,2,1)}}
     else if(idx===1){ell(g,36,28,16,16,[OR,YL,WH,WH]);ell(g,82,38,8,8,[RD,OR,YL,WH])}
     else{}});
-  a.jet=fin(cnv(12,16,g=>{px(g,D,1,3,4,9);px(g,GM,1,3,1,9);px(g,LL,2,3,1,9);px(g,D,7,3,4,9);px(g,GM,7,3,1,9);px(g,LL,8,3,1,9);px(g,RD,1,2,4,1);px(g,RD,7,2,4,1);px(g,BR,4,5,4,2);px(g,TN,4,5,4,1);px(g,K,2,12,2,2);px(g,K,8,12,2,2);px(g,OR,2,13,2,2);px(g,YL,2,13,2,1);px(g,OR,8,13,2,2);px(g,YL,8,13,2,1);px(g,CY,5,8,2,2);px(g,WH,5,8,1,1)}));
   a.coin=cnv(7,7,g=>{ell(g,3.5,3.5,3,3,GREEN);px(g,WH,2,2,1,1)});
   a.chest=[cnv(14,10,g=>{poly(g,[[0,3],[14,3],[14,10],[0,10]],[BR,TN,OR]);poly(g,[[0,0],[14,0],[14,4],[0,4]],[BR,OR,YL]);px(g,GREEN[3],6,3,2,3);px(g,K,0,3,14,1)}),
     cnv(14,10,g=>{poly(g,[[0,5],[14,5],[14,10],[0,10]],[BR,TN,OR]);px(g,GREEN[2],2,0,10,5);px(g,GREEN[4],4,1,2,2);px(g,GREEN[3],8,2,2,2)})];
@@ -962,6 +1040,7 @@ function leave(){
 SURF.tick=function(dt){
   dt=Math.min(dt,1/30);const L=SURF.L,p=SURF.p,s=sv();
   SURF.t+=dt;L.tick+=dt;
+  if(SURF.banner){SURF.banner.t-=dt;if(SURF.banner.t<=0)SURF.banner=null}
   if(SURF.msg&&SURF.msg[1]>0)SURF.msg[1]-=dt;if(SURF.help>0)SURF.help-=dt;
   if(SURF.cut){const c=SURF.cut;c.t+=dt;
     if(c.mode==='in'){if(!c.dropped&&c.t>=1.1){c.dropped=1;p.hidden=false;p.x=c.hx-5;p.y=c.hy+10;p.vx=p.vy=0;try{sfxTone(500,200,.3,'sine',.03,{att:.005})}catch(e){}}if(c.t>=2.7)SURF.cut=null}
@@ -1010,11 +1089,11 @@ SURF.tick=function(dt){
     if(p.jb>0&&(p.on||p.coy>0)){p.vy=-222;p.on=false;p.coy=0;p.jb=0;p.jumpHeld=true;try{sfxTone(260,520,.12,'square',.02,{att:.002})}catch(e){}}
     if(p.sp>0)p.sp-=dt;
     if(!I.jump&&p.vy<-90&&!p.on&&!p.lad&&!(p.sp>0))p.vy*=1-dt*9;   // let go to hop short
-    /* jetpack: press jump again in the air and hold it. Fuel comes back on the ground or a ladder. */
+    /* rocket pack: press jump again in the air and hold it. Fuel comes back on the ground or a ladder. */
     p.thrust=false;
-    if(p.on||p.lad){p.jarm=false;if(p.fuel==null)p.fuel=1;p.fuel=Math.min(1,p.fuel+dt*1.0)}
+    if(p.on||p.lad){p.jarm=false;if(p.fuel==null)p.fuel=1;p.fuel=Math.min(1,p.fuel+dt*1.4)}
     else{if(!I.jump)p.jarm=true;if(p.fuel==null)p.fuel=1;
-      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed){p.thrust=true;p.vy-=900*dt;if(p.vy<-100)p.vy=-100;p.fuel=Math.max(0,p.fuel-dt*.95);
+      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed){p.thrust=true;p.vy-=900*dt;if(p.vy<-105)p.vy=-105;p.fuel=Math.max(0,p.fuel-dt*.5);
         p.jt=(p.jt||0)-dt;if(p.jt<=0){p.jt=.07;try{sfxTone(150,80,.07,'sawtooth',.012,{att:.001})}catch(e){}}
         for(let k=0;k<2;k++)SURF.fx.push({x:p.x+p.w/2-p.face*4+rnd(-1,1),y:p.y+p.h-2,vx:rnd(-14,14)-p.face*10,vy:rnd(70,130),life:rnd(.18,.4),c:[WH,YL,OR,OR,RD][(Math.random()*5)|0],s:k?1:2})}}
     /* move x with step-up */
@@ -1054,16 +1133,15 @@ SURF.tick=function(dt){
     if(I.fire&&p.fire<=0&&!beamed){p.fire=.2;const up=I.up&&!I.l&&!I.r?1:0,dir=p.face;
       SURF.bul.push({x:p.x+p.w/2+dir*8,y:p.y+(up?2:7),vx:up?0:dir*260,vy:up?-260:0,life:.7,d:1});try{sfxLaser()}catch(e){}}
     /* checkpoints and chests and coins */
-    if(L.jet&&!s.jet&&Math.abs(p.x+5-L.jet.x)<12&&Math.abs(p.y+8-L.jet.y)<16){s.jet=1;p.fuel=1;SURF.msg=['JETPACK FOUND. IN THE AIR, PRESS JUMP AGAIN AND HOLD IT TO FLY',5];shakeS=.15;
-      try{sfxTone(300,1400,.5,'triangle',.05,{att:.005})}catch(e){}
-      for(let i=0;i<30;i++)SURF.fx.push({x:L.jet.x,y:L.jet.y,vx:rnd(-90,90),vy:rnd(-130,-10),life:.9,c:[WH,YL,OR,CY][i%4],s:2});save()}
     for(const c of L.checks)if(!c.on&&Math.abs(p.x+5-c.x)<16&&Math.abs(p.y+16-c.y)<18){c.on=1;s.cp[SURF.idx]={x:c.x,y:c.y};SURF.msg=['BEAM PAD SAVED',1.6];for(let i=0;i<10;i++)SURF.fx.push({x:c.x,y:c.y-4,vx:rnd(-30,30),vy:rnd(-90,-20),life:.7,c:CY,s:2});p.safe={x:p.x,y:p.y}}
     for(const c of L.chests)if(!c.open&&Math.abs(p.x+5-(c.x+7))<14&&Math.abs(p.y+8-(c.y+5))<18){c.open=1;try{sfxTone(500,1200,.3,'triangle',.04,{att:.005})}catch(e){}
       for(let i=0;i<Math.min(12,c.v);i++)L.coins.push({x:c.x+7,y:c.y,v:Math.ceil(c.v/Math.min(12,c.v)),vx:rnd(-50,50),vy:rnd(-130,-60),loose:1})}
+    let anyGone=false;
     for(const c of L.coins){
+      if(!c.loose&&(Math.abs(p.x+5-c.x)>24||Math.abs(p.y+8-c.y)>24))continue;
       if(c.loose){c.vy+=300*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;if(hitsSolid(c.x-2,c.y,4,4)){c.vy=-c.vy*.3;c.vx*=.6;c.y-=2}}
-      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(!c.gone&&dx*dx+dy*dy<150){c.gone=1;s.green+=c.v;SURF.visit+=c.v;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+c.v});try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
-    L.coins=L.coins.filter(c=>!c.gone);
+      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(!c.gone&&dx*dx+dy*dy<150){c.gone=1;anyGone=true;s.green+=c.v;SURF.visit+=c.v;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+c.v});try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
+    if(anyGone)L.coins=L.coins.filter(c=>!c.gone);
   }
   /* spawners: enemies in view and farm respawns */
   for(const sp of L.spawns){
@@ -1074,7 +1152,7 @@ SURF.tick=function(dt){
         if(!sp.once||!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h);sp.e=e;e.sp_=sp}}}
   }
   /* the guardian shows up when you get near the end */
-  if(!SURF.guard&&p.x>L.exit.x-260){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;SURF.guard=e;SURF.msg=['THE GUARDIAN',2.5]}
+  if(!SURF.guard&&p.x>L.exit.x-260&&p.y<(L.endRow+18)*TS){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;SURF.guard=e;SURF.msg=['THE GUARDIAN',2.5]}
   /* enemies */
   for(const e of SURF.en){updateEnemy(e,dt)}
   SURF.en=SURF.en.filter(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<520)return true;if(e.hp<=0)return false;if(e.sp_){e.sp_.e=null;e.sp_.t=0}return false});
@@ -1104,6 +1182,8 @@ function hurt(n,respawn){
 let shakeS=0;
 function killEnemy(e){
   const s=sv(),sp=e.sp;sv();s.kills++;try{sfxBoom(10,e.elite)}catch(e2){}
+  if(e.guardian&&SURF.idx===0&&!s.jet){s.jet=1;SURF.p.fuel=1;SURF.banner={t:8,lines:['YOU GOT A ROCKET PACK!','PRESS JUMP AGAIN IN THE AIR','AND HOLD IT TO FLY.','NOW YOU CAN EXPLORE FURTHER.']};shakeS=.3;try{sfxTone(300,1400,.6,'triangle',.05,{att:.005})}catch(e3){}
+    for(let i=0;i<40;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,OR,CY][i%4],s:2});save()}
   const key=SURF.idx+'_'+e.k;s.seen[key]=(s.seen[key]||0)+1;
   const n=Math.max(1,Math.round(sp.gold*(e.elite?4:1)));
   for(let i=0;i<Math.min(8,n);i++)SURF.L.coins.push({x:e.x+e.w/2,y:e.y+e.h/2,v:Math.ceil(n/Math.min(8,n)),vx:rnd(-60,60),vy:rnd(-120,-40),loose:1});
@@ -1168,9 +1248,12 @@ SURF.draw=function(){
   const T=A.tiles,x0=Math.floor(cam.x/TS),x1=Math.min(L.LW-1,x0+41),y0=Math.floor(cam.y/TS),y1=Math.min(L.LH-1,y0+26);
   const tf=Math.floor(L.tick*3)%2;
   /* the painted ground */
-  {const c0=Math.max(0,Math.floor(cam.x/CHW)),c1=Math.min(Math.floor((L.LW*TS-1)/CHW),Math.floor((cam.x+VW)/CHW));L.chunks=L.chunks||[];
-    for(let ci=c0;ci<=c1;ci++){if(!L.chunks[ci])L.chunks[ci]=bakeChunk(L,SURF.idx,ci);ctx.drawImage(L.chunks[ci],Math.floor(ci*CHW-cam.x),-Math.floor(cam.y))}
-    const nx=c1+1,pv=c0-1;if(nx<=Math.floor((L.LW*TS-1)/CHW)&&!L.chunks[nx])L.chunks[nx]=bakeChunk(L,SURF.idx,nx);else if(pv>=0&&!L.chunks[pv])L.chunks[pv]=bakeChunk(L,SURF.idx,pv)}
+  {const NCX=Math.floor((L.LW*TS-1)/CHW),NCY=Math.floor((L.LH*TS-1)/CHW),c0=Math.max(0,Math.floor(cam.x/CHW)),c1=Math.min(NCX,Math.floor((cam.x+VW)/CHW)),j0=Math.max(0,Math.floor(cam.y/CHW)),j1=Math.min(NCY,Math.floor((cam.y+VH)/CHW));
+    const CH=L.chunks=L.chunks||{};
+    for(let cj=j0;cj<=j1;cj++)for(let ci=c0;ci<=c1;ci++){const key=ci+cj*4096;if(!CH[key])CH[key]=bakeChunk(L,SURF.idx,ci,cj);CH[key].u=L.tick;ctx.drawImage(CH[key],Math.floor(ci*CHW-cam.x),Math.floor(cj*CHW-cam.y))}
+    /* bake one neighbour a frame so scrolling never stalls, and forget chunks far behind */
+    pre:for(let r=1;r<=2;r++)for(let cj=j0-r;cj<=j1+r;cj++)for(let ci=c0-r;ci<=c1+r;ci++){if(ci<0||cj<0||ci>NCX||cj>NCY)continue;const key=ci+cj*4096;if(!CH[key]){CH[key]=bakeChunk(L,SURF.idx,ci,cj);CH[key].u=L.tick;break pre}}
+    if((L.tickF=(L.tickF||0)+1)%90===0){const ks=Object.keys(CH);if(ks.length>40){ks.sort((a,b)=>CH[a].u-CH[b].u);for(let q=0;q<ks.length-32;q++)delete CH[ks[q]]}}}
   for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){
     const t=L.g[ty*L.LW+tx],X=Math.floor(tx*TS-cam.x),Y=Math.floor(ty*TS-cam.y);
     if(t===0)continue;
@@ -1204,19 +1287,14 @@ SURF.draw=function(){
   /* lifts */
   for(const q of L.lifts){const X=Math.floor(q.x-cam.x),Y=Math.floor(q.y-cam.y);ctx.fillStyle=K;ctx.fillRect(X-1,Y,q.w+2,7);ctx.fillStyle=Wd.plat[0];ctx.fillRect(X,Y,q.w,5);ctx.fillStyle=Wd.plat[1];ctx.fillRect(X,Y,q.w,1);ctx.fillStyle=YL;for(let k=2;k<q.w-2;k+=6)ctx.fillRect(X+k,Y+2,2,1);ctx.fillStyle=D;ctx.fillRect(X+q.w/2-1,Y+5,2,2)}
   /* checkpoints */
-  for(const c of L.checks){const X=Math.floor(c.x-cam.x),Y=Math.floor(c.y-cam.y);ctx.fillStyle=K;ctx.fillRect(X-8,Y-2,16,3);ctx.fillStyle=c.on?CY:GM;ctx.fillRect(X-7,Y-2,14,2);if(c.on){ctx.fillStyle='#9ad2e044';ctx.fillRect(X-5,Y-30,10,28);ctx.fillStyle=WH;for(let i=0;i<4;i++)ctx.fillRect(X-4+((L.tick*30+i*9)%9),Y-4-((L.tick*40+i*11)%26),1,2)}}
+  for(const c of L.checks){if(c.x<cam.x-20||c.x>cam.x+VW+20||c.y<cam.y-40||c.y>cam.y+VH+40)continue;const X=Math.floor(c.x-cam.x),Y=Math.floor(c.y-cam.y);ctx.fillStyle=K;ctx.fillRect(X-8,Y-2,16,3);ctx.fillStyle=c.on?CY:GM;ctx.fillRect(X-7,Y-2,14,2);if(c.on){ctx.fillStyle='#9ad2e044';ctx.fillRect(X-5,Y-30,10,28);ctx.fillStyle=WH;for(let i=0;i<4;i++)ctx.fillRect(X-4+((L.tick*30+i*9)%9),Y-4-((L.tick*40+i*11)%26),1,2)}}
   /* the beacon */
   {const e=L.exit,X=Math.floor(e.x-cam.x),Y=Math.floor(e.y-cam.y);ctx.drawImage(A.beacon,X,Y-28);const open=!(SURF.guard&&SURF.guard.hp>0);ctx.fillStyle=open?GREEN[3]:RD;ctx.fillRect(X+8,Y-24+((L.tick*8|0)%2),2,2);
     if(open&&!SURF.done&&Math.abs(p.x-e.x)<24){textC2('PRESS ENTER OR TAP THE BEACON',X+9,Y-38,YL)}}
   /* chests */
-  for(const c of L.chests){const im=A.chest[c.open?1:0];ctx.drawImage(im,Math.floor(c.x-cam.x),Math.floor(c.y-cam.y))}
-  /* the jetpack, waiting on a stone */
-  if(L.jet&&!sv().jet){const jx=Math.floor(L.jet.x-cam.x),jy=Math.floor(L.jet.y-cam.y),bob=Math.sin(L.tick*3)*2;
-    ctx.fillStyle=K;ctx.fillRect(jx-9,jy+12,18,4);ctx.fillStyle=GM;ctx.fillRect(jx-8,jy+12,16,2);ctx.fillStyle=LL;ctx.fillRect(jx-8,jy+12,16,1);
-    ctx.globalAlpha=.18+.08*Math.sin(L.tick*4);ctx.fillStyle=YL;ctx.beginPath();ctx.arc(jx,jy+bob+4,14,0,TAU);ctx.fill();ctx.globalAlpha=.12;ctx.beginPath();ctx.arc(jx,jy+bob+4,20,0,TAU);ctx.fill();ctx.globalAlpha=1;
-    ctx.drawImage(A.jet,jx-7,jy-6+Math.round(bob));ctx.fillStyle=WH;for(let k=0;k<5;k++){const a=L.tick*2+k*1.26;ctx.fillRect(Math.round(jx+Math.cos(a)*12),Math.round(jy+4+Math.sin(a)*9),1,1)}}
+  for(const c of L.chests){if(c.x<cam.x-16||c.x>cam.x+VW+16||c.y<cam.y-12||c.y>cam.y+VH+12)continue;const im=A.chest[c.open?1:0];ctx.drawImage(im,Math.floor(c.x-cam.x),Math.floor(c.y-cam.y))}
   /* coins */
-  for(const c of L.coins){const X=Math.floor(c.x-cam.x-3),Y=Math.floor(c.y-cam.y-3+Math.sin(L.tick*4+c.x)*1),w=(Math.floor(L.tick*6+c.x)%4)===0?5:7;ctx.drawImage(A.coin,X,Y)}
+  for(const c of L.coins){if(c.x<cam.x-8||c.x>cam.x+VW+8||c.y<cam.y-8||c.y>cam.y+VH+8)continue;const X=Math.floor(c.x-cam.x-3),Y=Math.floor(c.y-cam.y-3+Math.sin(L.tick*4+c.x)*1),w=(Math.floor(L.tick*6+c.x)%4)===0?5:7;ctx.drawImage(A.coin,X,Y)}
   /* enemies */
   for(const e of SURF.en){if(e.hp<=0)continue;const fr=A.en[e.k],f=Math.floor(e.t*7)%4,im=(e.flash>0?fr.wh:fr.fr)[f];
     const w=Math.round(im.width*e.sc),h=Math.round(im.height*e.sc),X=Math.floor(e.x+e.w/2-w/2-cam.x),Y=Math.floor(e.y+e.h-h+1-cam.y);
@@ -1257,11 +1335,12 @@ function hud(){
   /* progress along the level */
   ctx.fillStyle='#000000aa';ctx.fillRect(4,VH-8,90,5);ctx.fillStyle=GREEN[1];ctx.fillRect(5,VH-7,Math.round(88*clamp(p.x/(SURF.L.LW*TS),0,1)),3);
   if(SURF.msg&&SURF.msg[1]>0)textC(SURF.msg[0],40,YL,1);
+  if(SURF.banner){const b=SURF.banner,a=Math.min(1,b.t*2),h=b.lines.length*11+12,y0=54;ctx.globalAlpha=.85*a;ctx.fillStyle=K;ctx.fillRect(20,y0,VW-40,h);ctx.globalAlpha=a;ctx.fillStyle=YL;ctx.fillRect(20,y0,VW-40,1);ctx.fillRect(20,y0+h-1,VW-40,1);b.lines.forEach((ln,i)=>textC(ln,y0+7+i*11,i?WH:YL,1));ctx.globalAlpha=1}
   if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
     if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
     else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('BEAM UP: B   STUCK: G   LADDERS: W/S   S+SPACE: DROP DOWN',VH-27,YL,1);textC('GAMEPAD: A JUMP   X, B OR RB FIRE   START BEAM UP',VH-17,'#9ad2e0',1)}}
   else if(!(typeof isTouch!=='undefined'&&isTouch)){textC('FIRE: X, R OR MOUSE   BEAM UP: B',VH-9,'#6c6c6c',1)}
-  if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,52,9);text('JET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(24,17,30,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(25,18,Math.round(28*f),4);ctx.fillStyle=WH;ctx.fillRect(25,18,Math.round(28*f),1)}
+  if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78,9);text('ROCKET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
   const btn=(id,x,y,w,h,label)=>{tb.push({id,x,y,w,h});ctx.fillStyle=SURF.touch[id]?'#ffffff88':'#00000066';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffffff55';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);textC2(label,x+w/2,y+h/2-2,WH)};
