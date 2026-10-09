@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.31</title>
+<title>Idlyte v2.32</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -572,7 +572,12 @@ const PLANETS=[
  {n:'LEVIATHAN NEBULA',pow:2000,diff:12,gold:28,loot:.27,hit:5,big:1,d:'BIGGER SHIP STAGE. LIVING CLOUDS AND GIANT BEASTS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE DYSON FORGE',pow:2700,diff:13,gold:38,loot:.29,hit:6,big:1,d:'BIGGER SHIP STAGE. A STAR CAGED IN MACHINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'EVENT HORIZON',pow:3600,diff:14,gold:52,loot:.31,hit:8,big:1,d:'BIGGER SHIP STAGE. THE EDGE OF A BLACK HOLE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
- {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]}];
+ {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'ION STORM BELT',pow:1150,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'SPORE CLOUD',pow:1400,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'MIRROR MAZE',pow:1700,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'DEAD STAR YARD',pow:2050,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'THE HIVE QUEEN',pow:2500,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]}];
 const THEMES=[
  {cl:['#000000','#352879','#6f3d86'],pl:['#000000','#352879','#6f3d86','#9a6759','#b8c76f']},
  {cl:['#000000','#2a2a2a','#444444'],pl:['#000000','#444444','#6c6c6c','#9a6759','#bbbbbb']},
@@ -584,6 +589,7 @@ const THEMES=[
  {cl:['#000000','#68372b','#b8c76f'],pl:['#000000','#68372b','#9a6759','#b8c76f','#ffffaa']},
  {cl:['#000000','#1c1840','#6f3d86'],pl:['#000000','#1c1840','#6f3d86','#cc99ff','#ffffff']}];
 THEMES.push({cl:['#000000','#1c0808','#9a3a3a'],pl:['#000000','#68372b','#9a3a3a','#ff9966','#ffffaa']},
+ {cl:['#000000','#0a0630','#6c5eb5'],pl:['#000000','#1c1840','#6c5eb5','#70a4b2','#ffffaa']},{cl:['#000000','#0a2010','#588d43'],pl:['#000000','#2c5a2c','#588d43','#ccff99','#ffffaa']},{cl:['#000000','#1c2440','#70a4b2'],pl:['#000000','#6c6c6c','#bbbbbb','#9ad2e0','#ffffff']},{cl:['#000000','#1c1c1c','#6c6c6c'],pl:['#000000','#444444','#9a3a3a','#ffffaa','#ffffff']},{cl:['#000000','#3a0a38','#cc44cc'],pl:['#000000','#3a0a38','#8a3aa6','#ff77ff','#ffffaa']},
  {cl:['#000000','#1c1008','#68372b'],pl:['#000000','#1c1008','#68372b','#9a6759','#d8a878']},
  {cl:['#000000','#0a0630','#cc44cc'],pl:['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff']},
  {cl:['#000000','#2a1500','#ff9966'],pl:['#000000','#68372b','#ff9966','#ffffaa','#ffffff']},
@@ -617,14 +623,14 @@ function drawPowerMeter(x,y){
 /* the bigger ship stages: the first opens when the Burning City is unlocked, and every one of them needs a luxury big ship */
 const isLux=s=>!!s&&s.price>=2e7;
 function ownsLux(){return (SAVE.ships||[]).some(i=>isLux(SHIPS[i]))}
-function prevOk(i){return i===0||(i===10?planetOpen(9):(SAVE.prog[i-1]||0)>=3)}
+function prevOk(i){return i===0||(i===10?planetOpen(9):i===15?(SAVE.prog[9]||0)>=3:(SAVE.prog[i-1]||0)>=3)}
 function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
 function surfReq(k){
   const sf=SURF.state(),tr=roomById('transporter'),built=!!(tr&&tr.built),sys=systemsDone()>=4,prev=k===0||!!sf.done[k-1],done=!!sf.done[k];
   const need=!built?'THE SURFACE TRANSPORTER. BUY IT IN THE BUILD MENU':!sys?'4 SYSTEMS CLEARED. YOU HAVE '+systemsDone():!prev?'CLEAR '+SURF.WORLDS[k-1].n+' FIRST':'NOTHING MORE. USE THE TRANSPORTER';
   return {built,done,ok:built&&sys&&prev,need,msg:'LOCKED. NEEDS '+need}}
-function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
+function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':i===15?'LOCKED. BEAT THE BURNING CITY BOSS FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
   if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY SHIP FROM THE LUXURY SHIP SHOP';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
 function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=Math.round(u.base*Math.pow(u.mul,j)/5)*5;return t}
 const RESET_FEE=1000;
@@ -732,7 +738,7 @@ function newRun(){
 G=null;newRun(false);
 function loopScale(){return 1+G.loop*.45}
 /* ordinary enemies are tougher from the Asteroid Belt on (x1.25), the Ice Moon (x1.6) and from the Lava World on (x2). Bosses and mini bosses keep loopScale */
-const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,7.6,9,10.5,12,14,16];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
+const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,7.6,9,10.5,12,14,16,8.6,9.4,10.2,11,12];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
 function enemyScale(){return loopScale()*ENEMY_MUL[Math.min(ENEMY_MUL.length-1,G.planet||0)]}
 
 /* ===== salvage drops and option drones ===== */
@@ -767,7 +773,7 @@ function spawn(o){
 /* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
 function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
 /* ===== mini boss: halfway through every level, a double size elite built from the planet's own enemy art ===== */
-const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod'];
+const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR'];
 function spawnMini(){
   const A=pk(),M=A&&A.mini,k=MINI_KEY[G.planet||0],hp=26*loopScale()*(G.level>=3?1.3:1)*((M&&M.hp)||1);
   const e={type:'mini',fr:k,x:W+30,y:100,vx:-55,vy:0,w:M?M.w:36,h:M?M.h:26,hp,mhp:hp,pts:1500,t:0,flash:0,shootT:1.5,ringT:3.5,in:true,pkMini:!!M};
@@ -1340,7 +1346,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.31';
+const VERSION='2.32';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2421,7 +2427,7 @@ function drawChanceMeter(){
   const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
   for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
-function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
+function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].small&&(SHIPS[SAVE.ship]||{}).yard){toast('THE SWARM STAGES ARE TOO TIGHT FOR BIG SHIPS. FLY A SMALL SHIP');return}if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 
 /* ===== star map: the system laid out with a planet for every stage ===== */
 const SMAP={pl:{},t:0};const clamp01=v=>v<0?0:v>1?1:v;
@@ -2436,16 +2442,17 @@ function smapPlanet(i,R){
   return SMAP.pl[k]=dithered(S,S,(x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*(5+i%3*2)+Math.sin(nx*3+i)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.2?(lit>.2?.5:-.3):0))*0.999},cols);
 }
-SMPAL[15]=['#000000','#6f3d86','#cc44cc','#ff77ff','#ffffaa'];SMPAL[16]=['#000000','#9a3a3a','#ff9966','#ffffaa','#ffffff'];SMPAL[17]=['#000000','#1c2a4a','#3c5a8a','#70a4b2','#ccffff'];SMPAL[18]=['#000000','#3a0a08','#9a3a3a','#ff7777','#ffffaa'];SMPAL[19]=['#000000','#3a0a38','#8a3aa6','#cc44cc','#ccff99'];
+SMPAL[15]=['#000000','#1c1840','#6c5eb5','#70a4b2','#ffffaa'];SMPAL[16]=['#000000','#2c5a2c','#588d43','#ccff99','#ffffaa'];SMPAL[17]=['#000000','#6c6c6c','#bbbbbb','#9ad2e0','#ffffff'];SMPAL[18]=['#000000','#444444','#9a3a3a','#ffffaa','#ffffff'];SMPAL[19]=['#000000','#3a0a38','#8a3aa6','#ff77ff','#ffffaa'];
+SMPAL[20]=['#000000','#6f3d86','#cc44cc','#ff77ff','#ffffaa'];SMPAL[21]=['#000000','#9a3a3a','#ff9966','#ffffaa','#ffffff'];SMPAL[22]=['#000000','#1c2a4a','#3c5a8a','#70a4b2','#ccffff'];SMPAL[23]=['#000000','#3a0a08','#9a3a3a','#ff7777','#ffffaa'];SMPAL[24]=['#000000','#3a0a38','#8a3aa6','#cc44cc','#ccff99'];
 SMPAL[10]=['#000000','#1c1008','#68372b','#9a6759','#d8a878'];SMPAL[11]=['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff'];SMPAL[12]=['#000000','#68372b','#ff9966','#ffffaa','#ffffff'];SMPAL[13]=['#000000','#05021a','#352879','#cc99ff','#ffffff'];SMPAL[14]=['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa'];
-function smapPos(i){if(i>=15)return {x:268-(i-15)*56,y:314};if(i>=10)return {x:44+(i-10)*56,y:208};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
+function smapPos(i){if(i>=20)return {x:44+(i-20)*56,y:430};if(i>=15)return {x:268-(i-15)*56,y:322};if(i>=10)return {x:44+(i-10)*56,y:208};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
 function drawStarMap(){
   SMAP.t+=1/60;const t=SMAP.t,pw=shipPower();
   ctx.fillStyle=pat('#000000');ctx.fillRect(0,14,W,H-14);
   box(14,18,292,172,'#04020f','#6c5eb5');
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
   /* one long map: ten systems, then the bigger ship stages below them. It scrolls (wheel, arrows, drag) and follows the chosen planet */
-  const NPL=PLANETS.length,MAXSY=Math.max(0,smapPos(19).y+46-154);HUB.infoMax=Math.ceil(MAXSY/8);
+  const NPL=PLANETS.length,MAXSY=Math.max(0,smapPos(24).y+46-154);HUB.infoMax=Math.ceil(MAXSY/8);
   if(performance.now()-(SMAP.lastDraw||0)>400){HUB.iscroll=Math.round(clamp01((smapPos(SAVE.planet||0).y-84)/Math.max(1,MAXSY))*HUB.infoMax);SMAP.lastFoc=-2;UI.focus=SAVE.planet||0}
   SMAP.lastDraw=performance.now();HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));const sy=Math.min(MAXSY,HUB.iscroll*8);
   text('STAR MAP',20,22,'#ffffff',1);text(NPL+' SYSTEMS  5 SURFACE WORLDS',100,22,'#8f84d6',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);
@@ -2453,17 +2460,18 @@ function drawStarMap(){
   // stars
   for(let i=0;i<150;i++){const sx=16+((i*53+7)%288),sy0=34+((i*97+11)%230),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy0,1,1)}
   {const bo=bigTierOpen(),by=160;ctx.fillStyle=bo?'#6c5eb5':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('WE NEED A BIGGER SHIP',160,by,bo?'#ffffaa':'#6c6c6c');textC2('LUXURY BIG SHIPS ONLY',160,by+8,bo?'#9a8fe0':'#444444')}
-  {const sw=surfReq(0).built,by=270;ctx.fillStyle=sw?'#2c5a2c':'#2a2a2a';ctx.fillRect(22,by+3,64,1);ctx.fillRect(234,by+3,64,1);textC2('THE SURFACE WORLDS',160,by,sw?'#9ad284':'#6c6c6c');textC2('BEAM DOWN FROM THE SURFACE TRANSPORTER',160,by+8,sw?'#70a4b2':'#444444')}
+  {const sm=(SAVE.prog[9]||0)>=3,by=270;ctx.fillStyle=sm?'#9a3a3a':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('THE SWARM',160,by,sm?'#ff9966':'#6c6c6c');textC2('SMALL SHIPS ONLY. BEAT THE BURNING CITY BOSS',160,by+8,sm?'#ff7777':'#444444')}
+  {const sw=surfReq(0).built,by=378;ctx.fillStyle=sw?'#2c5a2c':'#2a2a2a';ctx.fillRect(22,by+3,64,1);ctx.fillRect(234,by+3,64,1);textC2('THE SURFACE WORLDS',160,by,sw?'#9ad284':'#6c6c6c');textC2('BEAM DOWN FROM THE SURFACE TRANSPORTER',160,by+8,sw?'#70a4b2':'#444444')}
   // route between the planets
   const P=PLANETS.map((p,i)=>smapPos(i));
-  for(let i=0;i<NPL-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=i===9?26:14;
+  for(let i=0;i<NPL-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=(i===9||i===14)?26:14;
     for(let k=1;k<steps;k++){let u=k/steps,x,y;
       if(i===4){x=a.x+Math.sin(u*3.1416)*18;y=a.y+(b.y-a.y)*u}
-      else if(i===9){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}
+      else if(i===9||i===14){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}
       else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}
       if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
-  for(let i=14;i<19;i++){const a=smapPos(i),b=smapPos(i+1),done=i===14?((SAVE.prog[14]||0)>=3):!!SURF.state().done[i-15],steps=i===14?26:14;
-    for(let k=1;k<steps;k++){const u=k/steps;let x,y;if(i===14){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
+  for(let i=19;i<24;i++){const a=smapPos(i),b=smapPos(i+1),done=i===19?((SAVE.prog[19]||0)>=3):!!SURF.state().done[i-20],steps=i===19?26:14;
+    for(let k=1;k<steps;k++){const u=k/steps;let x,y;if(i===19){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
   let foc=-1;const cur=SAVE.planet||0;
   PLANETS.forEach((pl,i)=>{
     const ps=P[i],ok=planetOpen(i),prevDone=prevOk(i),R=9+Math.min(5,Math.floor(i*.6)),i0=UI.list.length;
@@ -2492,7 +2500,7 @@ function drawStarMap(){
     if(i===cur){const by=Math.round(Math.sin(t*3)*2);itemIcon(ctx,'ship',ps.x,ps.y-R-9+by,{ix:SAVE.ship||0})}
   });
   SURF.WORLDS.forEach((wd,k)=>{
-    const i=15+k,ps=smapPos(i),rq=surfReq(k),R=11,hit=UI.list.length,f0=UI.focus===hit;if(f0)foc=i;
+    const i=20+k,ps=smapPos(i),rq=surfReq(k),R=11,hit=UI.list.length,f0=UI.focus===hit;if(f0)foc=i;
     {const hy=ps.y-R-4-sy,hh=R*2+54,y0=Math.max(33,hy),y1=Math.min(154,hy+hh);UI.list.push({x:ps.x-26,y:y0,w:y1>y0?52:0,h:Math.max(0,y1-y0),fn:()=>{if(rq.ok){HUB.screen='transporter';UI.focus=0}else toast(rq.msg)}})}
     if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
     ctx.save();if(!rq.ok&&!rq.done)ctx.globalAlpha=.45;ctx.drawImage(smapPlanet(i,R),ps.x-R,ps.y-R);ctx.restore();
@@ -2507,7 +2515,7 @@ function drawStarMap(){
   ctx.restore();
   if(HUB.infoMax>0){text(sy>0?'^':' ',296,38,'#70a4b2',1);text(sy<MAXSY?'v':' ',296,142,'#70a4b2',1)}
   // detail panel
-  if(foc>=15){const k=foc-15,wd=SURF.WORLDS[k],rq=surfReq(k);ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
+  if(foc>=20){const k=foc-20,wd=SURF.WORLDS[k],rq=surfReq(k);ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
     text('SURFACE WORLD '+(k+1)+': '+wd.n,22,160,'#ffffff',1);textR(rq.done?'CLEARED':rq.ok?'ENTER TO GO':'LOCKED',298,160,rq.done||rq.ok?'#9ad284':'#ff9966',1);
     text(fitText(wd.sub,270),22,169,'#70a4b2',1);text(fitText('YOU NEED: '+rq.need,270),22,178,rq.ok||rq.done?'#b8c76f':'#ff9966',1);
     UI.list.push({x:288,y:19,w:16,h:13,fn:()=>{HUB.screen=null}});ctx.fillStyle=UI.focus===UI.list.length-1?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1);UI.nrows=UI.list.length-1;if(UI.focus>=UI.list.length)UI.focus=0;return}
@@ -2855,7 +2863,15 @@ STORY.big5={t:'THE ARMADA FALLS',p:[
     'THE FLAGSHIP BREAKS APART AND THE WHOLE FLEET GOES WITH IT.',
     'THE BUDDY IS GONE. THE ARTIFACT HUMS, THEN GOES QUIET. FOR NOW.',
     'BACK AT THE STATION THE CREW THROW A PARTY. YOU DESERVE IT, BUT THE ARTIFACT IS ALREADY LOOKING AT THE STARS.'],when:()=>(SAVE.prog[14]||0)>=3};
-const STORYORDER=['sys1','sys3','sys5','buddy','big1','big3','big5'];
+STORY.swarm={t:'THE SECOND THREAT',p:[
+    'THE BURNING CITY BOSS IS DEAD. THE SILENCE DOES NOT LAST.',
+    'A NEW SIGNAL APPEARS: THE SWARM. IT WAS NEVER PART OF THE FIRST ENEMY. IT WAS HIDING BEHIND IT.',
+    'THE SWARM MOVES TOO FAST AND TOO CLOSE FOR BIG SHIPS. ONLY SMALL, QUICK SHIPS CAN FIGHT IT. THE DRIFTER, OR ANY SHIP FROM THE SMALL SHIP SHOP.',
+    'FIVE NEW SYSTEMS HAVE APPEARED ON THE STAR MAP, BEYOND THE BIGGER SHIP STAGES.'],when:()=>(SAVE.prog[9]||0)>=3};
+STORY.swarm5={t:'THE QUEEN FALLS',p:[
+    'THE HIVE QUEEN BREAKS APART AND THE SWARM SCATTERS INTO THE DARK.',
+    'THE ARTIFACT HUMS. IT SAYS THERE IS STILL SOMETHING BEHIND THE SWARM. BUT THAT IS ANOTHER STORY.'],when:()=>(SAVE.prog[19]||0)>=3};
+const STORYORDER=['sys1','sys3','sys5','buddy','big1','big3','big5','swarm','swarm5'];
 let STY=null;
 function tellStory(id,back){
   const d=STORY[id];if(!d)return false;SAVE.story=SAVE.story||{};if(SAVE.story[id])return false;SAVE.story[id]=1;save();
@@ -4855,6 +4871,8 @@ window.__g.dev={
 <script src="packs/big.js?v=2.10"></script>
 <script src="packs/bigthemes1.js?v=2.10"></script>
 <script src="packs/bigthemes2.js?v=2.10"></script>
+<script src="packs/swarm1.js?v=2.32"></script>
+<script src="packs/swarm2.js?v=2.32"></script>
 <script src="surface.js?v=2.19"></script>
 </body>
 </html>
