@@ -1261,7 +1261,7 @@ function genLevel(idx){
   {const RS=rng(7300+idx*53),rs=(a,b)=>a+Math.floor(RS()*(b-a+1));
    const settleRow=(tx,ty)=>{let r=ty,n=0;while(n++<14&&r>3&&G(tx,r)!==0&&G(tx,r)!==7&&G(tx,r)!==10)r--;n=0;while(n++<14&&r<LH-3&&G(tx,r+1)===0)r++;return r};
    const wetR=(r)=>{for(let x=r.x0;x<r.x0+r.w;x+=2)for(let y=r.y1-4;y<=r.y1+1;y++){const t=G(x,y);if(t===10||t===4)return true}return false};
-   {const big=rooms.filter(r=>r.w>=34&&r.h>=17);for(let i=big.length-1;i>0;i--){const j=Math.floor(RS()*(i+1));[big[i],big[j]]=[big[j],big[i]]}const okRun=r=>{let best=0,a=0;for(const h of r.hh){if(h>=13){a++;best=Math.max(best,a)}else a=0}return best>=24?1:0};big.sort((a,b)=>okRun(b)-okRun(a));big.slice(0,7).forEach(r=>r.reserve=true)}
+   {const big=rooms.filter(r=>r.w>=34&&r.h>=17);for(let i=big.length-1;i>0;i--){const j=Math.floor(RS()*(i+1));[big[i],big[j]]=[big[j],big[i]]}const okRun=r=>{let best=0,a=0;for(const h of r.hh){if(h>=13){a++;best=Math.max(best,a)}else a=0}return best>=24?1:0};big.sort((a,b)=>okRun(b)-okRun(a));big.slice(0,9).forEach(r=>r.reserve=true)}
    const wetMap=new Map();for(const r of rooms)wetMap.set(r,wetR(r));
    /* K: wide chimneys with zig zag ledges join some rooms to the room below, so the caverns run several levels deep */
    for(const a of rooms){if(a.reserve||wetMap.get(a))continue;for(const b of (byRow[a.j+1]||[])){if(b.reserve||wetMap.get(b)||RS()>.8)continue;
@@ -1319,7 +1319,7 @@ function genLevel(idx){
      /* a taller chamber in the middle */
      if(r.hh.length>=24&&RS()<.5){const q0=EZ+4,q1=w-EZ-5;let any=false;for(let q=q0;q<=q1;q++){const e=Math.round(rs(2,4)*Math.sin((q-q0)/(q1-q0)*Math.PI)),x=r.x0+q,top=y1-r.hh[q];if(e<1)continue;let ok=true;for(let y=top-e-3;y<top-e;y++)if(G(x,y)!==1)ok=false;if(!ok)continue;for(let y=top-e;y<top;y++)if(G(x,y)===1){S(x,y,0);any=true}}if(any){did=1;L.shapeStats.bay++}}
      /* the floor is never flat for long: small stepped mounds, and ledges hanging in the air */
-     {let q=EZ+2,mc=0;while(q<w-EZ-7&&mc<6){if(used[q]||RS()<.25){q++;continue}const mw=rs(3,7),mh=rs(1,3);if(free(q-1,q+mw+1)){let any=false;
+     {let q=EZ+2,mc=0;const free2=(a,b)=>{for(let k=a;k<=b;k++)if(k<0||k>=w||used[k]===2||(used[k]===1&&RS()<.7))return false;return true};while(q<w-EZ-7&&mc<9){if(used[q]===2||RS()<.1){q++;continue}const mw=rs(3,7),mh=rs(1,3);if(free2(q-1,q+mw+1)){let any=false;
          for(let k=0;k<mw;k++){const h=Math.min(mh,1+Math.min(k,mw-1-k),Math.max(0,r.hh[q+k]-9));for(let j=1;j<=h;j++)if(G(r.x0+q+k,y1-j)===0){S(r.x0+q+k,y1-j,1);any=true}}
          if(any){claim(q-1,q+mw);did=1;mc++;L.shapeStats.mound=(L.shapeStats.mound||0)+1}q+=mw+rs(2,6)}else q++}
       const nd=rs(1,3);for(let k=0;k<nd;k++)for(let att=0;att<6;att++){const dw=rs(4,9),dq=rs(EZ+2,Math.max(EZ+3,w-EZ-dw-2)),dd=rs(2,5);let ok=dq+dw<w-EZ;
@@ -1545,6 +1545,7 @@ function mkGround(idx,NZ){
         if(r<.01)col=(wx+wy)&1?C32('#ff77ff'):C32('#d050e0');else if(r<.018)col=C32('#a040b8');
         const r2=Math.abs(NZ.vn(wx*.11,wy*.1+4)-.5);if(r2<.007&&dd>10)col=C32('#7affe0');
         if(f>.9985)col=MG_;else if(f<.02)col=C32('#1a0a30');
+        if(hh(wx>>1,wy>>1,5)>.972)col=[CY_,LV_,MG_,C32('#ffcc66')][((wx>>4)+(wy>>4))&3];
         if(dd<12&&f>.95)col=BR_;
       }
       if(dD<2&&dU>4&&f>.45)col=lip[dD?2:1];                          // moss fringe under overhangs
@@ -2004,7 +2005,7 @@ SURF.tick=function(dt){
       if(I.jumpB&&!p.lj){p.lad=false;p.vy=-175;p.jb=0;p.jumpHeld=true;p.vx=ax*80;try{sfxTone(260,520,.1,'square',.02,{att:.002})}catch(e){}}
       p.lj=I.jumpB;
     }else{p.vx+=((ax*sp)-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;p.lj=I.jumpB}
-    if(p.ride){p.x+=p.ride.dx;p.y+=p.ride.dy}
+    if(p.ride){p.x+=p.ride.dx;p.y+=p.ride.dy;if(Math.abs(p.vx)<1){const off=p.x-p.ride.x;p.x+=Math.round(off)-off}}   // standing still on a lift: stay a whole pixel from its edge, so the sprite does not flicker against it
     p.inW=tile(Math.floor((p.x+p.w/2)/TS),Math.floor((p.y+10)/TS))===10;
     if(p.inW&&!p.lad){   // swimming: slow, floaty, hold jump to rise
       p.vy+=(I.jump?-520:130)*dt;if(p.vy>46)p.vy=46;if(p.vy<-78)p.vy=-78;p.vx*=1-dt*2.4;
@@ -2015,10 +2016,11 @@ SURF.tick=function(dt){
     p.jb-=dt;p.coy-=dt;
     if(p.drop>0)p.drop-=dt;
     /* S and jump together: drop down through a thin platform, a lift or the top of a ladder */
-    const dEdge=I.down&&!p.dprev;p.dprev=I.down;
-    if(((I.jump&&I.down&&!p.jumpHeld)||(SURF.touch&&SURF.touch.d&&dEdge))&&!beamed&&!p.lad&&p.on){
-      const fx=Math.floor((p.x+p.w/2)/TS),fy=Math.floor((p.y+p.h+1)/TS),ft=tile(fx,fy);
-      if(ft===2||ft===9||ft===7||p.ride){p.drop=.3;p.on=false;p.ride=null;p.y+=2;p.vy=40;p.jumpHeld=true;p.jb=0;p.coy=0;try{sfxTone(400,160,.1,'square',.02,{att:.002})}catch(e){}}}
+    const dEdge=I.down&&!p.dprev;p.dprev=I.down;p.dtm=I.down?.18:(p.dtm||0)-dt;   // down counts for a moment after it is released, so jump then down also works
+    if(((I.jump&&(I.down||p.dtm>0)&&!p.jumpHeld)||(SURF.touch&&SURF.touch.d&&dEdge))&&!beamed&&!p.lad&&p.on){
+      const fy=Math.floor((p.y+p.h+1)/TS);let thin=false,solid=false;
+      for(let fx=Math.floor(p.x/TS);fx<=Math.floor((p.x+p.w-.01)/TS);fx++){const ft=tile(fx,fy);if(ft===2||ft===9||ft===7)thin=true;else if(solidT(ft))solid=true}
+      if((thin&&!solid)||p.ride){p.drop=.3;p.on=false;p.ride=null;p.y+=2;p.vy=40;p.jumpHeld=true;p.jb=0;p.coy=0;try{sfxTone(400,160,.1,'square',.02,{att:.002})}catch(e){}}}
     if(I.jump&&!p.jumpHeld&&!beamed&&!p.lad){p.jb=.15}
     if(!I.jump)p.jumpHeld=false;
     if(p.jb>0&&(p.on||p.coy>0)){p.vy=p.inW?-120:-222;p.on=false;p.coy=0;p.jb=0;p.jumpHeld=true;try{sfxTone(260,520,.12,'square',.02,{att:.002})}catch(e){}}
@@ -2849,10 +2851,15 @@ SURF.draw=function(){
   if(SURF.darkA>.2&&p.dead<=0&&!p.hidden){ctx.globalAlpha=.5*SURF.darkA;ctx.strokeStyle='#ffffff';ctx.lineWidth=1;ctx.strokeRect(Math.round(p.x-cam.x)-.5,Math.round(p.y-cam.y)-.5,p.w+1,p.h+1);ctx.globalAlpha=1}
   if(p.dead<=0&&!p.hidden&&!L.sky(Math.floor((p.x+5)/TS),Math.floor((p.y+8)/TS))){ctx.globalAlpha=.035;ctx.fillStyle=Wd.glow;for(const r_ of [60,46,34,24]){ctx.beginPath();ctx.arc(Math.round(p.x+5-cam.x),Math.round(p.y+8-cam.y),r_,0,TAU);ctx.fill()}ctx.globalAlpha=1}
   if(p.dead<=0&&!p.hidden){
-    const S=A.player,mode=p.lad?'climb':!p.on?(p.vy<0?'jump':'fall'):Math.abs(p.vx)>10?'run':'idle',fr=S[mode][Math.floor(mode==='climb'?(p.lcl||0):p.anim)%S[mode].length],X=Math.floor(p.x+p.w/2-8-cam.x),Y=Math.floor(p.y+p.h-18+1-cam.y);
-    if(true){ctx.save();if(p.inv>0)ctx.globalAlpha=.8+.18*Math.sin(SURF.t*9);const dk=fr._dk||(fr._dk=B.darken(fr,1));
-      if(p.face<0){ctx.translate(X+16,Y);ctx.scale(-1,1);for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(dk,ox,oy);ctx.drawImage(fr,0,0)}else{for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(dk,X+ox,Y+oy);ctx.drawImage(fr,X,Y)}ctx.restore()}
-    if(p.thrust){const bx=p.face>0?X+1:X+12,fy=Y+14,len=5+((SURF.t*45|0)%3)*2;ctx.fillStyle=RD;ctx.fillRect(bx-1,fy,5,2);ctx.fillStyle=OR;ctx.fillRect(bx,fy+1,3,len);ctx.fillStyle=YL;ctx.fillRect(bx+1,fy+1,1,len-2);ctx.fillStyle=WH;ctx.fillRect(bx+1,fy,1,3)}
+    /* the same spaceman (and costume) as in the hub */
+    const mode=p.lad?'climb':!p.on?(p.vy<0?'jump':'fall'):Math.abs(p.vx)>10?'run':'idle',fi=mode==='climb'?(Math.floor(p.lcl||0)%4+4)%4:mode==='run'?Math.floor(p.anim)%4:0,
+      X=Math.floor(p.x+p.w/2-5.5-cam.x+.5),Y=Math.floor(p.y+p.h-15-cam.y),lift=mode==='climb'&&fi%2?-1:0,wc=(typeof wornCostume==='function')?wornCostume():null;
+    ctx.save();if(p.inv>0)ctx.globalAlpha=.8+.18*Math.sin(SURF.t*9);
+    if(wc&&typeof costumeFrames==='function'){ctx.drawImage(costumeFrames(wc)[p.face<0?'l':'r'][fi],Math.floor(p.x+p.w/2-6.5-cam.x+.5),Math.floor(p.y+p.h-22-cam.y)+lift)}
+    else ctx.drawImage((p.face<0?SPR.miniL:SPR.mini)[fi],X,Y+lift);
+    if(!p.lad){const gx=p.face>0?X+9:X-2,gy=Y+8;ctx.fillStyle='#000';ctx.fillRect(gx,gy,4,3);ctx.fillStyle='#bbbbbb';ctx.fillRect(gx+(p.face>0?0:1),gy+1,3,1);ctx.fillStyle=CY;ctx.fillRect(gx+(p.face>0?3:0),gy+1,1,1)}
+    ctx.restore();
+    if(p.thrust){const bx=p.face>0?X:X+8,fy=Y+12,len=5+((SURF.t*45|0)%3)*2;ctx.fillStyle=RD;ctx.fillRect(bx-1,fy,5,2);ctx.fillStyle=OR;ctx.fillRect(bx,fy+1,3,len);ctx.fillStyle=YL;ctx.fillRect(bx+1,fy+1,1,len-2);ctx.fillStyle=WH;ctx.fillRect(bx+1,fy,1,3)}
   }
   /* shots */
   for(const b of SURF.bul){const X=Math.floor(b.x-cam.x),Y=Math.floor(b.y-cam.y);ctx.fillStyle=WH;if(b.vy)ctx.fillRect(X,Y-3,1,6);else ctx.fillRect(X-3,Y,7,1);ctx.fillStyle=CY;if(b.vy)ctx.fillRect(X-1,Y-4,3,2);else ctx.fillRect(X-4,Y-1,2,3)}
