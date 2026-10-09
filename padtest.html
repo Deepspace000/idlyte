@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Controller Test</title>
+<style>
+body{margin:0;padding:16px;background:#0b0b1e;color:#e8e8ff;font:15px/1.5 monospace}
+h1{font-size:18px;margin:0 0 8px}
+.pad{border:1px solid #6c5eb5;padding:10px;margin:10px 0;background:#14143a}
+.btn{display:inline-block;min-width:34px;margin:2px;padding:3px 5px;border:1px solid #444;text-align:center;color:#888}
+.btn.on{background:#9ad284;color:#000;border-color:#9ad284}
+.ax{display:inline-block;margin-right:14px}
+.bad{color:#ff9966}.ok{color:#9ad284}
+</style></head><body>
+<h1>CONTROLLER TEST</h1>
+<p>Click this page once, then press buttons and move the sticks. Whatever lights up here is what the game receives.</p>
+<div id="msg" class="bad">No controller seen yet. Press a button on it.</div>
+<div id="pads"></div>
+<p id="log" style="color:#9a8fe0"></p>
+<script>
+var pads=document.getElementById('pads'),msg=document.getElementById('msg'),log=document.getElementById('log'),changed=0,lastSig='';
+addEventListener('gamepadconnected',function(e){log.textContent='Connected: '+e.gamepad.id});
+addEventListener('gamepaddisconnected',function(e){log.textContent='Disconnected: '+e.gamepad.id});
+function tick(){
+  var gps=navigator.getGamepads?navigator.getGamepads():[],h='',n=0,sig='';
+  for(var i=0;i<gps.length;i++){var g=gps[i];if(!g)continue;n++;
+    h+='<div class="pad"><b>Slot '+i+'</b> '+g.id+'<br>mapping: '+(g.mapping||'(none)')+', buttons: '+g.buttons.length+', axes: '+g.axes.length+', connected: '+g.connected+'<br>';
+    for(var b=0;b<g.buttons.length;b++){var on=g.buttons[b].pressed||g.buttons[b].value>0.5;sig+=on?'1':'0';h+='<span class="btn'+(on?' on':'')+'">'+b+(g.buttons[b].value>0&&g.buttons[b].value<1?' '+g.buttons[b].value.toFixed(2):'')+'</span>'}
+    h+='<br>';
+    for(var a=0;a<g.axes.length;a++){sig+=Math.round(g.axes[a]*5);h+='<span class="ax">axis '+a+': '+g.axes[a].toFixed(2)+'</span>'}
+    h+='</div>'}
+  pads.innerHTML=h;
+  if(sig!==lastSig){lastSig=sig;changed++}
+  if(!n){msg.className='bad';msg.textContent='No controller seen yet. Click this page, then press a button on the controller.'}
+  else{msg.className=changed>2?'ok':'bad';msg.textContent=changed>2?'Controller is sending data. If the game still ignores it, tell me which buttons light up.':'Controller is listed but nothing has changed yet. Press buttons and move the sticks. If nothing lights up, Windows or Chrome is not passing the input through.'}
+  requestAnimationFrame(tick)}
+tick();
+</script></body></html>
