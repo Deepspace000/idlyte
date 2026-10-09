@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.34</title>
+<title>Idlyte v2.35</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1346,7 +1346,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.34';
+const VERSION='2.35';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4682,7 +4682,7 @@ function openTransfer(){
    +'<textarea id="xo" rows="4" readonly '+st+'></textarea><button id="xc" '+bt+'>COPY CODE</button><span id="xm" style="color:#9ad284"></span>'
    +'<hr style="border-color:#352879;margin:12px 0"><b style="color:#b8c76f">PASTE IN</b><br>Paste a code from another device, pick the slot to put it in. A save already in that slot is kept as a backup copy.<br>'
    +'<textarea id="xi" rows="4" placeholder="PASTE THE CODE HERE" '+st+'></textarea><select id="xd" '+st+'>'+slots.join('')+'</select>'
-   +'<button id="xl" '+bt+'>PUT IT IN THIS SLOT</button><span id="xn" style="color:#ff9966"></span><br><button id="xx" '+bt+'>CLOSE</button></div>';
+   +'<button id="xl" '+bt+'>PUT IT IN THIS SLOT</button><span id="xn" style="color:#ff9966"></span><br><button id="xt" '+bt+'>PUT IN A TEST SAVE: POWER 800, 1 MILLION GOLD</button><br><button id="xx" '+bt+'>CLOSE</button></div>';
   document.body.appendChild(d);
   for(const t of ['keydown','keyup','keypress'])d.addEventListener(t,e=>e.stopPropagation());
   const $=id=>d.querySelector('#'+id),enc=o=>'IDLYTE1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
@@ -4693,6 +4693,7 @@ function openTransfer(){
   $('xl').onclick=()=>{try{const t=$('xi').value.trim();if(t.indexOf('IDLYTE1:')!==0)throw 0;const o=JSON.parse(decodeURIComponent(escape(atob(t.slice(8)))));if(!o||typeof o!=='object'||o.coins==null)throw 0;
       const n=+$('xd').value,raw=localStorage.getItem('idlyte_slot_'+n);if(raw){localStorage.setItem('idlyte_bak_'+n,raw);localStorage.setItem('idlyte_bak_'+n+'_ver','before-import')}
       localStorage.setItem('idlyte_slot_'+n,JSON.stringify(o));$('xn').style.color='#9ad284';$('xn').textContent=' DONE. IT IS IN SLOT '+n+'. CLOSE THIS AND LOAD IT.';$('xi').value=''}catch(e){$('xn').style.color='#ff9966';$('xn').textContent=' THAT CODE DID NOT WORK. COPY IT AGAIN, ALL OF IT.'}};
+  $('xt').onclick=()=>{$('xi').value='IDLYTE1:eyJjb2lucyI6IDEwMDAwMDAsICJ1cCI6IHsiZG1nIjogMjAsICJndW5zIjogMTgsICJodWxsIjogOCwgInNoaWVsZCI6IDUsICJkYW1wZXIiOiAyLCAiZW5naW5lIjogMywgIm1hZ25ldCI6IDMsICJzdGFydGd1biI6IDEsICJjb2luIjogMSwgImNhcmdvIjogMiwgIm1pc3NpbGUiOiAxLCAib3B0IjogMX0sICJzaGlwcyI6IFswXSwgInNoaXAiOiAwLCAicHJvZyI6IHsiMCI6IDMsICIxIjogMywgIjIiOiAzLCAiMyI6IDMsICI0IjogMywgIjUiOiAzLCAiNiI6IDMsICI3IjogMywgIjgiOiAzLCAiOSI6IDN9LCAic2hpcE5hbWUiOiAiRFJJRlRFUiJ9';$('xl').onclick()};
   $('xx').onclick=()=>d.remove();
 }
 function drawSlots(){
