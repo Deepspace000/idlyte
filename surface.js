@@ -2706,7 +2706,7 @@ function drawCritters(){
     if(L.g[Math.floor(c.y/TS)*LW+tx]===1)c.y-=24*dt*3;
     const X=Math.round(c.x-cam.x),Y=Math.round(c.y-cam.y),al=Math.min(1,c.age*.6,c.life*.5),pl=.5+.5*Math.sin(t*1.3+c.ph),f=Math.floor(t*5+c.ph)%2;
     ctx_.fillStyle=c.col;
-    if(k==='bfly'||k==='moth'||k==='dragon'||k==='beetle'||k==='drone'){ctx_.globalAlpha=al*(idx===1?.22:.18);ctx_.fillStyle=idx===1?'#401000':c.col;ctx_.beginPath();ctx_.arc(X+.5,Y+.5,idx===1?5:6,0,TAU);ctx_.fill();ctx_.fillStyle=c.col}
+    if(k==='bfly'||k==='moth'||k==='dragon'||k==='beetle'||k==='drone'){ctx_.globalAlpha=al*(idx===1?.12:.1);ctx_.fillStyle=idx===1?'#401000':c.col;ctx_.beginPath();ctx_.arc(X+.5,Y+.5,3.5,0,TAU);ctx_.fill();ctx_.fillStyle=c.col}
     if(k==='fly'){ctx_.globalAlpha=al*.08*pl;ctx_.fillRect(X-3,Y-2,7,5);ctx_.fillRect(X-2,Y-3,5,7);ctx_.globalAlpha=al*.2*pl;ctx_.fillRect(X-1,Y-1,3,3);ctx_.globalAlpha=al*(.6+.4*pl);ctx_.fillRect(X-1,Y,3,2);ctx_.fillRect(X,Y-1,1,4);ctx_.globalAlpha=al*.7*pl;ctx_.fillStyle='#ffffff';ctx_.fillRect(X,Y,1,1)}
     else if(k==='moth'){ctx_.globalAlpha=al*.1;ctx_.fillRect(X-4,Y-3,9,7);ctx_.globalAlpha=al*.95;ctx_.fillRect(X-3,Y-1+f,3,2);ctx_.fillRect(X+1,Y-1+f,3,2);ctx_.fillStyle='#ffffff';ctx_.fillRect(X,Y-1,1,3);ctx_.globalAlpha=al*.7;ctx_.fillRect(X-2,Y+f,1,1);ctx_.fillRect(X+2,Y+f,1,1)}
     else if(k==='bfly'){ctx_.globalAlpha=al;ctx_.fillRect(X-4,Y-2+f,4,3);ctx_.fillRect(X+1,Y-2+f,4,3);ctx_.fillRect(X-3,Y+1+f,2,1);ctx_.fillRect(X+2,Y+1+f,2,1);ctx_.fillStyle=K;ctx_.fillRect(X,Y-2,1,5);ctx_.fillStyle='#ffffff';ctx_.fillRect(X-3,Y-1+f,1,1);ctx_.fillRect(X+3,Y-1+f,1,1)}
