@@ -485,7 +485,7 @@ const LORE=[
  [['SKELETON NOTE','I TRIED TO CARRY THE WINGS OUT THROUGH THE LAVA TUBES. THE FORGE WAKES WHEN YOU PULL ITS LEVER. RUN UP AND DO NOT LOOK BACK.'],
   ['BURNT MURAL','THE SWARM MELTS SHIPS IN THE FIRE POOLS AND DRINKS THE METAL. THESE CAVES ARE ITS KITCHEN.'],
   ['SKELETON NOTE','SOME CHESTS HERE ARE NOT CHESTS. A CURSED CHEST HAS TEETH. LOOK CLOSELY BEFORE YOU OPEN ONE.'],
-  ['SKELETON NOTE','A HUNTER TRACKS ANYONE WHO CARRIES A SHIP PART. IT SMELLS THE METAL. KEEP MOVING AND KEEP SHOOTING.'],
+  ['SKELETON NOTE','THE ASH BATS NEST IN THE HIGH CAVES. THEY STAY NEAR THEIR NEST UNLESS YOU WALK UNDER THEM. KEEP YOUR DISTANCE AND SHOOT FIRST.'],
   ['BURNT MURAL','THE LAST WAYMAKER MESSAGE: BRING THE SIX PIECES TOGETHER AND THE SUNLARK WILL FLY FREE AGAIN.']],
  [['HIVE WALL','THE WALLS REMEMBER SOUNDS. THE POD CHAMBER SINGS A SONG. SING IT BACK IN THE SAME ORDER AND THE WALL WILL OPEN.'],
   ['HIVE WALL','THE EGGS HERE HOLD THE SWARM CHILDREN. SOME HATCH WHEN YOU WALK NEAR. SOME HOLD ONLY GOLD.'],
@@ -2099,8 +2099,8 @@ SURF.tick=function(dt){
     const dx=Math.abs(sp.x-(p.x+5));
     if(sp.e&&sp.e.hp<=0){sp.e=null;sp.t=PARAM[SURF.idx].resp*(.7+Math.random()*.6)}
     if(!sp.e){sp.t-=dt;
-      if(sp.t<=0&&dx<200){const cam=SURF.cam,on=sp.x>cam.x-20&&sp.x<cam.x+VW+20;
-        if(!sp.once||!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h*(sp.elite?1.7:1),!!sp.elite);if(sp.elite){e.hp=e.mhp=e.hp/2.4;e.lair=1}if(sp.shiny){e.shiny=1;e.hp=e.mhp=e.hp*1.6}sp.e=e;e.sp_=sp}}}
+      if(sp.t<=0&&dx<280){const cam=SURF.cam,on=sp.x>cam.x-24&&sp.x<cam.x+VW+24&&sp.y>cam.y-24&&sp.y<cam.y+VH+24;   // creatures only appear while their spot is off screen, so nothing pops into view
+        if(!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h*(sp.elite?1.7:1),!!sp.elite);if(sp.elite){e.hp=e.mhp=e.hp/2.4;e.lair=1}if(sp.shiny){e.shiny=1;e.hp=e.mhp=e.hp*1.6}sp.e=e;e.sp_=sp}}}
   }
   /* the guardian shows up when you get near the end */
   if(!SURF.guard&&Math.abs(p.x-L.exit.x)<300&&Math.abs(p.y-L.exit.y)<200){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;{const oh=e.h;e.sc=2.1;e.w=Math.round(SURF.W.en[4].w*2.1)-2;e.h=Math.round(SURF.W.en[4].h*2.1)-1;e.y-=e.h-oh;e.y0=e.y}e.k=SURF.W.en.length+1;e.hp=e.mhp=e.hp*[.9,.7,.6,.55,.5][SURF.idx];SURF.guard=e;SURF.msg=[BOSSNAME[SURF.idx],2.8];shakeS=Math.max(shakeS,.25)}
@@ -2350,9 +2350,6 @@ function featTick(dt,I){const L=SURF.L,p=SURF.p,s=sv(),idx=SURF.idx;
     if(e.st===0&&dx<26&&dy<26){e.st=1;e.t=.8;try{sfxTone(200,160,.2,'sawtooth',.03,{att:.01})}catch(er){}}
     else if(e.st===1){e.t-=dt;if(e.t<=0){e.st=2;if(e.real){(()=>{const q=addEnemy([0,3][rn_(0,1)],e.x-8,e.y-20,false);q.egg=1;return q})();SURF.msg=['THE EGG HATCHES',1.6]}else{for(let q=0;q<8;q++)L.coins.push({x:e.x,y:e.y-8,v:2,vx:rnd(-50,50),vy:rnd(-120,-50),loose:1})}
       for(let q=0;q<10;q++)SURF.fx.push({x:e.x,y:e.y-6,vx:rnd(-60,60),vy:rnd(-80,0),life:.6,c:[PG,MG,WH][q%3],s:2})}}}
-  /* the hunter that follows you in the magma caves */
-  if(idx===3&&SURF.t>85){const h=SURF.hunter;if(!h||(h.hp<=0&&SURF.t-(SURF.hunterDead||0)>60)){const sp=SURF.W.en.findIndex(q=>q.ai==='flyer');if(sp>=0){const e=addEnemy(sp,p.x+(Math.random()<.5?-1:1)*230,p.y-60,false,{hunter:1,keep:1});e.hp*=3;e.mhp=e.hp;e.sp=Object.assign({},e.sp,{spd:e.sp.spd*1.5});SURF.hunter=e;SURF.msg=['A HUNTER IS FOLLOWING YOU',3.5]}}
-    else if(h.hp>0){const dx=h.x-p.x;if(Math.abs(dx)>330){h.x=p.x+Math.sign(dx)*250;h.y0=p.y-40}}}
   for(const e of SURF.en)if(e.shiny&&e.hp>0&&Math.random()<dt*10)SURF.fx.push({x:e.x+rnd(0,e.w),y:e.y+rnd(0,e.h),vx:rnd(-8,8),vy:rnd(-30,-5),life:.6,c:Math.random()<.5?YL:WH,s:1});
   /* guide lights toward the nearest secret */
   {let q=nearestSecret(),strong=idx===0||SURF.guideT>0;if(SURF.guideT>0)SURF.guideT-=dt;
