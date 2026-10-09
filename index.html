@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v1.99</title>
+<title>Idlyte v2.00</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -525,6 +525,10 @@ const UPG={
  shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:8,base:1250,mul:1.7,shop:'armour'},
  damper:{n:'IMPACT DAMPER',d:'LONGER SAFE TIME AFTER A HIT',max:3,base:2000,mul:2,shop:'armour'},
  cell:{n:'ENERGY CELL',d:'A PERMANENT EXTRA HULL CELL. VERY EXPENSIVE',max:3,base:25000,mul:2.2,shop:'armour'},
+ cannon:{n:'SIEGE CANNONS',d:'BIG SHIPS ONLY. HEAVY SHELLS: +60% DAMAGE EACH',max:10,base:250000,mul:1.7,shop:'weapons',big:1,ic:'dmg'},
+ barrage:{n:'BARRAGE LOADERS',d:'BIG SHIPS ONLY. +12% FIRE RATE EACH',max:10,base:200000,mul:1.65,shop:'weapons',big:1,ic:'guns'},
+ capital:{n:'CAPITAL PLATING',d:'BIG SHIPS ONLY. +3 HULL EACH',max:10,base:300000,mul:1.7,shop:'armour',big:1,ic:'hull'},
+ bulwark:{n:'BULWARK SHIELDS',d:'BIG SHIPS ONLY. +5 SECONDS OF START SHIELD EACH',max:6,base:400000,mul:1.9,shop:'armour',big:1,ic:'shield'},
  opt:{n:'OPTION DRONE',d:'A DRONE FOLLOWS YOU AND FIRES',max:2,base:4500,mul:3,shop:'design'},
  engine:{n:'ENGINE BOOSTERS',d:'FASTER SHIP',max:6,base:600,mul:1.55,shop:'design'},
  magnet:{n:'MAGNET COIL',d:'PULLS IN COINS FROM FURTHER AWAY',max:6,base:500,mul:1.5,shop:'design'},
@@ -536,7 +540,7 @@ const UPG={
 const SPEED_NEED={1:0,2:0,4:3,8:6,16:8},SPEED_BUY={8:30000,16:120000};   // X4 comes with the Lava World; X8 and X16 are much later and are bought in the Design shop
 function speedLocked(sp){return systemsDone()<SPEED_NEED[sp]||!!(SPEED_BUY[sp]&&!(SAVE.speedBuy&&SAVE.speedBuy[sp]))}
 function speedLockMsg(sp){const n=SPEED_NEED[sp];return systemsDone()<n?'X'+sp+' LOCKED. CLEAR '+n+' SYSTEMS FIRST':'X'+sp+' LOCKED. BUY IT IN THE DESIGN SHOP FOR '+SPEED_BUY[sp]+' GOLD'}
-function systemsDone(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return n}
+function systemsDone(){let n=0;for(let i=0;i<10;i++)if((SAVE.prog[i]||0)>=3)n++;return n}
 function maxLevel(i){return Math.min(3,(SAVE.prog[i]||0)+1)}
 function setPlanet(i){SAVE.planet=i;SAVE.level=maxLevel(i)}
 function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=speedLocked(sp);b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
@@ -550,7 +554,13 @@ const PLANETS=[
  {n:'STORMTIDE SEA',pow:300,diff:7,gold:6,loot:.16,d:'ELITE. A STORM OVER THE OCEAN.',every:6,elite:1,waves:[['ring',5,.4],['dart',4,.4],['cross',3,.8]]},
  {n:'SUNFIRE WASTES',pow:420,diff:8,gold:8,loot:.18,d:'ELITE. A BLAZING DESERT.',every:6,elite:1,waves:[['ring',5,.4],['dart',5,.35],['cross',3,.8]]},
  {n:'THE HOLLOW DEEP',pow:600,diff:9,gold:10,loot:.2,d:'ELITE. DARK CAVES UNDER THE GROUND.',every:5,elite:1,waves:[['ring',5,.4],['dart',5,.35],['cross',4,.8]]},
- {n:'THE BURNING CITY',pow:1000,diff:10,gold:14,loot:.22,d:'FINAL. NEEDS A FULLY MAXED SHIP.',every:5,elite:1,waves:[['ring',6,.35],['dart',5,.35],['cross',4,.7],['pod',1,0]]}];
+ {n:'THE BURNING CITY',pow:1000,diff:10,gold:14,loot:.22,d:'FINAL. NEEDS A FULLY MAXED SHIP.',every:5,elite:1,waves:[['ring',6,.35],['dart',5,.35],['cross',4,.7],['pod',1,0]]},
+ /* WE NEED A BIGGER SHIP: elite stages for the luxury big ships only (art in packs/big*.js) */
+ {n:'TITAN GRAVEYARD',pow:1500,diff:11,gold:20,loot:.25,hit:4,big:1,d:'BIGGER SHIP STAGE. A FIELD OF DEAD GIANT WARSHIPS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'LEVIATHAN NEBULA',pow:2000,diff:12,gold:28,loot:.27,hit:5,big:1,d:'BIGGER SHIP STAGE. LIVING CLOUDS AND GIANT BEASTS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE DYSON FORGE',pow:2700,diff:13,gold:38,loot:.29,hit:6,big:1,d:'BIGGER SHIP STAGE. A STAR CAGED IN MACHINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'EVENT HORIZON',pow:3600,diff:14,gold:52,loot:.31,hit:8,big:1,d:'BIGGER SHIP STAGE. THE EDGE OF A BLACK HOLE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]}];
 const THEMES=[
  {cl:['#000000','#352879','#6f3d86'],pl:['#000000','#352879','#6f3d86','#9a6759','#b8c76f']},
  {cl:['#000000','#2a2a2a','#444444'],pl:['#000000','#444444','#6c6c6c','#9a6759','#bbbbbb']},
@@ -561,6 +571,12 @@ const THEMES=[
  {cl:['#000000','#1c1840','#70a4b2'],pl:['#000000','#352879','#70a4b2','#9ad2e0','#ffffff']},
  {cl:['#000000','#68372b','#b8c76f'],pl:['#000000','#68372b','#9a6759','#b8c76f','#ffffaa']},
  {cl:['#000000','#1c1840','#6f3d86'],pl:['#000000','#1c1840','#6f3d86','#cc99ff','#ffffff']}];
+THEMES.push({cl:['#000000','#1c0808','#9a3a3a'],pl:['#000000','#68372b','#9a3a3a','#ff9966','#ffffaa']},
+ {cl:['#000000','#1c1008','#68372b'],pl:['#000000','#1c1008','#68372b','#9a6759','#d8a878']},
+ {cl:['#000000','#0a0630','#cc44cc'],pl:['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff']},
+ {cl:['#000000','#2a1500','#ff9966'],pl:['#000000','#68372b','#ff9966','#ffffaa','#ffffff']},
+ {cl:['#000000','#05021a','#6c5eb5'],pl:['#000000','#05021a','#352879','#cc99ff','#ffffff']},
+ {cl:['#000000','#1c0808','#ff7777'],pl:['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa']});
 const THC={};
 function mkCloud(seed,cols){
   let s=seed;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
@@ -586,7 +602,14 @@ function drawPowerMeter(x,y){
   ctx.fillStyle='#444444';ctx.fillRect(bx,y,bw,5);ctx.fillStyle='#000';ctx.fillRect(bx+1,y+1,bw-2,3);
   ctx.fillStyle='#70a4b2';ctx.fillRect(bx+1,y+1,Math.max(0,Math.round((bw-2)*f)),3);
 }
-function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&(SAVE.prog[i-1]||0)>=3&&shipPower()>=PLANETS[i].pow)}
+/* the bigger ship stages: the first opens when the Burning City is unlocked, and every one of them needs a luxury big ship */
+const isLux=s=>!!s&&s.price>=2e7;
+function ownsLux(){return (SAVE.ships||[]).some(i=>isLux(SHIPS[i]))}
+function prevOk(i){return i===0||(i===10?planetOpen(9):(SAVE.prog[i-1]||0)>=3)}
+function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
+function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
+function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
+  if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY BIG SHIP FROM THE SHIPYARD';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
 function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=Math.round(u.base*Math.pow(u.mul,j)/5)*5;return t}
 const RESET_FEE=1000;
 function resetRow(shop){
@@ -609,9 +632,9 @@ const CREWNAMES={nav:['JAN VOSS','IRIS KANE','ORLA FINCH'],weap:['TOM BRIGGS','N
 function baseStats(){
   const u=SAVE.up||{},cr=SAVE.crew||{},sh=SHIPS[SAVE.ship]||SHIPS[0],ms=MISSIONS[SAVE.mission]||MISSIONS[0],pl=PLANETS[SAVE.planet||0]||PLANETS[0];
   const nav=cr.nav||0,wp=cr.weap||0,tc=cr.tech||0;
-  return {hp:Math.max(1,3+(u.hull||0)+(u.cell||0)+sh.hp+((SAVE.lab&&SAVE.lab.nano)||0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp),
+  return {hp:Math.max(1,3+(u.hull||0)+(u.cell||0)+sh.hp+(sh.yard?3*(u.capital||0):0)+((SAVE.lab&&SAVE.lab.nano)||0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp)*(sh.yard?1+.12*(u.barrage||0):1),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp)*(sh.yard?1+.6*(u.cannon||0):1),
     magnet:(22+(u.magnet||0)*8)*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*ms.gold*pl.gold*(1+.25*((SAVE.level||1)-1)),lootBonus:(u.cargo||0)*.08+ms.diff*.01+pl.loot+(u.salv?.1:0),
-    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3,shieldDur:9+tc*3,shieldHits:2+(window.WX?WX.shieldHits():0),damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
+    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3+(sh.yard?5*(u.bulwark||0):0),shieldDur:9+tc*3,shieldHits:2+(window.WX?WX.shieldHits():0),damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
     repair:u.repair||0,missile:u.missile||0,skill:Math.min(.97,.75+.06*nav)};
 }
 
@@ -681,7 +704,7 @@ function sysPower(i,lvl){
   lvl=lvl||SAVE.level||1;const p=PLANETS[i],lm=Math.pow(1.1,lvl-1),b=sysBase(i)*lm;if(i===0)return 0;   // each level of a system is 10% stronger than the one before
   const me=shipPower();return me>b*1.2?Math.round(me/1.1*lm):Math.round(b);
 }
-function sysScale(i,lvl){const p=PLANETS[i];if(i===0||!p.pow)return 1;return Math.max(1,Math.min(3,sysPower(i,lvl)/p.pow))}
+function sysScale(i,lvl){const p=PLANETS[i];if(i===0||!p.pow)return 1;return Math.max(1,Math.min(p.big?8:3,sysPower(i,lvl)/p.pow))}   // the bigger ship stages keep climbing with your power, up to eight times their listed power
 function newRun(){
   SHIPSC=(SHIPS[SAVE.ship]||SHIPS[0]).sc||1;
   const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,sc=sysScale(SAVE.planet||0,lvl),loop=(MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6)*sc;
@@ -693,7 +716,7 @@ function newRun(){
 G=null;newRun(false);
 function loopScale(){return 1+G.loop*.45}
 /* ordinary enemies are tougher from the Asteroid Belt on (x1.25), the Ice Moon (x1.6) and from the Lava World on (x2). Bosses and mini bosses keep loopScale */
-const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,7.6];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
+const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,7.6,9,10.5,12,14,16];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
 function enemyScale(){return loopScale()*ENEMY_MUL[Math.min(ENEMY_MUL.length-1,G.planet||0)]}
 
 /* ===== salvage drops and option drones ===== */
@@ -728,7 +751,7 @@ function spawn(o){
 /* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
 function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
 /* ===== mini boss: halfway through every level, a double size elite built from the planet's own enemy art ===== */
-const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR'];
+const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod'];
 function spawnMini(){
   const A=pk(),M=A&&A.mini,k=MINI_KEY[G.planet||0],hp=26*loopScale()*(G.level>=3?1.3:1)*((M&&M.hp)||1);
   const e={type:'mini',fr:k,x:W+30,y:100,vx:-55,vy:0,w:M?M.w:36,h:M?M.h:26,hp,mhp:hp,pts:1500,t:0,flash:0,shootT:1.5,ringT:3.5,in:true,pkMini:!!M};
@@ -849,7 +872,7 @@ function powerup(k){
 function hurtPlayer(){
   if(P.inv>0||G.state!=='play')return;
   if(P.shield>0){const br=--P.shHit<=0;if(br)P.shield=0;P.inv=1;boom(P.x,P.y,10,false);if(window.WX)WX.shieldHit(br);return}
-  P.hp--;P.inv=G.stats.damper;shake=.3;BORDER='#883232';borderT=.12;boom(P.x,P.y,14,false);
+  P.hp-=(PLANETS[G.planet||0].hit||1);P.inv=G.stats.damper;shake=.3;BORDER='#883232';borderT=.12;boom(P.x,P.y,14,false);
   if(P.wpn>=3&&P.wpn>G.stats.startGun){P.wpn--;P.wpnT=10}   // a hit only costs a gun level once the gun is at level 3 or more
   if(P.hp<=0){G.state='dead';G.timer=3.2;boom(P.x,P.y,60,true);shake=.8;SAVE.runs++;if(G.score>SAVE.best)SAVE.best=G.score;save()}
 }
@@ -1225,7 +1248,8 @@ function drawHud(){
   text('COINS',62,4,'#b8c76f');text(String(SAVE.coins),86,4,'#fff');text('+'+(G.coinsRun||0),86+String(SAVE.coins).length*4+3,4,'#9ad284');
   // hp pips
   text('HULL',152,4,'#9a6759');
-  {const ps=Math.min(6,Math.floor(58/G.stats.hp)),pw=ps-1;
+  if(G.stats.hp>29){ctx.fillStyle='#444';ctx.fillRect(172,4,58,5);ctx.fillStyle='#ff7777';ctx.fillRect(172,4,Math.max(0,Math.round(58*P.hp/G.stats.hp)),5);ctx.fillStyle='#fff';ctx.fillRect(172,4,Math.max(0,Math.round(58*P.hp/G.stats.hp)),1)}
+  else{const ps=Math.min(6,Math.floor(58/G.stats.hp)),pw=ps-1;
     for(let i=0;i<G.stats.hp;i++){ctx.fillStyle=i<P.hp?'#ff7777':'#444';ctx.fillRect(172+i*ps,4,pw,5);
       if(i<P.hp){ctx.fillStyle='#fff';ctx.fillRect(172+i*ps,4,pw,1)}}}
   text('GUN '+P.wpn,232,4,'#9ad284');
@@ -1300,7 +1324,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='1.99';
+const VERSION='2.00';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1382,7 +1406,7 @@ function dayTick(){
   }
 }
 function shortGold(n){return n>=1e9?(n/1e9).toFixed(n>=1e10-2?0:1).replace('.0','')+'B':n>=1e7?Math.round(n/1e6)+'M':String(n)}
-function bankPct(){let n=0;for(let i=0;i<PLANETS.length;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+.6*n)}
+function bankPct(){let n=0;for(let i=0;i<10;i++)if((SAVE.prog[i]||0)>=3)n++;return .07*(1+.6*n)}
 function bankRate(){return bankPct()/30.4}
 function shareValue(){let t=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];t+=s.own*s.p}return t}
 function shareAccrue(days){   // dividends only grow while flying a mission, like the bank
@@ -2064,8 +2088,8 @@ function screenDef(id){
       if(id==='design')info.push({t:'EXTRA PARTS. ENGINEERS BUILD THE SPECIAL ONES.   '+pwl,c:'#70a4b2'});
       else{info.push({weapons:'BETTER GUNS FOR YOUR SHIP.',armour:'KEEP YOUR SHIP IN ONE PIECE.'}[id]);info.push({t:'WALLET '+SAVE.coins+' GOLD   '+pwl,c:'#70a4b2'})}}
     for(const k in UPG){const u=UPG[k];if(u.shop!==id)continue;const l=SAVE.up[k]||0,p=upPrice(k),mx=l>=u.max;
-      const need=u.eng&&(SAVE.crew.eng||0)<u.eng;
-      rows.push({ic:k,n:u.n+(u.max>1?'  LV '+l+'/'+u.max:(l?'  (BUILT)':'')),d:need?'NEEDS ENGINEER LV '+u.eng+': '+u.d:u.d,r:mx?'MAX':need?'LOCKED':String(p),ok:!mx&&!need&&SAVE.coins>=p,pw:(!mx&&!need)?[shipPowerRaw(),powerIf(SAVE.up,k,l+1)]:null,fn:buy(p,()=>{SAVE.up[k]=l+1;checkUnlocks()})});}
+      const need=(u.eng&&(SAVE.crew.eng||0)<u.eng)||(u.big&&!bigTierOpen());
+      rows.push({ic:u.ic||k,n:u.n+(u.max>1?'  LV '+l+'/'+u.max:(l?'  (BUILT)':''))+(u.big&&!bigTierOpen()?'  (LATER)':''),d:u.big&&!bigTierOpen()?'OPENS WITH THE BURNING CITY. BIG SHIPS ONLY':u.eng&&need?'NEEDS ENGINEER LV '+u.eng+': '+u.d:u.d,r:mx?'MAX':need?'LOCKED':shortGold(p),ok:!mx&&!need&&SAVE.coins>=p,pw:(!mx&&!need)?[shipPowerRaw(),powerIf(SAVE.up,k,l+1)]:null,fn:buy(p,()=>{SAVE.up[k]=l+1;checkUnlocks()})});}
     if(id==='design')for(const sp of [8,16]){const p=SPEED_BUY[sp],need=SPEED_NEED[sp],own=!!(SAVE.speedBuy&&SAVE.speedBuy[sp]),can=systemsDone()>=need;
       rows.push({n:'SPEED X'+sp+(own?'  (OWNED)':can?'':'  (LATER)'),d:own?'UNLOCKED. USE THE SPEED BUTTONS ON A MISSION':can?'RUN MISSIONS AT '+sp+' TIMES SPEED':'NEEDS '+need+' SYSTEMS CLEARED. PRICE '+p+' GOLD',r:own?'OWNED':can?String(p):'LATER',ok:!own&&can&&SAVE.coins>=p,msg:own?'YOU ALREADY OWN THIS':can?'NOT ENOUGH GOLD':'CLEAR '+need+' SYSTEMS FIRST',
         fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.speedBuy=SAVE.speedBuy||{};SAVE.speedBuy[sp]=1;refreshSpeedBtns();toast('SPEED X'+sp+' UNLOCKED');save()}})}
@@ -2342,7 +2366,7 @@ function drawChanceMeter(){
   const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
   for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
-function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
+function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 
 /* ===== star map: the system laid out with a planet for every stage ===== */
 const SMAP={pl:{},t:0};
@@ -2357,28 +2381,32 @@ function smapPlanet(i,R){
   return SMAP.pl[k]=dithered(S,S,(x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return -1;const nx=dx/R,ny=dy/R,nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*(5+i%3*2)+Math.sin(nx*3+i)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.2?(lit>.2?.5:-.3):0))*0.999},cols);
 }
-function smapPos(i){const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
+SMPAL[10]=['#000000','#1c1008','#68372b','#9a6759','#d8a878'];SMPAL[11]=['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff'];SMPAL[12]=['#000000','#68372b','#ff9966','#ffffaa','#ffffff'];SMPAL[13]=['#000000','#05021a','#352879','#cc99ff','#ffffff'];SMPAL[14]=['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa'];
+function smapPos(i){if(i>=10)return {x:44+(i-10)*56,y:92};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
 function drawStarMap(){
   SMAP.t+=1/60;const t=SMAP.t,pw=shipPower();
   ctx.fillStyle=pat('#000000');ctx.fillRect(0,14,W,H-14);
   box(14,18,292,172,'#04020f','#6c5eb5');
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
-  text('STAR MAP',20,22,'#ffffff',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);text('ESC CLOSES',104,22,'#8f84d6',1);
+  const pg=SMAP.page|0,lo=pg?10:0,hi=pg?15:10;
+  text('STAR MAP',20,22,'#ffffff',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);if(false)text('ESC CLOSES',104,22,'#8f84d6',1);
+  if(pg){textC2('WE NEED A BIGGER SHIP',160,40,'#ffffaa');textC2('LUXURY BIG SHIPS ONLY',160,48,'#9a8fe0')}
   // stars
   for(let i=0;i<70;i++){const sx=16+((i*53+7)%288),sy=34+((i*97+11)%140),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy,1,1)}
   // route between the planets
   const P=PLANETS.map((p,i)=>smapPos(i));
-  for(let i=0;i<PLANETS.length-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=14;
+  for(let i=lo;i<hi-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=14;
     for(let k=1;k<steps;k++){let u=k/steps,x,y;
       if(i===4){x=a.x+Math.sin(u*3.1416)*18;y=a.y+(b.y-a.y)*u}
       else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}
       if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
   let foc=-1;const cur=SAVE.planet||0;
   PLANETS.forEach((pl,i)=>{
-    const ps=P[i],ok=planetOpen(i),prevDone=i===0||(SAVE.prog[i-1]||0)>=3,R=9+Math.min(5,Math.floor(i*.6)),i0=UI.list.length;
+    if(i<lo||i>=hi)return;
+    const ps=P[i],ok=planetOpen(i),prevDone=prevOk(i),R=9+Math.min(5,Math.floor(i*.6)),i0=UI.list.length;
     const hit=UI.list.length;
     const f0=UI.focus===hit;if(f0)foc=i;
-    UI.list.push({x:ps.x-26,y:ps.y-R-4,w:52,h:R*2+54,fn:()=>{if(ok){setPlanet(i);toast('DESTINATION SET: '+pl.n+' LEVEL '+SAVE.level);save()}else toast(prevDone?'LOCKED. NEEDS SHIP POWER '+pl.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST')}});
+    UI.list.push({x:ps.x-26,y:ps.y-R-4,w:52,h:R*2+54,fn:()=>{if(ok){setPlanet(i);toast('DESTINATION SET: '+pl.n+' LEVEL '+SAVE.level);save()}else toast(lockMsg(i))}});
     // the planet
     ctx.save();
     if(i===0){ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.earth,ps.x-R-1,ps.y-R-1,R*2+2,R*2+2)}
@@ -2400,12 +2428,13 @@ function drawStarMap(){
     if(i===cur){const by=Math.round(Math.sin(t*3)*2);itemIcon(ctx,'ship',ps.x,ps.y-R-9+by,{ix:SAVE.ship||0})}
   });
   // detail panel
-  const fi=foc>=0?foc:cur,pl=PLANETS[fi],ok=planetOpen(fi),prevDone=fi===0||(SAVE.prog[fi-1]||0)>=3;
+  const fi=foc>=0?foc:cur,pl=PLANETS[fi],ok=planetOpen(fi),prevDone=prevOk(fi);
   ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
   text(pl.n+(fi===cur?'  (NEXT)':''),22,160,'#ffffff',1);
   textR(ok?(fi===cur?'DESTINATION':'ENTER TO GO'):(prevDone?'NEEDS POWER '+pl.pow:'LOCKED'),298,160,ok?'#9ad284':'#ff9966',1);
   text(fitText(pl.d,270),22,169,'#70a4b2',1);
   text('LEVELS CLEARED '+(SAVE.prog[fi]||0)+' OF 3   '+(ok||prevDone?'POWER '+pl.pow+' (YOU HAVE '+pw+')':'CLEAR '+PLANETS[fi-1].n+' FIRST'),22,178,ok?'#b8c76f':'#959595',1);
+  {const bi=UI.list.length;UI.list.push({x:100,y:19,w:84,h:13,fn:()=>{SMAP.page=pg?0:1;UI.focus=0}});ctx.fillStyle=UI.focus===bi?'#6c5eb5':'#2c5a2c';ctx.fillRect(100,21,84,9);textC2(pg?'< BACK':(bigTierOpen()?'BIGGER SHIPS >':'BIGGER SHIPS ?'),142,23,'#ffffff')}
   UI.list.push({x:288,y:19,w:16,h:13,fn:()=>{HUB.screen=null}});
   ctx.fillStyle=UI.focus===UI.list.length-1?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1);
   UI.nrows=UI.list.length-1;
@@ -2724,7 +2753,22 @@ const STORY={
     'THE ENEMY BASE LIES IN RUINS, BUT THIS WAS ONLY THE OUTPOST.',
     'THE ARTIFACT SHOWS YOU FOUR MORE WORLDS: A STORM SEA, A BURNING DESERT, A HOLLOW UNDERWORLD AND A CITY ON FIRE. THEY WILL BE HARDER. UPGRADE AGAIN.'],when:()=>systemsDone()>=6}
 };
-const STORYORDER=['sys1','sys3','sys5'];
+STORY.buddy={t:'THE ENEMY HAS A FRIEND',p:[
+    'THE BURNING CITY IS OPEN. THE ARTIFACT HAS BEEN QUIET FOR A LONG TIME. NOW IT SPEAKS.',
+    'THE ENEMY YOU HAVE BEEN HUNTING IS NOT ALONE. IT HAS A BUDDY, IN ANOTHER SYSTEM FAR BEYOND THE MAP.',
+    'THE SIGNAL IS FAINT AND THE STORMS AROUND IT ARE HUGE. ONLY A LUXURY BIG SHIP FROM THE SHIPYARD CAN FLY IN THERE.',
+    'SAVE YOUR GOLD AND BUY ONE. THE STAR MAP HAS A NEW PAGE CALLED BIGGER SHIPS, AND THE WEAPON AND ARMOUR SHOPS HAVE NEW PARTS FOR BIG SHIPS.'],when:()=>bigTierOpen()};
+STORY.big1={t:'THE GRAVEYARD',p:[
+    'THE GRAVEYARD IS QUIET. IN THE WRECK OF THE TITAN YOU FIND A MAP TO THE NEXT SYSTEM.',
+    'THE BUDDY IS GATHERING AN ARMY, AND IT IS BIGGER THAN ANYTHING YOU HAVE FOUGHT.'],when:()=>(SAVE.prog[10]||0)>=3};
+STORY.big3={t:'THE COLD FORGE',p:[
+    'THE FORGE GOES DARK. THIS IS WHERE THE BUDDY BUILT ITS SHIPS.',
+    'ONLY ONE PLACE IS LEFT: THE ARMADA, PARKED AT THE EDGE OF A BLACK HOLE.'],when:()=>(SAVE.prog[12]||0)>=3};
+STORY.big5={t:'THE ARMADA FALLS',p:[
+    'THE FLAGSHIP BREAKS APART AND THE WHOLE FLEET GOES WITH IT.',
+    'THE BUDDY IS GONE. THE ARTIFACT HUMS, THEN GOES QUIET. FOR NOW.',
+    'BACK AT THE STATION THE CREW THROW A PARTY. YOU DESERVE IT, BUT THE ARTIFACT IS ALREADY LOOKING AT THE STARS.'],when:()=>(SAVE.prog[14]||0)>=3};
+const STORYORDER=['sys1','sys3','sys5','buddy','big1','big3','big5'];
 let STY=null;
 function tellStory(id,back){
   const d=STORY[id];if(!d)return false;SAVE.story=SAVE.story||{};if(SAVE.story[id])return false;SAVE.story[id]=1;save();
@@ -3242,7 +3286,7 @@ function extraScreen(id,rows,info){
   if(id==='starmap'){
     const pw=shipPower();
     L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(pw+1),'#70a4b2');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
-    PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=i===0||(SAVE.prog[i-1]||0)>=3;
+    PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=prevOk(i);
       rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3'+(i?'  POWER '+sysPower(i,1)+'/'+sysPower(i,2)+'/'+sysPower(i,3):''):(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
         fn:()=>{setPlanet(i);toast('DESTINATION SET: '+p.n+' LEVEL '+SAVE.level);save()}})});
     return 'STAR MAP';
@@ -4671,5 +4715,8 @@ window.__g.dev={
 <script src="packs/desert.js?v=1.18"></script>
 <script src="packs/cave.js?v=1.18"></script>
 <script src="packs/city.js?v=1.18"></script>
+<script src="packs/big.js?v=2.00"></script>
+<script src="packs/bigthemes1.js?v=2.00"></script>
+<script src="packs/bigthemes2.js?v=2.00"></script>
 </body>
 </html>
