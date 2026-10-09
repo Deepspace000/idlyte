@@ -458,7 +458,7 @@ function genLevel(idx){
       for(let lx=x0+8;lx<x0+n-8;lx+=rn(9,14)){if(ship||idx===4){const w=rn(6,9),h=rn(3,5);for(let q=0;q<h;q++){const ww=Math.max(2,w-q*2);feats.push({x:lx+Math.floor((w-ww)/2),y:cyc-1-q,t:1,w:ww,h:1})}deco(lx+w/2,cyc-h,idx===2&&R()<.4?'engine':idx===4&&R()<.4?'heart':'crate')}else{deco(lx,cyc,'pillar');feats.push({x:lx+5,y:cyc-3,t:1,w:4,h:3})}}
       for(let q=0;q<2;q++){const px=x0+rn(6,n-14);plats.push({x:px,y:cyc-10-q*8,w:rn(8,12)});if(R()<.6)chest(px+3,cyc-11-q*8,8+idx*3)}
       groundSpawns(x0,n,cyc-1)},
-    chasm(deep,wide,spec){const D=deep?deep:rn(30,66),fl=cyc+D,n=spec?rn(66,84):wide?rn(36,52):deep?rn(16,24):rn(18,34),gx=x;zone('void',deep?'abyss':'chasm');
+    chasm(deep,wide,spec){const D=deep?deep:rn(30,66),fl=cyc+D,n=spec?rn(spec==='caldera'?96:70,spec==='caldera'?116:90):wide?rn(36,52):deep?rn(16,24):rn(18,34),gx=x;zone('void',deep?'abyss':'chasm');
       const sv=curRH;gapCols(n,fl);curRH=sv;
       let kind=['bridge','platforms','lifts','updraft'][rn(0,3)];if((kind==='updraft'||spec)&&n>26)kind='bridge';const lava=!!Wd.lava,c0=cyc;
       ladders.push({x:gx,y0:c0,y1:fl-1});
@@ -476,9 +476,9 @@ function genLevel(idx){
           L.glows.push({x:px_,y:ptop,w:pw,h:Math.min(40,fl-ptop),c:spec==='heart'?'#ff44aa':'#33ffff'});
           for(let r=ptop+10;r<fl-8;r+=11){plats.push({x:px_-7,y:r,w:6},{x:px_+pw+1,y:r+5,w:6});if(R()<.4)chest(px_-5,r-1,8+idx*4)}}
         else{ /* caldera: islands in the lava, basalt columns, lava falls down the right wall */
-          for(let q=0;q<5;q++){const ix=gx+8+Math.floor(q*(n-16)/4)+rn(-3,3),iw=rn(7,12),iy=fl-rn(15,19);feats.push({x:ix,y:iy,t:1,w:iw,h:fl-iy});chest(ix+2,iy-1,12+idx*4);deco(ix+iw/2,iy,'spire');for(let t=0;t<iw;t+=3)L.coins.push({x:(ix+t)*TS+4,y:(iy-3)*TS,v:2})}
-          for(let y=c0+6;y<fl-13;y++)feats.push({x:gx+n-1,y,t:4});L.falls.push({x:gx+n-1,y0:c0+6,y1:fl-13});
-          for(let q=0;q<3;q++){const cx2=gx+rn(10,n-10);const cl=c0+rn(14,24);feats.push({x:cx2,y:cl,t:1,w:3,h:fl-cl-14});plats.push({x:cx2-2,y:cl-1,w:7});deco(cx2+1,cl-1,'spire')}}}
+          for(let q=0;q<5;q++){const ix=gx+8+Math.floor(q*(n-16)/4)+rn(-3,3),iw=rn(7,12),iy=fl-rn(26,30);feats.push({x:ix,y:iy,t:1,w:iw,h:fl-iy});chest(ix+2,iy-1,12+idx*4);deco(ix+iw/2,iy,'spire');for(let t=0;t<iw;t+=3)L.coins.push({x:(ix+t)*TS+4,y:(iy-3)*TS,v:2})}
+          for(let y=c0+6;y<fl-24;y++)feats.push({x:gx+n-1,y,t:4});L.falls.push({x:gx+n-1,y0:c0+6,y1:fl-24});
+          for(let q=0;q<3;q++){const cx2=gx+rn(10,n-10);const cl=c0+rn(14,24);feats.push({x:cx2,y:cl,t:1,w:3,h:fl-cl-25});plats.push({x:cx2-2,y:cl-1,w:7});deco(cx2+1,cl-1,'spire')}}}
       if(wide&&!spec){const pw=rn(6,10),px_=gx+Math.floor(n/2)-Math.floor(pw/2),ptop=c0+rn(8,12);feats.push({x:px_,y:ptop,t:1,w:pw,h:fl-ptop});ladders.push({x:px_-1,y0:c0,y1:ptop-1});chest(px_+2,ptop-1,12+idx*4);for(let q=0;q<pw;q+=2)L.coins.push({x:(px_+q)*TS+4,y:(ptop-3)*TS,v:2});deco(px_+pw/2,ptop,'spire')}
       chest(gx+Math.floor(n/2)+(wide?-8:0),fl-1,(deep?30:10)+idx*4);
       if(deep){posts.push(()=>{
@@ -486,8 +486,9 @@ function genLevel(idx){
         const bw=rn(46,70),bx0=gx-Math.floor((bw-n)/2),bh=rn(18,26);rect(bx0,fl-bh,bw,bh,0);for(let lx=bx0;lx<bx0+bw;lx++)for(let y=fl;y<fl+3;y++)if(G(lx,y)!==1)S(lx,y,1);
         for(let lx=bx0;lx<bx0+bw;lx++){const h=Math.round(5*Math.max(0,NZ.vn(lx*.11,fl*.1)-.35)*2);for(let y=fl-bh;y<fl-bh+h;y++)S(lx,y,1)}
         for(let lx=bx0+6;lx<bx0+bw-6;lx+=rn(4,7)){deco(lx,fl,idx===3?'bush':R()<.5?'shroom':'weed');if(R()<.3)deco(lx+2,fl,'spire')}
-        if(lava&&spec==='caldera')for(let lx=bx0-6;lx<bx0+bw+6;lx++)for(let y=fl-13;y<fl;y++)if(G(lx,y)===0&&lx>gx+1)S(lx,y,4);
+        if(lava&&spec==='caldera')for(let lx=bx0-6;lx<bx0+bw+6;lx++)for(let y=fl-24;y<fl;y++)if(G(lx,y)===0&&lx>gx+1)S(lx,y,4);
         else if(lava)for(let lx=bx0+8;lx<bx0+bw-8;lx++){if(Math.abs(lx-gx-n/2)>5)for(let y=fl-3;y<fl;y++)if(G(lx,y)===0)S(lx,y,4);}
+        else if(spec==='heart')for(let lx=bx0-4;lx<bx0+bw+4;lx++)for(let y=fl-16;y<fl;y++)if(G(lx,y)===0&&lx>gx+1)S(lx,y,10);
         else if(idx!==1)for(let lx=bx0+10;lx<bx0+bw-10;lx++)if(Math.abs(lx-gx-n/2)>7)for(let y=fl-4;y<fl;y++)if(G(lx,y)===0)S(lx,y,10);
         for(let q=0;q<4;q++){const px=rn(bx0+6,bx0+bw-14);rect(px,fl-rn(6,10),rn(5,9),1,2);}
         chest(bx0+4,fl-1,60+idx*14);chest(bx0+bw-6,fl-1,50+idx*12);for(let lx=bx0+4;lx<bx0+bw-4;lx+=3)L.coins.push({x:lx*TS+4,y:(fl-3)*TS,v:3});
@@ -542,6 +543,7 @@ function genLevel(idx){
     const frac=x/LW;let k;
     if(si<sched.length&&frac>=sched[si].f){const s=sched[si++];if(s.p==='peak'){k=PKV[idx][pk_++%PKV[idx].length]}else if(s.p==='maze'){k='maze'}else if(s.p==='spec'){k='spec'}else{k='deep'}}else k=pick();
     const x0=x;
+    if(idx>=2&&k!=='peak'&&k!=='massif'&&k!=='maze'&&k!=='hall'){const rr=R();curRH=rr<.3?0:rr<.5?rn(24,34):baseRH}
     if(k==='maze')PC.maze();
     else if(k==='spec')PC.chasm(Math.min(WPm.ab,rn(120,150)),true,SPECS[idx]);
     else if(k==='deep'){const dp=Math.round(WPm.ab*rn(60,100)/100);PC.chasm(Math.min(WPm.ab,Math.max(80,dp)),R()<.45)}
@@ -650,9 +652,9 @@ function genLevel(idx){
   /* ---------- the lower map: designed rooms joined by corridors and ladders, instead of solid rock ---------- */
   const sstepf=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
   const bbN=B.mkNoise(410+idx);
-  const bb=xx=>{if(idx<2)return LH-4;const f=clamp(xx/LW,0,1),el=elevAt(xx);let T;
+  const bb=xx=>{const f=clamp(xx/LW,0,1),el=elevAt(xx);let T;if(idx<2){const e=Math.sqrt(Math.max(0,1-Math.pow((f-.5)/.5,2)));return el+(idx===0?60+120*e:90+130*e)+10*(bbN.fbm(xx*.02,9,2)-.5)}
     if(idx===2){T=142+12*(bbN.fbm(xx*.011,3,2)-.5)*2;if(f<.16)T=34+(T-34)*sstepf(f/.16);if(f>.93)T=Math.max(62,T-(f-.93)/.07*50);
-      for(const bx of [.8,.88,.96]){const d=Math.abs(xx-bx*LW);if(d<15)T+=Math.round(50*Math.min(1,(15-d)/5))}}
+      for(const bx of [.78,.87,.96]){const d=Math.abs(xx-bx*LW);if(d<13)T+=Math.round(80*Math.min(1,(13-d)/2))}}
     else if(idx===3){T=165+30*(bbN.fbm(xx*.006,7,3)-.5)*2;if(f<.05)T=40+(T-40)*sstepf(f/.05);if(f>.95)T=Math.max(60,T-(f-.95)/.05*100)}
     else{const e=Math.sqrt(Math.max(0,1-Math.pow((f-.5)/.5,2)));T=60+215*e+16*(bbN.fbm(xx*.02,9,2)-.5)}
     return el+T};
@@ -661,13 +663,21 @@ function genLevel(idx){
   {const Y0=SURF-Math.round(upMax)+36,nj=Math.ceil((LH-Y0)/FK.ch)+1;
    const dk=idx===0?['shroom','bush','weed']:idx===1?['spire','bush','weed']:idx===2?['crate','pillar','porthole']:idx===3?['spire','bush','pillar']:['egg','shroom','rib'];
    for(let j=0;j<nj;j++){const y1=Y0+j*FK.ch;if(y1>LH-16)break;
+    let skipI=-99;
     for(let i=-1;i<Math.ceil(LW/FK.cw)+1;i++){
-      const off=(FK.k==='hex'&&j%2)?FK.cw/2:0,cx=Math.round(i*FK.cw+FK.cw/2+off+rn(-3,3)),w=Math.round(FK.cw*(.78+R()*.12)),h=rn(Math.round(FK.ch*.6),Math.round(FK.ch*.76)),x0=cx-(w>>1),yt=y1-h;
+      if(i===skipI)continue;
+      const off=(FK.k==='hex'&&j%2)?FK.cw/2:0,cx0=Math.round(i*FK.cw+FK.cw/2+off+rn(-3,3));
+      const roll=R(),variant=roll<.2?'wide':roll<.34?'tall':'norm';
+      let w=Math.round(FK.cw*(.78+R()*.12)),h=rn(Math.round(FK.ch*.6),Math.round(FK.ch*.76)),cx=cx0;
+      if(variant==='wide'){w=Math.round(FK.cw*(1.7+R()*.15));cx=cx0+Math.round(FK.cw/2)}
+      else if(variant==='tall'){h=Math.round(FK.ch*(1.35+R()*.3))}
+      const x0=cx-(w>>1),yt=y1-h;
       if(x0<12||x0+w>LW-12)continue;
       let ok=true;for(let xx=x0;xx<x0+w;xx+=4){const t=top[xx]>=0?top[xx]:elevAt(xx);if(yt<t+16||y1+8>bb(xx)){ok=false;break}}
       if(!ok)continue;let sol=0,tot=0;for(let yy=yt-3;yy<=y1+3;yy+=3)for(let xx=x0-3;xx<=x0+w+3;xx+=3){tot++;if(G(xx,yy)===1)sol++}
       if(sol<tot*.97)continue;
-      const r={i,j,cx,x0,w,h,yt,y1,hh:[]};
+      if(variant==='wide')skipI=i+1;
+      const r={i,j,cx,x0,w,h,yt,y1,hh:[],variant};
       for(let q=0;q<w;q++){const xx=x0+q,u=(xx-cx)/(w/2);let hh;
         if(FK.k==='deck')hh=h;else if(FK.k==='hex')hh=Math.round(h*(1-.4*Math.max(0,(Math.abs(u)-.5)/.5)));else hh=Math.round(h*(.5+.5*Math.sqrt(Math.max(0,1-u*u)))+2*(NZ.vn(xx*.2,y1*.3)-.5));
         hh=clamp(hh,5,h);r.hh.push(hh);for(let y=y1-hh;y<y1;y++)S(xx,y,0)}
@@ -679,6 +689,8 @@ function genLevel(idx){
         for(let q=0;q<2;q++){const bx_=x0+rn(3,w-9),bw_=rn(4,6),bh_=rn(2,3);if(!flood)for(let t=0;t<bh_;t++)rect(bx_+t,y1-1-t,Math.max(2,bw_-t*2),1,1)}}
       else{for(let q=0;q<2;q++){const px_=x0+rn(3,Math.max(4,w-12)),pw=rn(6,9);for(let t=0;t<pw;t++)if(G(px_+t,y1-5)===0&&r.hh[clamp(px_+t-x0,0,w-1)]>7)S(px_+t,y1-5,2);if(R()<.45)chest(px_+3,y1-5,8+idx*3)}
         for(let q=0;q<3;q++){const mx=x0+rn(3,w-8),mw=rn(4,7),mh=rn(1,3);if(!flood&&!lavaP)for(let t=0;t<mw;t++){const hgt=Math.round(mh*Math.sin(t/(mw-1)*Math.PI));if(hgt>0)rect(mx+t,y1-hgt,1,hgt,1)}}}
+      if(variant==='tall'){for(let q=1;q<=2;q++){const py2=y1-5-q*7,px2=x0+rn(3,Math.max(4,w-12)),pw2=rn(7,10);for(let t=0;t<pw2;t++)if(G(px2+t,py2)===0)S(px2+t,py2,2);chest(px2+3,py2,10+idx*4);for(let t=0;t<pw2;t+=3)L.coins.push({x:(px2+t)*TS+4,y:(py2-2)*TS,v:2})}}
+      if(variant==='wide'){for(let q=0;q<3;q++){const px2=x0+rn(4,Math.max(5,w-14)),pw2=rn(6,9);for(let t=0;t<pw2;t++)if(G(px2+t,y1-6)===0)S(px2+t,y1-6,2);if(R()<.6)chest(px2+3,y1-6,9+idx*4)}}
       for(let lx=x0+4;lx<x0+w-4;lx+=4)L.coins.push({x:lx*TS+4,y:(y1-2)*TS,v:1+(idx>>1)});
       if(R()<.5)chest(cx+rn(-w/3,w/3)|0,y1,6+idx*3+(j>>1)*2);
       for(let k=0;k<Math.round(w/9*Pm.dens*.7);k++)spawn(rn(0,4),(x0+rn(4,w-4))*TS,(y1-1)*TS);
@@ -729,9 +741,10 @@ function genLevel(idx){
     L.pieceSpots=L.shipPieces.map(p=>({x:p.x/TS,y:p.y/TS}))}
   /* ---------- the bottom edge: the world is a shaped mass floating in the sky or space ---------- */
   const out=new Uint8Array(LW*LH);L.out=out;
-  if(idx>=2){const bot=new Int16Array(LW);
+  {const bot=new Int16Array(LW);
     for(let xx=0;xx<LW;xx++){let need=0;for(let y=LH-1;y>=0;y--){const t=g[y*LW+xx];if(t!==1){need=y;break}}bot[xx]=Math.max(Math.round(bb(xx)),need+10)}
-    const sl=idx===2?2:1;for(let xx=1;xx<LW;xx++)bot[xx]=Math.max(bot[xx],bot[xx-1]-sl);for(let xx=LW-2;xx>=0;xx--)bot[xx]=Math.max(bot[xx],bot[xx+1]-sl);
+    {const raw=Int16Array.from(bot),W_=idx===2?24:16;for(let xx=0;xx<LW;xx++){let m=0;for(let q=Math.max(0,xx-W_);q<=Math.min(LW-1,xx+W_);q++)if(raw[q]>m)m=raw[q];bot[xx]=Math.min(LH,m)}}
+    const sl=idx===2?3:1;for(let xx=1;xx<LW;xx++)bot[xx]=Math.max(bot[xx],bot[xx-1]-sl);for(let xx=LW-2;xx>=0;xx--)bot[xx]=Math.max(bot[xx],bot[xx+1]-sl);
     for(let xx=0;xx<LW;xx++)for(let y=Math.min(LH-1,bot[xx]);y<LH;y++){g[y*LW+xx]=0;out[y*LW+xx]=1}
     L.bot=bot}
   /* ---------- sky: open air above the first solid tile of each column ---------- */
