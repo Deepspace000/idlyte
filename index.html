@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.26</title>
+<title>Idlyte v2.27</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1339,7 +1339,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.26';
+const VERSION='2.27';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1659,8 +1659,8 @@ function autoIcon(r,sid){
 function fitText(t,px){t=String(t||'');const mx=Math.floor(px/4);return t.length<=mx?t:t.slice(0,Math.max(0,mx-2))+'..'}
 
 /* ===== station world: cutaway with 4 decks, rooms that open when you walk in ===== */
-const NDECK=8,DECKS=[0,1,2,3,4,5,6,7];
-const DECK_H=64,FD=9,WWID=600,WH=280+64*4,RH=58,FL=49,SHAFTS=[24,300,576];
+const NBAY=5,HD=NBAY,NDECK=8+NBAY,DECKS=Array.from({length:NDECK},(_,i)=>i);   // the hangar bays live on the NBAY decks under the first hangar (deck HD)
+const DECK_H=64,FD=9,WWID=600,WH=280+64*(4+NBAY),RH=58,FL=49,SHAFTS=[24,300,576];
 const yTop=d=>WH-(d+1)*DECK_H,FYd=d=>yTop(d)+DECK_H-6;
 const ROOMS=[
  {id:'hangar',d:0,x0:36,x1:186,t:'hangar',n:'HANGAR',c:'#6c6c6c'},
@@ -1700,14 +1700,17 @@ const ROOMS=[
  {id:'luxury',d:7,x0:232,x1:288,t:'shop',shop:'luxury'},
  {id:'zoo',d:7,x0:312,x1:440,t:'zoo',n:'ALIEN ZOO',c:'#9ad284'},
  {id:'bridge',d:7,x0:444,x1:564,t:'bridge',n:'COMMAND BRIDGE',c:'#cc99ff'}];
+ROOMS.forEach(r=>{r.d+=NBAY});
+/* a hangar bay for every ship you buy, below the first hangar: four to a deck, reached by the lifts */
+for(let i=1;i<SHIPS.length;i++){const k=i-1,xs=[[36,160],[164,288],[312,436],[440,564]][k%4];ROOMS.push({id:'bay'+i,d:NBAY-1-Math.floor(k/4),x0:xs[0],x1:xs[1],t:'bay',bay:i,n:SHIPS[i].n+' HANGAR',c:'#6c6c6c'})}
 /* an achievement for every room built, and for how many rooms the station has */
-for(const r of ROOMS)if(r.id!=='hangar'&&r.id!=='sleep')ACHV.push({id:'rm_'+r.id,n:'BUILT: '+(r.n||(r.shop||r.id).toUpperCase()),d:'BUILD THE '+(r.n||(r.shop||r.id).toUpperCase()),t:()=>!!r.built});
+for(const r of ROOMS)if(r.id!=='hangar'&&r.id!=='sleep'&&!r.bay)ACHV.push({id:'rm_'+r.id,n:'BUILT: '+(r.n||(r.shop||r.id).toUpperCase()),d:'BUILD THE '+(r.n||(r.shop||r.id).toUpperCase()),t:()=>!!r.built});
 for(const n of [5,10,15,20,25,30])ACHV.push({id:'rooms'+n,n:n+' ROOMS',d:'HAVE '+n+' ROOMS BUILT ON THE STATION',t:()=>ROOMS.filter(r=>r.built).length>=n});
 ACHV.push({id:'allshops',n:'EVERY SHOP',d:'BUILD EVERY SHOP',t:()=>ROOMS.filter(r=>r.shop).every(r=>r.built)});
-ACHV.push({id:'allrooms',n:'EVERY ROOM',d:'BUILD EVERY ROOM ON THE STATION',t:()=>ROOMS.every(r=>r.built)});
+ACHV.push({id:'allrooms',n:'EVERY ROOM',d:'BUILD EVERY ROOM ON THE STATION',t:()=>ROOMS.every(r=>r.built||r.bay)});
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
 const SLOTS=ROOMS.map(r=>({d:r.d,x0:r.x0,x1:r.x1}));ROOMS.forEach((r,i)=>{r.slot0=i;r.slot=i});
-const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200,transporter:160,zoo:120,bridge:120};
+const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200,transporter:160,zoo:120,bridge:120,bay:124};
 function applyLayout(){
   const lay=(SAVE&&SAVE.layout)||{};
   for(const r of ROOMS){const i=lay[r.id]!=null?lay[r.id]:r.slot0,sl=SLOTS[i];r.slot=i;r.d=sl.d;r.x0=sl.x0;r.x1=sl.x1;r.w=sl.x1-sl.x0;r.cx=(sl.x0+sl.x1)/2;if(typeof ROOMC!=='undefined')ROOMC[r.id]=undefined}
@@ -1729,9 +1732,10 @@ function moveRoom(a,si){
 }
 function roomById(id){return ROOMS.find(r=>r.id===id)}
 function deckOf(y){for(let d=0;d<NDECK;d++)if(y>=FYd(d)-FD-1.5&&y<=FYd(d)+1.5)return d;return -1}
-let EXT=Array(NDECK).fill(null),SHX={};
+let EXT=Array(NDECK).fill(null),SHX={},LOWD=HD;
 function inExt(d,x){return !!EXT[d]&&x>=EXT[d].l&&x<=EXT[d].r}
 function recomputeStation(){
+  LOWD=HD;
   EXT=Array(NDECK).fill(null);SHX={};
   for(const r of ROOMS)if(r.built){const e=EXT[r.d]||(EXT[r.d]={l:r.x0,r:r.x1});e.l=Math.min(e.l,r.x0);e.r=Math.max(e.r,r.x1)}
   for(let pass=0;pass<2;pass++)for(let d=0;d<NDECK;d++){const e=EXT[d];if(!e)continue;
@@ -1740,11 +1744,13 @@ function recomputeStation(){
     for(const sx of SHAFTS){const dist=sx<e.l?e.l-sx:sx>e.r?sx-e.r:0;
       if(dist<=40||sx===best){e.l=Math.min(e.l,sx-9);e.r=Math.max(e.r,sx+9);const q=SHX[sx]||(SHX[sx]={lo:d,hi:d});q.lo=Math.min(q.lo,d);q.hi=Math.max(q.hi,d)}}
     e.l=Math.max(14,e.l);e.r=Math.min(WWID-14,e.r)}
+  for(let d=0;d<NDECK;d++)if(EXT[d]){LOWD=d;break}
 }
 function syncBuilt(){setTimeout(()=>{try{labApply()}catch(e){}},0);
   if(typeof syncPets==='function')setTimeout(()=>{try{syncPets()}catch(e){}},0);
   SAVE.built=SAVE.built||{};SAVE.built.hangar=1;SAVE.built.sleep=1;applyLayout();
   SAVE.aff=SAVE.aff||{};SAVE.garden=Object.assign({plots:[],lamp:0,extra:0,pantry:{},seed:'carrot'},SAVE.garden||{});SAVE.lab=Object.assign({scan:0,nano:0},SAVE.lab||{});SAVE.costume=Object.assign({own:{suit:1},wear:'suit'},SAVE.costume||{});SAVE.costume.own=SAVE.costume.own||{suit:1};SAVE.fresh=SAVE.fresh||0;SAVE.refresh=SAVE.refresh||0;labApply();
+  for(const i of (SAVE.ships||[]))if(i>0)SAVE.built['bay'+i]=1;
   for(const r of ROOMS){r.built=!!SAVE.built[r.id];if(!r.built)r.p=0}
   recomputeStation();HULL=null;
 }
@@ -1758,7 +1764,7 @@ function areaCost(){return Math.round(10*Math.pow(1.35,SAVE.areasBuilt||0))}
 function buildOptions(){
   const out=[];
   for(const r of ROOMS){
-    if(r.built||r.shop)continue;
+    if(r.built||r.shop||r.bay)continue;
     let dir=null;
     const row=ROOMS.filter(q=>q.d===r.d).sort((a,b)=>a.x0-b.x0),i=row.indexOf(r);
     if(i>0&&row[i-1].built)dir='RIGHT OF '+row[i-1].n;
@@ -2014,6 +2020,13 @@ function mkInterior(r){
     R_(g,6,30,18,19,'#222');R_(g,8,32,14,7,'#444');R_(g,10,34,4,3,'#ff7777');R_(g,16,34,4,3,'#9ad284');R_(g,8,40,14,2,'#6c6c6c');
     R_(g,w-24,30,18,19,'#222');R_(g,w-22,32,14,15,'#444');R_(g,w-17,36,4,4,'#bbbbbb');R_(g,w-17,42,4,3,'#bbbbbb');
     R_(g,w>>1,2,1,10,'#6c6c6c');
+  }else if(t==='bay'){
+    base(g,w,'#2c2c4a','#10101a','#444455','#222233','#6c6c6c');
+    const im=SPR.shipSets[r.bay]&&SPR.shipSets[r.bay][0];
+    R_(g,6,FL-5,w-12,5,'#6c6c6c');R_(g,6,FL-5,w-12,1,'#bbbbbb');for(let x=10;x<w-10;x+=10)R_(g,x,FL-3,5,1,Math.floor(x/10)%2?'#ffff66':'#444');
+    for(const gx of [8,w-12]){R_(g,gx,8,4,FL-12,'#959595');R_(g,gx,8,4,1,'#ffffff');R_(g,gx-(gx<w/2?0:10),12,14,3,'#6c6c6c')}
+    if(im){g.imageSmoothingEnabled=false;const sc=Math.min(2,(w-32)/im.width),dw=Math.round(im.width*sc),dh=Math.round(im.height*sc);g.drawImage(im,(w-dw)>>1,FL-6-dh+Math.round(dh*.18),dw,dh)}
+    R_(g,(w>>1)-28,3,56,9,'#000');R_(g,(w>>1)-27,4,54,7,'#1c1840');textTo(g,String(SHIPS[r.bay].n),(w>>1)-textW(String(SHIPS[r.bay].n),1)/2,5,'#9ad2e0',1);
   }else if(t==='transporter'){
     base(g,w,'#1c1840','#000010','#2c2c4a','#111111','#444466');
     const cx=w>>1;R_(g,cx-26,FL-2,52,4,'#000');R_(g,cx-25,FL-2,50,2,'#70a4b2');R_(g,cx-20,FL-5,40,3,'#444466');R_(g,cx-20,FL-5,40,1,'#9ad2e0');
@@ -2150,7 +2163,7 @@ function screenDef(id){
     if(id==='ships')info.push({t:'SMALL SHIPS. THEY ARE A LITTLE BETTER THAN THE DRIFTER.',c:'#b8c76f'});
     SHIPS.map((_,k)=>k).filter(i=>{const q=SHIPS[i],lux=q.price>=2e7;return yard?(q.yard&&!lux):lx?lux:!q.yard}).sort((a,b)=>SHIPS[a].price-SHIPS[b].price).forEach(i=>{const s=SHIPS[i],lux=s.price>=2e7;const own=SAVE.ships.includes(i),cur=SAVE.ship===i;
       rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
-        fn:()=>{if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
+        fn:()=>{if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();syncBuilt();HUB.grow={id:'bay'+i,t:1.8};toast('BOUGHT '+s.n+'. A NEW HANGAR BAY OPENS BELOW THE HANGAR');checkUnlocks()}save()}})});
   }else if(id==='missions'){
     title='MISSION SHOP';info.push('CONTRACTS MAKE ANY DESTINATION HARDER AND PAY MORE GOLD.');info.push('WALLET '+SAVE.coins+' GOLD');
     MISSIONS.forEach((m,i)=>{const own=SAVE.missions.includes(i),cur=SAVE.mission===i;
@@ -2598,14 +2611,14 @@ function buildHull(){
     for(let y=yt+6;y<fy;y+=12){R_(g,l-2,y,2,2,'#444');R_(g,r,y,2,2,'#444')}
     R_(g,e.l,fy-FD,e.r-e.l,FD,'#444444');for(let x=e.l;x<e.r;x+=10)R_(g,x,fy-FD,1,FD,'#333');
     R_(g,l,fy,r-l,6,'#6c6c6c');R_(g,l,fy,r-l,1,'#bbbbbb');
-    if(d===0){R_(g,l+10,fy+7,r-l-20,2,'#444444');R_(g,l+10,fy+7,r-l-20,1,'#6c6c6c');R_(g,l+18,fy+11,r-l-36,2,'#352879');for(let x=l+24;x<r-30;x+=46){R_(g,x,fy+6,3,8,'#6c6c6c');R_(g,x,fy+13,3,1,Math.floor(x/46)%2?'#ff9966':'#9ad284')}}for(let x=l+4;x<r-2;x+=14)R_(g,x,fy+3,2,2,'#444');
+    if(d===LOWD){R_(g,l+10,fy+7,r-l-20,2,'#444444');R_(g,l+10,fy+7,r-l-20,1,'#6c6c6c');R_(g,l+18,fy+11,r-l-36,2,'#352879');for(let x=l+24;x<r-30;x+=46){R_(g,x,fy+6,3,8,'#6c6c6c');R_(g,x,fy+13,3,1,Math.floor(x/46)%2?'#ff9966':'#9ad284')}}for(let x=l+4;x<r-2;x+=14)R_(g,x,fy+3,2,2,'#444');
     for(let x=e.l+8;x<e.r-30;x+=70)R_(g,x,yt+4,30,2,'#70a4b2');
     R_(g,e.l+6,yt+9,e.r-e.l-12,2,'#444444');R_(g,e.l+6,yt+9,e.r-e.l-12,1,'#6c6c6c');
     for(let x=e.l+20;x<e.r-30;x+=64){R_(g,x,yt+13,12,7,'#000000');R_(g,x+1,yt+14,10,5,'#352879');R_(g,x+2,yt+15,3,1,'#70a4b2');R_(g,x+6,yt+16,4,1,'#9ad284')}
     for(let x=e.l+10;x<e.r-10;x+=22)R_(g,x,fy-4,9,1,'#b8c76f');
   }
   // engine pods on the lowest deck, roof gear on the top deck
-  if(EXT[0]){R_(g,Math.max(0,EXT[0].l-12),FYd(0)-20,4,16,'#6c6c6c');R_(g,EXT[0].r+8,FYd(0)-20,4,16,'#6c6c6c')}
+  if(EXT[LOWD]){R_(g,Math.max(0,EXT[LOWD].l-12),FYd(LOWD)-20,4,16,'#6c6c6c');R_(g,EXT[LOWD].r+8,FYd(LOWD)-20,4,16,'#6c6c6c')}
   {const e=EXT[top],yt=yTop(top),mid=(e.l+e.r)>>1;
     R_(g,mid-1,Math.max(0,yt-24),3,24,'#bbbbbb');R_(g,mid-4,Math.max(0,yt-20),9,1,'#959595');R_(g,mid-6,Math.max(0,yt-15),13,1,'#959595');
     if(yt>=16){const px=Math.max(8,e.l),pw=Math.min(100,(mid-8)-px);if(pw>20){R_(g,px,yt-12,pw,8,'#222');for(let x=px+1;x<px+pw-1;x+=9){R_(g,x,yt-11,8,6,'#352879');R_(g,x,yt-11,8,1,'#6c5eb5')}R_(g,px+(pw>>1),yt-4,2,4,'#6c6c6c')}
@@ -2716,7 +2729,7 @@ function petsUpdate(dt,cd){
   }
   for(const v of VIS){v.t=(v.t||0)+dt;walkPet(v,16,dt,cd,false)}
 }
-const EL={y:FYd(0)};
+const EL={y:FYd(HD)};
 const CAT={x:330,d:1,vx:0,wait:2,t:0,f:0,tele:30};
 
 /* ===== things to use ===== */
@@ -2785,6 +2798,7 @@ const THINGS=[];
   add('atrium',r=>r.w>>1,()=>'WALK AMONG THE TREES',()=>toast('THE ATRIUM TREES RUSTLE IN THE AIR VENTS.'));
   add('mall',r=>r.w>>1,()=>'SHOP FOR COSTUMES',scr('mall'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
+  for(const r of ROOMS)if(r.bay)add(r.id,r.w>>1,()=>SAVE.ship===r.bay?'THIS SHIP IS ON THE LAUNCH PAD':'PUT THE '+SHIPS[r.bay].n+' ON THE LAUNCH PAD',()=>{if(SAVE.ship!==r.bay){SAVE.ship=r.bay;rebuildShip();toast(SHIPS[r.bay].n+' IS READY TO FLY');save()}});
   add('zoo',r=>r.w>>1,()=>'VISIT THE ALIEN ZOO',scr('zoo'));
   add('bridge',34,()=>'LOOK AT THE STAR MAP',scr('starmap'));
   add('bridge',86,()=>'LOOK AT THE TROPHIES',scr('trophy'));
@@ -2871,7 +2885,7 @@ function drawStory(dt){
 /* ===== entering, clicking, moving ===== */
 function enterHub(first){
   MODE='hub';UI.focus=0;HUB.screen=null;syncBuilt();
-  const r=roomById('hangar');HUB.sp.x=r.x0+96;HUB.sp.y=FYd(0)-4;HUB.sp.path=null;HUB.sp.pend=null;HUB.sp.face=1;
+  const r=roomById('hangar');HUB.sp.x=r.x0+96;HUB.sp.y=FYd(HD)-4;HUB.sp.path=null;HUB.sp.pend=null;HUB.sp.face=1;
   HUB.cam.x=Math.max(0,Math.min(WWID-W,HUB.sp.x-W/2));HUB.cam.y=Math.max(0,Math.min(WH-H+70,HUB.sp.y-130));
   if(!HULL)HULL=buildHull();
   syncPets();petsGreet();
@@ -3112,7 +3126,7 @@ function drawHub(){
     ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.bigEarth,170,WH+16);ctx.restore();
   for(let i=0;i<4;i++){ctx.fillStyle=pat(i<2?'#70a4b2':'#6c5eb5');ctx.fillRect(190+i*10,WH+14-i,160-i*20,1)}
   // engine pods under the lowest deck
-  if(EXT[0]){for(const ex of [EXT[0].l+14,EXT[0].r-22]){R_(ctx,ex,FYd(0)+6,8,5,'#444');R_(ctx,ex+1,FYd(0)+9,6,3,'#222');const fl=3+Math.floor(Math.random()*5);R_(ctx,ex+1,FYd(0)+12,6,fl,'#68372b');R_(ctx,ex+2,FYd(0)+12,4,(fl>>1)+1,'#9a6759');R_(ctx,ex+3,FYd(0)+12,2,(fl>>2)+1,'#ffffff')}}
+  if(EXT[LOWD]){const y0=FYd(LOWD);for(const ex of [EXT[LOWD].l+14,EXT[LOWD].r-22]){R_(ctx,ex,y0+6,8,5,'#444');R_(ctx,ex+1,y0+9,6,3,'#222');const fl=3+Math.floor(Math.random()*5);R_(ctx,ex+1,y0+12,6,fl,'#68372b');R_(ctx,ex+2,y0+12,4,(fl>>1)+1,'#9a6759');R_(ctx,ex+3,y0+12,2,(fl>>2)+1,'#ffffff')}}
   if(!HULL)HULL=buildHull();ctx.drawImage(HULL,0,0);
   for(let d=0;d<NDECK;d++)if(EXT[d]){R_(ctx,EXT[d].l-9,yTop(d)+3,2,2,Math.floor(t*2+d)%2?'#ff7777':'#444444');R_(ctx,EXT[d].r+7,yTop(d)+3,2,2,Math.floor(t*2+d+1)%2?'#9ad284':'#444444')}
   for(const r of ROOMS)if(r.built)drawRoom(r,t);
@@ -3151,8 +3165,19 @@ function drawHub(){
     if(HUB.t<14)textC(INP.last==='touch'?'ARROWS TO WALK, TAP A ROOM':INP.last==='pad'?'STICK TO WALK. A TO USE':'WASD TO WALK. E TO USE. CLICK TO GO. ESC FOR SETTINGS',190,'#ffffff',1);
   }
   if(HUB.fade>0){ctx.fillStyle=HUB.fade>.7?'#000000':pat('#000000');ctx.fillRect(0,0,W,H);if(HUB.fade>.4)textC('ZZZ...',96,'#ffffff',2)}
+  if(!HUB.screen){const br=ROOMS.find(r=>r.bay&&r.built&&deckOf(sp.y)===r.d&&sp.x>=r.x0&&sp.x<=r.x1);if(br)drawBayCard(br)}
   if(HUB.screen)drawScreen();
   drawToast(164);
+}
+/* the ship's stats, shown when you walk into its hangar bay */
+function drawBayCard(r){
+  const i=r.bay,s=SHIPS[i],keep=SAVE.ship;let st,pw;SAVE.ship=i;try{st=baseStats();pw=shipPowerRaw()}finally{SAVE.ship=keep}
+  const lines=[['HULL',st.hp],['SPEED',Math.round(st.speed)],['FIRE RATE',st.fire.toFixed(1)],['DAMAGE',st.dmg.toFixed(1)],['DRONES',st.opts],['START SHIELD',st.startShield.toFixed(0)+' S'],['SHIP POWER',Math.round(pw)]];
+  const w=176,h=34+lines.length*8+12,x=(W-w)>>1,y=18;
+  ctx.fillStyle='#000000dd';ctx.fillRect(x,y,w,h);ctx.fillStyle='#6c5eb5';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillRect(x,y,1,h);ctx.fillRect(x+w-1,y,1,h);
+  text(s.n+(SAVE.ship===i?'   (ON THE LAUNCH PAD)':''),x+6,y+4,'#ffffff',1);text(fitText(s.d,w-12),x+6,y+13,'#70a4b2',1);
+  lines.forEach((l,k)=>{text(l[0],x+6,y+26+k*8,'#959595',1);textR(String(l[1]),x+w-6,y+26+k*8,'#9ad284',1)});
+  text('E: '+(SAVE.ship===i?'ALREADY FLYING THIS SHIP':'PUT IT ON THE LAUNCH PAD'),x+6,y+h-10,'#b8c76f',1);
 }
 /* ===== extra screens ===== */
 function shareValue(){let v=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];v+=Math.floor(s.own*s.p)}return v}
@@ -3192,7 +3217,7 @@ function extraScreen(id,rows,info){
       rows.push({n:'WORLD '+(i+1)+': '+w.n,d:un?w.sub:'CLEAR THE WORLD BEFORE IT FIRST',r:dn?'CLEARED':un?'GO':'LOCKED',ok:ready&&un,
         fn:()=>{HUB.screen=null;SURF.start(i)}})});
     if(SURF.allDone()&&!sf.reward){L('');L('ALL FIVE WORLDS ARE CLEAR. CHOOSE A LUXURY SHIP:','#ffffaa');
-      for(const i of [8,9,10,11])rows.push({ic:'ship',ix:i,n:'CLAIM THE '+SHIPS[i].n,d:SHIPS[i].d,r:'FREE',ok:true,fn:()=>{if(!SAVE.ships.includes(i))SAVE.ships.push(i);sf.reward=i;toast('YOU WON THE '+SHIPS[i].n+'!');checkUnlocks();save()}})}
+      for(const i of [8,9,10,11])rows.push({ic:'ship',ix:i,n:'CLAIM THE '+SHIPS[i].n,d:SHIPS[i].d,r:'FREE',ok:true,fn:()=>{if(!SAVE.ships.includes(i))SAVE.ships.push(i);syncBuilt();sf.reward=i;toast('YOU WON THE '+SHIPS[i].n+'!');checkUnlocks();save()}})}
     else if(sf.reward)L('YOUR PRIZE: THE '+SHIPS[sf.reward].n+'. WELL DONE.','#ffffaa');
     return 'SURFACE TRANSPORTER';
   }
@@ -3290,7 +3315,7 @@ function extraScreen(id,rows,info){
   }
   if(id==='station'){
     const cost=areaCost(),opts=buildOptions().sort((x,y)=>x.room.d-y.room.d||x.room.x0-y.room.x0),buy=ROOMS.filter(r=>r.shop&&!r.built&&r.sh.open());
-    const shopsBuilt=ROOMS.filter(r=>r.shop&&r.built).length,shopsAll=ROOMS.filter(r=>r.shop).length,areas=ROOMS.filter(r=>!r.shop),areasBuilt=areas.filter(r=>r.built).length;
+    const shopsBuilt=ROOMS.filter(r=>r.shop&&r.built).length,shopsAll=ROOMS.filter(r=>r.shop).length,areas=ROOMS.filter(r=>!r.shop&&!r.bay),areasBuilt=areas.filter(r=>r.built).length;
     L('AREA TOKENS: '+(SAVE.tokens||0)+'    NEXT AREA COSTS '+cost+' TOKENS    GOLD '+SAVE.coins,(SAVE.tokens||0)>=cost?G_:Y_);
     L('SHOPS BUILT '+shopsBuilt+' OF '+shopsAll+'   AREAS BUILT '+areasBuilt+' OF '+areas.length+' (2 FREE)');
     L('SHOPS ARE UNLOCKED BY PROGRESS, THEN BOUGHT WITH GOLD. AREAS COST TOKENS.');
