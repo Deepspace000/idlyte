@@ -1,60 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.33</title>
-<meta name="apple-mobile-web-app-title" content="Idlyte">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
-<link rel="manifest" href="manifest.webmanifest?v=2">
-<meta name="theme-color" content="#000000">
 
-<style>
-  html,body{margin:0;height:100%;background:#6c5eb5;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-  body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#352879}
-  #wrap{background:#000;line-height:0;position:relative}
-  #scan{display:none;position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.26) 0 1px,transparent 1px 3px),repeating-linear-gradient(to right,rgba(255,40,40,.045) 0 1px,rgba(40,255,40,.045) 1px 2px,rgba(60,60,255,.045) 2px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
-  #wrap.crt canvas{filter:blur(.4px) contrast(1.07) saturate(1.1) brightness(1.06)}
-  #menu{display:none;margin-top:8px;gap:6px;line-height:1;justify-content:center;flex-wrap:wrap;padding:0 6px}
-  #menu button{font-size:12px;padding:8px 10px}
-  canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
-  #bar{margin-top:10px;display:flex;gap:8px;line-height:1}
-  button{font:bold 13px monospace;text-transform:uppercase;background:#352879;color:#bbb;border:2px solid;border-color:#9a8fe0 #1c1840 #1c1840 #9a8fe0;border-radius:0;padding:5px 11px;cursor:pointer;letter-spacing:1px}
-  button.on{background:#000;color:#fff;border-color:#1c1840 #9a8fe0 #9a8fe0 #1c1840}
-  button:hover{color:#fff}
-  button.locked{opacity:.45;cursor:not-allowed}
-  #touch{display:none;margin-top:10px;gap:8px;line-height:1;justify-content:flex-start;width:100%;box-sizing:border-box;padding:0 14px;flex-wrap:wrap}
-  #touch .grp{display:flex;gap:8px;flex:1 1 auto}
-  #touch button{flex:1;min-width:0;height:56px;font-size:16px;padding:0 4px;touch-action:none}
-  #touch button{font-size:22px}
-  #pad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,48px);gap:3px}
-  #pad button{width:100%;height:100%;min-width:0;padding:0;flex:none}
-  #tu{grid-column:2;grid-row:1}#tl{grid-column:1;grid-row:2}#td{grid-column:2;grid-row:2}#tr{grid-column:3;grid-row:2}
-  #touch button.down{background:#000;color:#fff}
-  body.ls{display:block}
-  body.ls #wrap{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;z-index:1}
-  body.ls #wrap{display:flex;align-items:center;justify-content:center}
-  body.ls #bar,body.ls #menu{display:none!important}
-  body.ls #touch{position:fixed;left:8px;bottom:8px;width:auto;padding:0;margin:0;z-index:5;opacity:.55}
-  body.ls #touch button{height:auto}
-  body.ls #pad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,38px)}
-  body.ls #touch button{font-size:16px}
-</style>
-</head>
-<body>
-<div id="wrap"><canvas id="c"></canvas><div id="scan"></div></div>
-<div id="menu"><button data-m="inv">INVENTORY</button><button data-m="shipstats">SHIP STATS</button><button data-m="personnel">PERSONNEL</button><button data-m="settings">SETTINGS</button><button data-m="station">STATION</button><button data-m="achv">GOALS</button></div>
-<div id="touch"><div id="pad"><button id="tu">&#9650;</button><button id="tl">&#9664;</button><button id="td">&#9660;</button><button id="tr">&#9654;</button></div></div>
-<div id="bar">
-  <button data-sp="1" class="on">SPEED X1</button>
-  <button data-sp="2">X2</button>
-  <button data-sp="4">X4</button>
-  <button data-sp="8">X8</button>
-  <button data-sp="16">X16</button>
-</div>
-<script>
 'use strict';
 /* ===== setup ===== */
 const W=320,H=200,TOP=14,BOT=192;
@@ -4856,24 +4800,3 @@ window.__g.dev={
   }
 };
 
-</script>
-<script src="weapons.js?v=1.53"></script>
-<script src="studio.js?v=1.53"></script>
-<script src="arcade2.js?v=1.66"></script>
-<script src="packs/asteroid.js?v=1.18"></script>
-<script src="packs/ice.js?v=1.18"></script>
-<script src="packs/lava.js?v=1.18"></script>
-<script src="packs/gas.js?v=1.75"></script>
-<script src="packs/base.js?v=1.18"></script>
-<script src="packs/sea.js?v=2.21"></script>
-<script src="packs/desert.js?v=1.18"></script>
-<script src="packs/cave.js?v=1.18"></script>
-<script src="packs/city.js?v=1.18"></script>
-<script src="packs/big.js?v=2.10"></script>
-<script src="packs/bigthemes1.js?v=2.10"></script>
-<script src="packs/bigthemes2.js?v=2.10"></script>
-<script src="packs/swarm1.js?v=2.32"></script>
-<script src="packs/swarm2.js?v=2.32"></script>
-<script src="surface.js?v=2.19"></script>
-</body>
-</html>
