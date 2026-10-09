@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.68</title>
+<title>Idlyte v2.69</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.68';
+const VERSION='2.69';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4225,8 +4225,6 @@ addEventListener('keydown',e=>{
   UI.keys[k]=1;INP.last='key';INP.repeat=!!e.repeat;
   handleKey(k);
 });
-addEventListener('gamepadconnected',e=>{try{toast('CONTROLLER CONNECTED')}catch(x){}});
-addEventListener('gamepaddisconnected',e=>{try{toast('CONTROLLER DISCONNECTED')}catch(x){}});
 function padPoll(dt){
   const gps=(navigator.getGamepads?navigator.getGamepads():[])||[];let gp=null;
   /* take the first real controller: connected, with a full set of buttons, and the standard layout if there is a choice
