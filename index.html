@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.55</title>
+<title>Idlyte v2.56</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.55';
+const VERSION='2.56';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4863,6 +4863,9 @@ document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
 window.__g={ARP,arpBar,musMode,tellStory,checkStory,get STY(){return STY},storyNext,newGameInSlot,loadSlot,continueGame,slotsUsed,readSlot,get CURSLOT(){return CURSLOT},arcadeStart,arcadeTick,drawArcade,arcadeFire,arcadeExit,get AR(){return AR},handleKey,PAD,INP,hubUpdate,padPoll,get MODE(){return MODE},SAVE:()=>SAVE,HUB,enterHub,launch,endSortie,UI,start:()=>{startGame()},get G(){return G},get P(){return P},get E(){return E},update,draw,setSpeed:v=>SPEED=v};
 
 /* ===== boss viewer: open index.html?bosses. Left/right change boss, Tab (or B/M) swaps boss and mini boss, up/down or 1 to 4 change damage, space shows the hit flash ===== */
+/* ?surf=N opens ground level N straight away (add &pack=1 for the rocket pack). Nothing is saved, and beaming up restarts the level. */
+if(/[?&]surf\b/.test(location.search)){const q=new URLSearchParams(location.search),n=Math.max(0,Math.min(4,(+q.get('surf')||1)-1));
+  setTimeout(()=>{try{CURSLOT=0;if(q.get('pack'))SURF.state().jet=1;SURF.start(n);setInterval(()=>{if(MODE==='hub'||MODE==='title'){CURSLOT=0;SURF.start(n)}},400)}catch(e){console.error(e)}},900)}
 if(/[?&]bosses\b/.test(location.search)){setTimeout(()=>{
   let pl=1,mini=false,hf=1,fl=0,b=null,t0=performance.now();
   const has=(p,m)=>{SAVE.planet=p;const A=pk();return !!(A&&(m?true:A.boss))};
