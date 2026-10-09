@@ -394,4 +394,3 @@ return {GAMES,start,
     const g=GM[A.g2];if(A.state==='over'){if(k===' '||k==='enter'||k==='z'||k==='x'||k==='e')ARC2.fire(A);return}
     if(g.key)g.key(A,k);else if(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'||k==='arrowup'||k==='w')this.fire(A)}};
 })();
-let 

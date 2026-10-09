@@ -472,7 +472,7 @@ init(){
         draw(c,e,fl){const im=(fl?PODW:POD)[Math.floor(e.t*8)%4],x=Math.floor(e.x-im.width/2),y=Math.floor(e.y-im.height/2),fk=Math.floor(e.t*20)%3;
           c.fillStyle='#ff7777';c.fillRect(x+im.width-1,y+7,3+fk,3);c.fillStyle='#ffffaa';c.fillRect(x+im.width-1,y+8,1+fk,1);
           c.drawImage(im,x,y);
-          if(!fl&&e.bombT!=null&&e.bombT<.45&&Math.floor(e.t*16)%2){c.fillStyle='#ffffff';c.fillRect(x+13,y+13,3,2)}}},
+          if(!fl&&e.bombT!=null&&e.bombT<.45&&blinkAt(e.t,16)){c.fillStyle='#ffffff';c.fillRect(x+13,y+13,3,2)}}},
       /* SLAG CRAWLERS: glued to the ridge or the ceiling, lob molten slag */
       cross:{frames:[...CRF,...CRR],white:CRFW,w:18,h:11,
         init(e,o){e.roof=o.edge==='roof'||(o.edge!=='floor'&&o.y<70&&Math.random()<.6);e.wx=e.x+npos();e.cs=rnd(8,16);e.shootT=rnd(1.2,2.6);crPlace(e)},
@@ -490,7 +490,7 @@ init(){
           c.drawImage(im,Math.floor(e.x-im.width/2),Math.floor(e.y-im.height/2))}}
     },
     bullets:{
-      fire(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),fl=Math.floor(b.t*16)%2,l=Math.hypot(b.vx,b.vy)||1,tx=-b.vx/l,ty=-b.vy/l;
+      fire(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),fl=blinkAt(b.t,16),l=Math.hypot(b.vx,b.vy)||1,tx=-b.vx/l,ty=-b.vy/l;
         c.fillStyle='#9a3a3a';c.fillRect(Math.floor(x+tx*7),Math.floor(y+ty*7),2,2);
         c.fillStyle='#ff7777';c.fillRect(Math.floor(x+tx*4.5-1),Math.floor(y+ty*4.5-1),3,3);
         c.fillStyle='#000000';c.fillRect(x-3,y-2,7,5);c.fillRect(x-2,y-3,5,7);
@@ -501,13 +501,13 @@ init(){
         c.fillStyle='#cc44cc';c.fillRect(x+2,y,2,1);
         c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);
         c.fillStyle='#ff77ff';c.fillRect(x-1,y-1,3,3);
-        c.fillStyle=Math.floor(b.t*14)%2?'#ffffff':'#ffffaa';c.fillRect(x,y,1,1)},
+        c.fillStyle=blinkAt(b.t,14)?'#ffffff':'#ffffaa';c.fillRect(x,y,1,1)},
       slag(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);
         c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);
         c.fillStyle='#9a3a3a';c.fillRect(x-1,y-1,3,3);
         c.fillStyle='#ff9966';c.fillRect(x-1,y-1,2,2);
-        c.fillStyle=Math.floor(b.t*10)%2?'#ffffaa':'#ff9966';c.fillRect(x-1,y-1,1,1)},
-      bomb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),rem=(b.fuse||2)-b.t,on=rem<.6?Math.floor(b.t*20)%2:Math.floor(b.t*6)%2;
+        c.fillStyle=blinkAt(b.t,10)?'#ffffaa':'#ff9966';c.fillRect(x-1,y-1,1,1)},
+      bomb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),rem=(b.fuse||2)-b.t,on=rem<.6?blinkAt(b.t,20):blinkAt(b.t,6);
         c.fillStyle='#000000';c.fillRect(x-3,y-2,7,5);c.fillRect(x-2,y-3,5,7);
         c.fillStyle='#68372b';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);
         c.fillStyle='#9a6759';c.fillRect(x-2,y-1,1,1);c.fillRect(x-1,y-2,1,1);
@@ -515,8 +515,8 @@ init(){
         else{c.fillStyle=on?'#ffffaa':'#ff9966';c.fillRect(x-1,y-1,1,1);c.fillRect(x,y,1,1);c.fillRect(x+1,y+1,1,1);c.fillRect(x+1,y-1,1,1)}},
       spark(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);
         c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);
-        c.fillStyle=Math.floor(b.t*16)%2?'#ffffff':'#ffffaa';c.fillRect(x-1,y,3,1);c.fillRect(x,y-1,1,3)},
-      wave(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=Math.floor(b.t*12)%2;
+        c.fillStyle=blinkAt(b.t,16)?'#ffffff':'#ffffaa';c.fillRect(x-1,y,3,1);c.fillRect(x,y-1,1,3)},
+      wave(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=blinkAt(b.t,12);
         c.fillStyle='#000000';c.fillRect(x-4,y-2,9,5);c.fillRect(x-3,y-3,6,1);
         c.fillStyle='#ff7777';c.fillRect(x-3,y-1,7,3);
         c.fillStyle='#ffffaa';c.fillRect(x-3,y-2,5,1);c.fillStyle='#ff9966';c.fillRect(x-2,y-1,5,1);
@@ -586,7 +586,7 @@ init(){
         {const sp=SPL[Math.floor(b.bt*8)%3];c.drawImage(sp,Math.floor(b.baseX-sp.width/2),BOT-sp.height+3)}
         const hd=fl?HEADW[b.jaw||0]:HEAD[pi][b.jaw||0];c.drawImage(hd,Math.floor(b.x)-37,Math.floor(b.y)-22);
         if(b.br&&!fl){const [mx,my]=mouthXY(b),p=b.br.st===0?Math.min(1,1-b.br.t/.8):1,r=1+Math.round(p*2),x=Math.floor(mx),y=Math.floor(my);
-          c.fillStyle='#ff9966';c.fillRect(x-r-1,y-r,2*r+3,2*r+1);c.fillStyle=Math.floor(b.bt*20)%2?'#ffffff':'#ffffaa';c.fillRect(x-r,y-r+1,2*r+1,2*r-1)}
+          c.fillStyle='#ff9966';c.fillRect(x-r-1,y-r,2*r+3,2*r+1);c.fillStyle=blinkAt(b.bt,20)?'#ffffff':'#ffffaa';c.fillRect(x-r,y-r+1,2*r+1,2*r-1)}
         if(pi===2&&!fl)for(let k=0;k<5;k++){c.fillStyle=k%2?'#ffffaa':'#ffffff';c.fillRect(Math.floor(b.x-16+k*8+Math.sin(b.bt*5+k)*2),Math.floor(b.y-26-((b.bt*30+k*7)%14)),1,1)}
       },
       onKill(b){if(!b.seg)return;for(const k of [2,5,8,11]){const s=b.seg[k];FX.push({burst:1,x:s.x,y:s.y,vx:0,vy:0,life:.5,l0:.5,max:10})}

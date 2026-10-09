@@ -376,7 +376,7 @@ PACKS[1]={
     };
 
     /* enemy bullet styles */
-    A.bullets.glob=(c,b)=>{const x=b.x|0,y=b.y|0,w=(b.t*12|0)&1;px(c,'#12092e',x-3,y-2,6,5);px(c,'#cc44cc',x-2,y-2,4,4);px(c,'#ff77ff',x-2,y-2,3,2);px(c,'#ffffff',x-2,y-2,1,1);px(c,w?'#9ad2e0':'#cc99ff',x+1,y+1,1,1);px(c,'#cc44cc',x-4,y,1,1)};
+    A.bullets.glob=(c,b)=>{const x=b.x|0,y=b.y|0,w=blinkAt(b.t,12);px(c,'#12092e',x-3,y-2,6,5);px(c,'#cc44cc',x-2,y-2,4,4);px(c,'#ff77ff',x-2,y-2,3,2);px(c,'#ffffff',x-2,y-2,1,1);px(c,w?'#9ad2e0':'#cc99ff',x+1,y+1,1,1);px(c,'#cc44cc',x-4,y,1,1)};
     A.bullets.shard=(c,b)=>{const x=b.x|0,y=b.y|0;px(c,'#12092e',x-3,y-1,7,3);px(c,'#d8a878',x-2,y-1,5,1);px(c,'#ffffaa',x-2,y-1,2,1);px(c,'#9a6759',x-1,y,5,1);px(c,'#ffffff',x+2,y,1,1)};
 
     /* ----- the boss ----- */
@@ -450,8 +450,8 @@ PACKS[1]={
         for(let i=NSEG-1;i>=0;i--){const s=b.seg&&b.seg[i];if(!s)continue;const im=f?segW[i]:segs[i];c.drawImage(im,(s[0]-segOx[i])|0,(s[1]-im.height/2)|0)}
         const ro=Math.max(-1.0,Math.min(1.0,Math.atan2(Math.sin(b.face-Math.PI),Math.cos(b.face-Math.PI)))),hi=(f?headsW:heads)[b.mouth||0];
         c.save();c.translate(b.x|0,b.y|0);c.rotate(ro);c.drawImage(hi,-30,-hi.height/2|0);
-        const p=b.hp/b.mhp;if(!f&&p<.4&&((b.t*8)|0)%2===0){c.fillStyle='#ff7777';c.fillRect(-7,-7,2,2)}
-        if(b.state==='tele'&&((b.st*14)|0)%2===0&&!f){c.fillStyle='#ffffff';c.fillRect(-8,-8,5,5)}
+        const p=b.hp/b.mhp;if(!f&&p<.4&&blinkAt(b.t,8)===0){c.fillStyle='#ff7777';c.fillRect(-7,-7,2,2)}
+        if(b.state==='tele'&&blinkAt(b.st,14)===0&&!f){c.fillStyle='#ffffff';c.fillRect(-8,-8,5,5)}
         c.restore();
       },
       onKill(b){for(let i=0;i<NSEG;i++){const s=b.seg[i];if(s){boom(s[0],s[1],12,i<3);for(let k=0;k<5;k++)FX.push({x:s[0]+rnd(-6,6),y:s[1]+rnd(-6,6),vx:rnd(-40,40),vy:rnd(-50,20),life:1.1,l0:1.1,c:VEIN[k%4],s:2})}}}

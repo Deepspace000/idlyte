@@ -358,7 +358,8 @@ init(){
   const LZ={on:false,d:-9,x:0,y:0,k:0,top:false};
   function lz(t){const PER=6.1,k=Math.floor(t/PER),ph=t-k*PER;LZ.k=k;LZ.on=hs(k)>.22;if(!LZ.on)return;
     LZ.d=ph-(1.2+hs(k+7.7)*(PER-2));LZ.top=hs(k+3.3)<.5;LZ.x=30+hs(k+1.1)*260;LZ.y=LZ.top?24+hs(k+5.5)*10:150+hs(k+9.9)*10}
-  function flashOn(){return LZ.on&&((LZ.d>=0&&LZ.d<.12)||(LZ.d>=.22&&LZ.d<.26))}
+  function flashOn(){return LZ.on&&((LZ.d>=0&&LZ.d<(fxReduced()?.1:.12))||(!fxReduced()&&LZ.d>=.22&&LZ.d<.26))}   // REDUCED: one short flash instead of two
+  const lzA=()=>fxReduced()?.5*Math.max(0,1-LZ.d/.1):1;   // REDUCED: the flash fades out and is dimmer
   function seg(x0,y0,x1,y1){const n=Math.max(1,Math.max(Math.abs(x1-x0),Math.abs(y1-y0))|0);
     ctx.fillStyle='#352879';for(let i=0;i<=n;i++)ctx.fillRect(((x0+(x1-x0)*i/n)|0)-1,(y0+(y1-y0)*i/n)|0,4,1);
     ctx.fillStyle='#ffffff';for(let i=0;i<=n;i++)ctx.fillRect((x0+(x1-x0)*i/n)|0,(y0+(y1-y0)*i/n)|0,2,1)}
@@ -375,8 +376,8 @@ init(){
     {const ex=380-((t*5+150)%800);if(ex>-70&&ex<W+70)ctx.drawImage(EYE[Math.floor(t*1.3)%6],(ex-60)|0,EYE_Y-26)}
     lz(t);const fl=flashOn();
     // telegraph: a distant glow pulsing inside the clouds
-    if(LZ.on&&LZ.d<0&&LZ.d>-.95&&(LZ.d>-.35||(Math.floor(LZ.d*14)&1)))ctx.drawImage(GLOW,(LZ.x-20)|0,(LZ.y-12)|0);
-    if(fl){ctx.fillStyle=pat('#ffffff');ctx.fillRect(0,TOP,W,BOT-TOP)}
+    if(LZ.on&&LZ.d<0&&LZ.d>-.95&&(LZ.d>-.35||(blinkAt(LZ.d,14))))ctx.drawImage(GLOW,(LZ.x-20)|0,(LZ.y-12)|0);
+    if(fl){ctx.globalAlpha=lzA();ctx.fillStyle=pat('#ffffff');ctx.fillRect(0,TOP,W,BOT-TOP);ctx.globalAlpha=1}
     // layer 2: far hazy cloud cities (silhouettes in the flash)
     for(const p of FARP){const x=W+60-((t*8+p[2])%900);if(x<-50||x>W+4)continue;const s=FAR[p[0]];ctx.drawImage(fl?s.sil:s.c,x|0,p[1])}
     // gas jets erupting from the lower clouds, with rising wisps
@@ -406,7 +407,7 @@ init(){
     if(ex>-115&&ex<W+5){ctx.drawImage(fl?EDGE.sil:EDGE.c,ex|0,BOT-14);
       if(!fl)for(let i=0;i<EDGE.lights.length-3;i++){if((Math.floor(t*3)+i)%3)continue;const q=EDGE.lights[i];ctx.fillStyle='#ff7777';ctx.fillRect((ex|0)+q[0],BOT-14+q[1],1,1)}}
     // the lightning flash reaches the edges only, briefly
-    if(fl&&LZ.d<.08){ctx.fillStyle=pat('#ffffff');if(LZ.top)ctx.fillRect(0,TOP,W,12);else ctx.fillRect(0,BOT-12,W,12)}
+    if(fl&&LZ.d<.08){ctx.globalAlpha=lzA();ctx.fillStyle=pat('#ffffff');if(LZ.top)ctx.fillRect(0,TOP,W,12);else ctx.fillRect(0,BOT-12,W,12);ctx.globalAlpha=1}
   }
 
   /* ---------- enemies ---------- */
@@ -465,7 +466,7 @@ init(){
         for(let k=0;k<n;k++){const m=spawn({type:'ring',y:e.y,mini:1});m.x=e.x+rnd(-5,5);m.y=e.y+rnd(-6,6);m.vx=rnd(-46,-22);m.vy=rnd(-35,35)}}},
     rock:{
       draw(c,e,f){let s;
-        if(e.big){const k=e.spr%2,lit=((e.t*1.1+k*.37)%1)<.08,A=f?KNOTW[k]:KNOT[k];s=lit?A[4+(Math.floor(e.t*20)%2)]:A[Math.floor(e.t*5)%4]}
+        if(e.big){const k=e.spr%2,lit=((e.t*1.1+k*.37)%1)<.08,A=f?KNOTW[k]:KNOT[k];s=lit?A[4+(blinkAt(e.t,20))]:A[Math.floor(e.t*5)%4]}
         else if(e.spr%3===2)s=(f?HAILW:HAIL)[Math.floor(e.t*8)%4];
         else{const A=(f?THSW:THS)[e.spr%2],cy=(e.t*.9+e.spr*.41)%1;s=A[cy<.05?3:cy<.1?2:cy<.14?3:Math.floor(e.t*3)%2]}
         c.drawImage(s,(e.x-s.width/2)|0,(e.y-s.height/2)|0)}}
@@ -477,21 +478,21 @@ init(){
       c.fillStyle='#000000';c.fillRect(x-1,y-3,3,7);c.fillRect(x-3,y-1,7,3);c.fillRect(x-2,y-2,5,5);
       c.fillStyle=f===0?'#9ad2e0':f===1?'#ffffff':'#cc99ff';c.fillRect(x,y-2,1,5);c.fillRect(x-2,y,5,1);
       c.fillStyle='#ffffff';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ff77ff';c.fillRect(x,y,1,1)},
-    bolt(c,b){const sp=Math.hypot(b.vx,b.vy)||1,ux=b.vx/sp,uy=b.vy/sp,f=Math.floor(b.t*16)&1;
+    bolt(c,b){const sp=Math.hypot(b.vx,b.vy)||1,ux=b.vx/sp,uy=b.vy/sp,f=blinkAt(b.t,16);
       c.fillStyle='#000000';for(let k=0;k<4;k++)c.fillRect((b.x-ux*k*2-1.5)|0,(b.y-uy*k*2-1.5)|0,4,4);
       for(let k=0;k<4;k++){const o=((k+f)&1?.8:-.8);c.fillStyle=k===0?'#ffffff':k<3?'#ffffaa':'#b8c76f';c.fillRect((b.x-ux*k*2-uy*o)|0,(b.y-uy*k*2+ux*o)|0,k===0?2:1,k===0?2:1)}},
-    spore(c,b){const x=b.x|0,y=b.y|0,p=Math.floor(b.t*6)&1;
+    spore(c,b){const x=b.x|0,y=b.y|0,p=blinkAt(b.t,6);
       c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);
       c.fillStyle=p?'#ff77ff':'#cc44cc';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ffaaaa';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,2,1)},
     shell(c,b){const x=b.x|0,y=b.y|0;
       c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);
-      c.fillStyle='#9a3a3a';c.fillRect(x-2,y-2,5,5);c.fillStyle=Math.floor(b.t*12)&1?'#ffffff':'#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x,y,1,1)},
+      c.fillStyle='#9a3a3a';c.fillRect(x-2,y-2,5,5);c.fillStyle=blinkAt(b.t,12)?'#ffffff':'#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x,y,1,1)},
     orb(c,b){const x=b.x|0,y=b.y|0;
       c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);
-      c.fillStyle='#352879';c.fillRect(x-2,y-2,5,5);c.fillStyle=Math.floor(b.t*10)&1?'#9ad2e0':'#70a4b2';c.fillRect(x-1,y-2,3,5);c.fillRect(x-2,y-1,5,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,2,2)},
+      c.fillStyle='#352879';c.fillRect(x-2,y-2,5,5);c.fillStyle=blinkAt(b.t,10)?'#9ad2e0':'#70a4b2';c.fillRect(x-1,y-2,3,5);c.fillRect(x-2,y-1,5,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,2,2)},
     arc(c,b){const p=b.prev;if(p&&!p.dead&&Math.abs(p.x-b.x)+Math.abs(p.y-b.y)<30)zap(c,b.x,b.y,p.x,p.y);
-      const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle=Math.floor(b.t*20)&1?'#ffffaa':'#ffffff';c.fillRect(x-1,y-1,3,3)},
-    beam(c,b){const x=b.x|0,y=b.y|0,f=Math.floor(b.t*20)&1;
+      const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle=blinkAt(b.t,20)?'#ffffaa':'#ffffff';c.fillRect(x-1,y-1,3,3)},
+    beam(c,b){const x=b.x|0,y=b.y|0,f=blinkAt(b.t,20);
       c.fillStyle='#000000';c.fillRect(x-7,y-3,15,7);c.fillStyle=f?'#cc44cc':'#ff77ff';c.fillRect(x-6,y-2,13,5);c.fillStyle='#ffffff';c.fillRect(x-5,y-1,12,3)}
   };
 
@@ -553,7 +554,7 @@ init(){
       {const k=Math.floor(t*12)%8;c.fillStyle='#ffffaa';for(let x=10+k*2;x<140;x+=16)c.fillRect(X+x,Y+65,2,1)}
       // launch bays open
       if(b.bayOpen>0){const o=b.bayOpen>1.35||b.bayOpen<.25?1:2;for(const q of BAYS){const bx=X+q[0],by=Y+q[1];c.fillStyle='#000000';c.fillRect(bx,by,12,6);
-        c.fillStyle=Math.floor(t*10)%2?'#ff9966':'#ffffaa';c.fillRect(bx+2,by+1,8,o===2?4:2);if(o===2){c.fillStyle='#6c5eb5';c.fillRect(bx-1,by+6,3,2);c.fillRect(bx+10,by+6,3,2)}}}
+        c.fillStyle=blinkAt(t,10)?'#ff9966':'#ffffaa';c.fillRect(bx+2,by+1,8,o===2?4:2);if(o===2){c.fillStyle='#6c5eb5';c.fillRect(bx-1,by+6,3,2);c.fillRect(bx+10,by+6,3,2)}}}
       // fires at damage stages
       const F=FIRES[st];for(let i=0;i<F.length;i++){const q=F[i];c.drawImage(FIRE[(Math.floor(t*10)+i)%4],X+q[0]-3,Y+q[1]-10)}
       // failing shield crackle

@@ -133,7 +133,7 @@ function drawForeign(c,e,f){
   if(sk&&sk.draw){run(e.fx,()=>sk.draw(c,e,f))}
   else if(sk&&sk.frames&&sk.frames.length){const fr=(f&&sk.white)?sk.white:sk.frames,sp=fr[Math.floor((e.t||0)*(sk.fps||10))%fr.length];c.drawImage(sp,(e.x-sp.width/2)|0,(e.y-sp.height/2)|0)}
   else{c.fillStyle=f?WH:MG;c.fillRect((e.x-4)|0,(e.y-4)|0,8,8);c.fillStyle=K;c.fillRect((e.x-2)|0,(e.y-2)|0,4,4)}
-  if(!f&&(((e.t||0)*9)|0)%5===0){const w=e.w||10,h=e.h||10;c.fillStyle=((e.t*30)|0)&1?MG:CY;c.fillRect((e.x-w/2)|0,(e.y-h/2+mod((e.t||0)*40,h))|0,w|0,1)}   // corruption scanline
+  if(!f&&(((e.t||0)*9)|0)%5===0){const w=e.w||10,h=e.h||10;c.fillStyle=blinkAt(e.t,30)?MG:CY;c.fillRect((e.x-w/2)|0,(e.y-h/2+mod((e.t||0)*40,h))|0,w|0,1)}   // corruption scanline
 }
 function wrap(type,mine){
   return {
@@ -551,20 +551,21 @@ init(){
     for(let i=0;i<40;i++)EMB.push({x:r()*W,y:r()*H,vx:-(20+r()*60),vy:-(14+r()*40),ph:r()*9,s:r()<.2?2:1,c:[OR,YL,RD,OR][(r()*4)|0]})}
   const DEX=[{x:60,y:70,p:0},{x:230,y:55,p:.4},{x:150,y:110,p:.75}];
 
-  const flick=(T,id)=>{const r=hash((T*7)|0,id*13+3);return r<.1?1:r<.14?2:0};
+  const flick=(T,id)=>{if(fxReduced()){const r=hash(stepAt(T,7,1.2),id*13+3);return r<.05?1:0}   // REDUCED: the glitch frame shows rarely, changes about once a second and a billboard never disappears
+    const r=hash((T*7)|0,id*13+3);return r<.1?1:r<.14?2:0};
   function strip(L,sp,T,y){const off=Math.floor(mod(T*sp,L.TW));return off}
   function drawSky(T){
     ctx.drawImage(SKY,0,0);
     tile(SM1,T*2,TOP);
     // far skyline and its distant explosions
-    const fv=((T*5)|0)&1;tile(fv?FAR.b:FAR.a,T*6,TOP);
-    for(const d of DEX){const ph=mod(T*.23+d.p,1);if(ph<.12){const x=mod(d.x-T*6,W+40)-20,r=1+ph*80;ctx.fillStyle=ph<.04?WH:ph<.08?YL:OR;ctx.fillRect(x-r/2|0,d.y-r/3|0,r|0,(r/1.5)|0);ctx.fillStyle=pat(OR);ctx.fillRect(x-r|0,d.y-r/1.5|0,r*2|0,(r*1.3)|0)}}
+    const fv=blinkAt(T,5,1.5);tile(fv?FAR.b:FAR.a,T*6,TOP);
+    for(const d of DEX){const ph=mod(T*.23+d.p,1);if(ph<.12){const x=mod(d.x-T*6,W+40)-20,r=1+ph*80;ctx.fillStyle=ph<.04?(fxReduced()?YL:WH):ph<.08?YL:OR;ctx.fillRect(x-r/2|0,d.y-r/3|0,r|0,(r/1.5)|0);ctx.fillStyle=pat(OR);ctx.fillRect(x-r|0,d.y-r/1.5|0,r*2|0,(r*1.3)|0)}}
     // far traffic: tiny streaks in the sky lanes
     for(const q of TRF){if(q.near)continue;const x=mod(q.p+q.v*T,W+40)-20,y=q.y+(q.a?Math.sin(T*q.f+q.p)*q.a:0);ctx.fillStyle=q.c;ctx.fillRect(x|0,y|0,1,1);ctx.fillStyle=q.v<0?VI:rd;ctx.fillRect((x+(q.v<0?1:-2))|0,y|0,2,1)}
     tile(SM2,T*4,104);
   }
   function drawMid(T){
-    const off=mod(T*14,720),mv=((T*6+1)|0)&1;
+    const off=mod(T*14,720),mv=blinkAt(T+1/6,6,1.5);
     tile(MIDT,T*14,TOP);tile(mv?MID.b:MID.a,T*14,TOP);
     // neon billboards and holograms
     for(const b of MID.bills){let x=b.x-off;if(x<-40)x+=720;if(x>W)continue;const st=flick(T,b.id+b.k*5);if(st===2&&b.k<4)continue;const s=BILLS[b.k][st===1?1:0];ctx.drawImage(s,x|0,(TOP+b.y)|0)}
@@ -574,7 +575,7 @@ init(){
     for(let i=0;i<MID.smoke.length;i++){const sm=MID.smoke[i];let x0=sm.x-off;if(x0<-60)x0+=720;if(x0>W+30)continue;
       for(let k=0;k<7;k++){const ag=mod(T*.2+k/7+i*.13,1),sz=ag<.3?0:ag<.65?1:2,s=PUFF[sz],x=x0-ag*40+Math.sin(ag*6+i)*4,y=TOP+sm.y-ag*110;if(y<-20)continue;ctx.drawImage(s,(x-s.width/2)|0,(y-s.height/2)|0)}}
     // sparks on the broken bridges and floors
-    for(const s of MID.sparks){let x=s.x-off;if(x<-4)x+=720;if(x>W)continue;const q=hash((T*12)|0,s.x);if(q<.3){ctx.fillStyle=q<.1?WH:YL;ctx.fillRect(x|0,(TOP+s.y)|0,1,1);ctx.fillRect((x+1)|0,(TOP+s.y+1+(q*20|0)%4)|0,1,1)}}
+    for(const s of MID.sparks){let x=s.x-off;if(x<-4)x+=720;if(x>W)continue;const q=hash(stepAt(T,12,5),s.x);if(q<.3){ctx.fillStyle=q<.1?WH:YL;ctx.fillRect(x|0,(TOP+s.y)|0,1,1);ctx.fillRect((x+1)|0,(TOP+s.y+1+(q*20|0)%4)|0,1,1)}}
   }
   function drawNear(T){
     // near traffic and the trains looping along the sky lanes
@@ -586,7 +587,7 @@ init(){
     tile(NT.c,T*36,TOP);tile(NB.c,T*36,H-NB.c.height);
     for(const f of NB.fl){let x=f.x-no;if(x<-14)x+=480;if(x>W)continue;const s=FLM[f.s][((T*12+f.ph)|0)&3];ctx.drawImage(s,x|0,(H-NB.c.height+f.y-s.height+2)|0)}
     // sparking power line
-    for(let k=0;k<NT.poles.length;k++){let x=NT.poles[k]-no;if(x<-240)x+=480;const q=hash((T*9)|0,k+1);if(q<.35){const s=hash((T*9)|0,k+7),xx=x+s*240,yy=TOP+16+Math.sin(s*PI)*7;ctx.fillStyle=WH;ctx.fillRect(xx|0,yy|0,2,1);ctx.fillStyle=pat(CY);ctx.fillRect((xx-2)|0,(yy-2)|0,6,5);if(q<.1){ctx.fillStyle=YL;ctx.fillRect((xx+2)|0,(yy+3)|0,1,1);ctx.fillRect((xx-1)|0,(yy+5)|0,1,1)}}}
+    for(let k=0;k<NT.poles.length;k++){let x=NT.poles[k]-no;if(x<-240)x+=480;const q=hash(stepAt(T,9,3),k+1);if(q<.35){const s=hash(stepAt(T,9,3),k+7),xx=x+s*240,yy=TOP+16+Math.sin(s*PI)*7;ctx.fillStyle=WH;ctx.fillRect(xx|0,yy|0,2,1);ctx.fillStyle=pat(CY);ctx.fillRect((xx-2)|0,(yy-2)|0,6,5);if(q<.1){ctx.fillStyle=YL;ctx.fillRect((xx+2)|0,(yy+3)|0,1,1);ctx.fillRect((xx-1)|0,(yy+5)|0,1,1)}}}
   }
   A.tick=function(dt,live){clk();if(G.boss||G.state==='clear')S.ex+=dt;
     for(let i=0;i<EB.length;i++){const b=EB[i];if(b.fuse!=null&&!b.pop&&b.t>=b.fuse){b.pop=1;b.life=b.t+.0001;if(live&&room(8))ebRing(b.x,b.y,8,50,rnd(0,.8),{sty:'cyshr',life:2.6});FX.push({ring:1,x:b.x,y:b.y,r:2,life:.3,max:10,col:OR})}}};
@@ -604,17 +605,17 @@ init(){
 
   /* ---------- enemy bullets ---------- */
   const B=A.bullets;
-  const orbB=(c0,c1,c2)=>(c,b)=>{const x=b.x|0,y=b.y|0,a=((b.t*16)|0)&1;c.fillStyle=K;c.fillRect(x-3,y-2,6,5);c.fillRect(x-2,y-3,4,7);c.fillStyle=a?c1:c0;c.fillRect(x-2,y-2,4,4);c.fillStyle=c2;c.fillRect(x-1,y-1,2,2);c.fillStyle=WH;c.fillRect(x-1,y-1,1,1)};
+  const orbB=(c0,c1,c2)=>(c,b)=>{const x=b.x|0,y=b.y|0,a=blinkAt(b.t,16);c.fillStyle=K;c.fillRect(x-3,y-2,6,5);c.fillRect(x-2,y-3,4,7);c.fillStyle=a?c1:c0;c.fillRect(x-2,y-2,4,4);c.fillStyle=c2;c.fillRect(x-1,y-1,2,2);c.fillStyle=WH;c.fillRect(x-1,y-1,1,1)};
   B.cystun=(c,b)=>{orbB(cy,CY,WH)(c,b);const a=((b.t*20)|0)&3;c.fillStyle=WH;c.fillRect((b.x|0)+(a===0?2:a===2?-3:0),(b.y|0)+(a===1?2:a===3?-3:0),1,1)};
   B.cyplasma=orbB(mg,MG,LV);
   B.cysun=orbB(OR,YL,WH);
-  B.cyfire=(c,b)=>{const s=Math.hypot(b.vx,b.vy)||1,ux=b.vx/s,uy=b.vy/s,x=b.x,y=b.y,a=((b.t*18)|0)&1;
+  B.cyfire=(c,b)=>{const s=Math.hypot(b.vx,b.vy)||1,ux=b.vx/s,uy=b.vy/s,x=b.x,y=b.y,a=blinkAt(b.t,18);
     c.fillStyle=BR;c.fillRect((x-ux*7)|0,(y-uy*7)|0,1,1);c.fillStyle=rd;c.fillRect((x-ux*5)|0,(y-uy*5)|0,2,2);
     c.fillStyle=K;c.fillRect((x-3)|0,(y-2)|0,6,5);c.fillRect((x-2)|0,(y-3)|0,4,7);c.fillStyle=a?OR:RD;c.fillRect((x-2)|0,(y-2)|0,4,4);c.fillStyle=YL;c.fillRect((x-1)|0,(y-1)|0,2,2);c.fillStyle=WH;c.fillRect((x-1)|0,(y-1)|0,1,1)};
-  B.cyparcel=(c,b)=>{const x=(b.x-4)|0,y=(b.y-3)|0,left=(b.fuse||1)-b.t,bl=left<.5?((b.t*24)|0)&1:((b.t*6)|0)&1;c.fillStyle=K;c.fillRect(x-1,y-1,10,9);c.drawImage(bl&&left<.5?PARCW:PARC,x,y);if(bl){c.fillStyle=RD;c.fillRect(x+6,y+1,2,2)}};
-  B.cyshr=(c,b)=>{const x=b.x|0,y=b.y|0;c.fillStyle=K;c.fillRect(x-2,y-2,5,5);c.fillStyle=((b.t*14)|0)&1?OR:YL;c.fillRect(x-1,y-1,3,3);c.fillStyle=WH;c.fillRect(x,y,1,1)};
+  B.cyparcel=(c,b)=>{const x=(b.x-4)|0,y=(b.y-3)|0,left=(b.fuse||1)-b.t,bl=left<.5?blinkAt(b.t,24):blinkAt(b.t,6);c.fillStyle=K;c.fillRect(x-1,y-1,10,9);c.drawImage(bl&&left<.5?PARCW:PARC,x,y);if(bl){c.fillStyle=RD;c.fillRect(x+6,y+1,2,2)}};
+  B.cyshr=(c,b)=>{const x=b.x|0,y=b.y|0;c.fillStyle=K;c.fillRect(x-2,y-2,5,5);c.fillStyle=blinkAt(b.t,14)?OR:YL;c.fillRect(x-1,y-1,3,3);c.fillStyle=WH;c.fillRect(x,y,1,1)};
   B.cyg=(c,b)=>{const x=b.x|0,y=b.y|0,k=((b.t*14)|0)&3;c.fillStyle=K;c.fillRect(x-3,y-3,6,6);c.fillStyle=[MG,CY,LV,WH][k];c.fillRect(x-2,y-2,4,4);c.fillStyle=[CY,MG,WH,MG][k];c.fillRect(x-2+(k&1),y-2+(k>>1),2,2)};
-  B.cyink=(c,b)=>{const x=b.x|0,y=b.y|0;c.fillStyle=K;c.fillRect(x-3,y-3,7,7);c.fillStyle=CY;c.fillRect(x-2,y-2,5,5);c.fillStyle=NV;c.fillRect(x-1,y-1,3,3);c.fillStyle=((b.t*10)|0)&1?WH:LV;c.fillRect(x-1,y-1,1,1)};
+  B.cyink=(c,b)=>{const x=b.x|0,y=b.y|0;c.fillStyle=K;c.fillRect(x-3,y-3,7,7);c.fillStyle=CY;c.fillRect(x-2,y-2,5,5);c.fillStyle=NV;c.fillRect(x-1,y-1,3,3);c.fillStyle=blinkAt(b.t,10)?WH:LV;c.fillRect(x-1,y-1,1,1)};
   B.cyshard=(c,b)=>{const x=b.x|0,y=b.y|0;c.fillStyle=K;c.fillRect(x-3,y-2,7,5);c.fillStyle=CY;c.fillRect(x-2,y-1,5,3);c.fillStyle=WH;c.fillRect(x-1,y-1,3,1);c.fillStyle=cy;c.fillRect(x+1,y+1,2,1)};
 
   /* ---------- the cast ---------- */
@@ -638,7 +639,7 @@ init(){
         if(room(9)){if(e.par%2)ebShot(e.x,e.y+9,-26,30,{sty:'cyparcel',fuse:1.5,ay:8});else ebAim(e.x,e.y+9,spd(56),0,{sty:'cyparcel',fuse:1.25});sfxEnemyLaser()}}},
     draw(c,e,f){const t=fl(e),v=e.variant!=null?e.variant:((e.spr||0)&1);
       if(v===0){const fr=((t*8)|0)&3,x=(e.x-13)|0,y=(e.y-8)|0;c.drawImage(f?RIOTW[fr]:RIOT[fr],x,y);
-        const q=(e.sc||0)%3.2;if(!f&&q<1.2&&!(q>.95&&((t*24)|0)&1)){for(let i=0;i<22;i++){const a=PI*.62+i/21*PI*.76,xx=Math.round(e.x+2+Math.cos(a)*17),yy=Math.round(e.y+Math.sin(a)*11);c.fillStyle=(i+((t*16)|0))%6===0?WH:CY;c.fillRect(xx,yy,1,1);if((xx+yy)&1){c.fillStyle=cy;c.fillRect(xx+1,yy,1,1)}}}}
+        const q=(e.sc||0)%3.2;if(!f&&q<1.2&&!(q>.95&&blinkAt(t,24))){for(let i=0;i<22;i++){const a=PI*.62+i/21*PI*.76,xx=Math.round(e.x+2+Math.cos(a)*17),yy=Math.round(e.y+Math.sin(a)*11);c.fillStyle=(i+((t*16)|0))%6===0?WH:CY;c.fillRect(xx,yy,1,1);if((xx+yy)&1){c.fillStyle=cy;c.fillRect(xx+1,yy,1,1)}}}}
       else{const fr=((t*14)|0)&3,x=(e.x-12)|0,y=(e.y-8)|0;if(e.par==null||e.par>0)c.drawImage(f?PARCW:PARC,x+8,y+15);c.drawImage(f?DBOTW[fr]:DBOT[fr],x,y)}}});
   A.enemies.dart=wrap('dart',{
     init(e,o){e.hp=e.mhp=loopScale();e.w=21;e.h=10;e.pts=140;e.col=(Math.random()*3)|0;e.vx=-rnd(110,150)*(1+.06*(LV_()-1));e.lane=!!o.lane;e.spin=Math.random()<.22;
@@ -665,7 +666,7 @@ init(){
       if(n<12)for(const s of [-1,1]){const k=spawn({type:'cross',y:clamp(e.y+s*12,TOP+14,BOT-14),child:1});k.x=e.x+4;k.vy=s*34;k.vx=e.vx-6}}},
     draw(c,e,f){const t=fl(e),ch=!!e.child,fr=((t*9)|0)%6,set=ch?(f?CONsW:CONs):(f?CONW:CON),s=set[fr],hw=s.width>>1,x=(e.x-hw)|0,y=(e.y-hw)|0;
       const gl=(e.gl>0)||(((t*7+e.x*.1)|0)%11===0);
-      if(gl&&!f){const j=((t*30)|0)&1;c.drawImage((ch?CONsR:CONR)[fr],x-2-j,y);c.drawImage((ch?CONsC:CONC)[fr],x+2+j,y);const h2=s.height>>1;c.drawImage(s,0,0,s.width,h2,x+2,y,s.width,h2);c.drawImage(s,0,h2,s.width,s.height-h2,x-2,y+h2,s.width,s.height-h2)}
+      if(gl&&!f){const j=blinkAt(t,30);c.drawImage((ch?CONsR:CONR)[fr],x-2-j,y);c.drawImage((ch?CONsC:CONC)[fr],x+2+j,y);const h2=s.height>>1;c.drawImage(s,0,0,s.width,h2,x+2,y,s.width,h2);c.drawImage(s,0,h2,s.width,s.height-h2,x-2,y+h2,s.width,s.height-h2)}
       else c.drawImage(s,x,y)}});
   A.enemies.pod=wrap('pod',{
     init(e,o){e.variant=o.variant!=null?o.variant:(Math.random()<.5?0:1);e.hp=e.mhp=9*loopScale();e.w=30;e.h=18;e.pts=650;e.vx=-22;e.rel=rnd(1.5,2.5);e.nrel=0;e.shootT=rnd(1.4,2.4)},
@@ -693,7 +694,7 @@ init(){
       e.x+=e.vx*dt;e.y+=e.vy*dt;e.age+=dt;
       if(e.burn&&fxOk()&&Math.random()<dt*7)FX.push({x:e.x+rnd(-3,3),y:e.y-3,vx:rnd(5,25),vy:rnd(-30,-10),life:.4,l0:.4,ramp:1,c:OR,s:1})},
     draw(c,e,f){
-      if(e.variant==='decoy'){const t=e.age||0;if(t>3.2&&((t*20)|0)&1)return;const s=(t<.8?MHM:MHH)[((t*12)|0)&1];if(((t*7)|0)%9===0)return;c.drawImage(s,(e.x-22+((((t*30)|0)%7===0)?3:0))|0,(e.y-16)|0);return}
+      if(e.variant==='decoy'){const t=e.age||0;if(t>3.2&&blinkAt(t,20))return;const s=(t<.8?MHM:MHH)[blinkAt(t,12)];if(((t*7)|0)%9===0)return;c.drawImage(s,(e.x-22+((((t*30)|0)%7===0)?3:0))|0,(e.y-16)|0);return}
       if(e.variant==='fbeam'){drawBeam(c,e);return}
       const big=!!e.big,k=(e.kind!=null?e.kind:(e.spr||0))%3,set=(f?RKW:RK)[big?'big':'small'][k],n=set.length,fr=set[Math.floor(mod((e.t||0)*Math.abs(e.spin||6)*.25,1)*n)];
       c.drawImage(fr,(e.x-fr.width/2)|0,(e.y-fr.height/2)|0);
@@ -703,9 +704,9 @@ init(){
   function beamY(e,px_){return e.my+(e.ty-e.my)*(e.mx-px_)/Math.max(1,e.mx)}
   function beamTouch(e,px_,py){return e.st===2&&px_<e.mx+4&&Math.abs(py-beamY(e,px_))<3+shk(6)}
   function drawBeam(c,e){const t=e.lt||0,mx=e.mx|0,my=e.my|0;if(mx<4)return;
-    if(e.st===1){const n=Math.max(1,mx/4|0),ph=((e.t||0)*40)|0;for(let i=0;i<=n;i++){if((i+ph)%3)continue;const x=mx-i*4;c.fillStyle=((i+ph)&1)?MG:WH;c.fillRect(x|0,beamY(e,x)|0,2,1)}
+    if(e.st===1){const n=Math.max(1,mx/4|0),ph=stepAt(e.t||0,40,10);for(let i=0;i<=n;i++){if((i+ph)%3)continue;const x=mx-i*4;c.fillStyle=((i+ph)&1)?MG:WH;c.fillRect(x|0,beamY(e,x)|0,2,1)}
       const r=Math.max(1,Math.round(9-t*7));c.fillStyle=pat(MG);c.fillRect(mx-r,my-r,r*2+1,r*2+1);c.fillStyle=WH;c.fillRect(mx-1,my-1,3,3)}
-    else{const w=Math.random()<.5?1:0;for(let x=0;x<mx;x+=2){const y=beamY(e,x)|0;c.fillStyle=pat(mg);c.fillRect(x,y-4-w,2,9+2*w);c.fillStyle=MG;c.fillRect(x,y-2,2,5);c.fillStyle=WH;c.fillRect(x,y-1,2,2+w)}
+    else{const w=fxReduced()?blinkAt(e.lt||0,16,3):(Math.random()<.5?1:0);for(let x=0;x<mx;x+=2){const y=beamY(e,x)|0;c.fillStyle=pat(mg);c.fillRect(x,y-4-w,2,9+2*w);c.fillStyle=MG;c.fillRect(x,y-2,2,5);c.fillStyle=WH;c.fillRect(x,y-1,2,2+w)}
       c.fillStyle=pat(WH);c.fillRect(mx-6,my-6,12,13)}}
 
   /* ======================================================================
@@ -781,10 +782,10 @@ init(){
         const gl=e.mph==='burst'||((t*6)|0)%7===0;c.drawImage(BILL[gl?1:0],bx,by);
         if(e.mph==='holo'){
           c.save();c.beginPath();c.rect(bx+6,by+6,84,56);c.clip();
-          const p=((t*14)|0)&1,jit=((t*9)|0)%5===0?3:0;
+          const p=blinkAt(t,14),jit=((t*9)|0)%5===0?3:0;
           for(let k=MSEGN;k>=1;k--){const i=tri(e,MSP[k]),s=MSEGH[msIdx(k)];c.drawImage(s,(e.trx[i]-s.width/2+jit)|0,(e.trY[i]-s.height/2-2)|0)}
           const hs=(e.mouth?MHH2:MHH)[p];c.drawImage(f?MHW[e.mouth]:hs,(e.hx-24-jit)|0,(e.hy-16)|0);
-          if(!f&&e.atk==='fan'&&e.at<.5&&((t*20)|0)&1){c.fillStyle=pat(OR);c.fillRect((e.hx-28)|0,(e.hy-2)|0,10,9)}
+          if(!f&&e.atk==='fan'&&e.at<.5&&blinkAt(t,20)){c.fillStyle=pat(OR);c.fillRect((e.hx-28)|0,(e.hy-2)|0,10,9)}
           // screen scanline glare
           c.fillStyle=pat(CY);c.fillRect(bx+6,(by+6+mod(t*30,56))|0,84,2);
           c.restore()}
@@ -792,12 +793,12 @@ init(){
         if(e.mph==='holo')return}
       if(e.mph==='burst'||e.mph==='free'){
         // telegraph of the claw swipe lane
-        if(!f&&e.atk==='swipe'&&e.at<1.05&&((t*14)|0)&1){c.fillStyle=RD;for(let x=4;x<W-4;x+=8)c.fillRect(x,(e.lane-1)|0,4,1);c.fillStyle=pat(RD);c.fillRect(0,(e.lane-14)|0,W,1);c.fillRect(0,(e.lane+13)|0,W,1)}
+        if(!f&&e.atk==='swipe'&&e.at<1.05&&blinkAt(t,14)){c.fillStyle=RD;for(let x=4;x<W-4;x+=8)c.fillRect(x,(e.lane-1)|0,4,1);c.fillStyle=pat(RD);c.fillRect(0,(e.lane-14)|0,W,1);c.fillRect(0,(e.lane+13)|0,W,1)}
         for(let k=MSEGN;k>=1;k--){const i=tri(e,MSP[k]),s=(f?MSEGW:MSEG)[msIdx(k)];c.drawImage(s,(e.trx[i]-s.width/2)|0,(e.trY[i]-s.height/2-2)|0);
           if(k===2||k===4){const cl=(f?MCLW:MCL)[e.atk==='swipe'||((t*2+k)|0)%3===0?0:1];c.drawImage(cl,(e.trx[i]-14)|0,(e.trY[i]+2)|0)}}
         c.drawImage((f?MHW:MH)[e.mouth||0],(e.hx-24)|0,(e.hy-16)|0);
-        if(!f&&e.atk==='breath'&&e.at<.6&&((t*20)|0)&1){c.fillStyle=pat(YL);c.fillRect((e.hx-30)|0,(e.hy-1)|0,12,9)}
-        if(!f&&e.mph==='free'&&e.hp<e.mhp*.3&&((t*10)|0)&1){c.fillStyle=YL;c.fillRect((e.hx+rnd(-10,10))|0,(e.hy+rnd(-6,6))|0,1,1)}}
+        if(!f&&e.atk==='breath'&&e.at<.6&&blinkAt(t,20)){c.fillStyle=pat(YL);c.fillRect((e.hx-30)|0,(e.hy-1)|0,12,9)}
+        if(!f&&e.mph==='free'&&e.hp<e.mhp*.3&&blinkAt(t,10)){c.fillStyle=YL;c.fillRect((e.hx+rnd(-10,10))|0,(e.hy+rnd(-6,6))|0,1,1)}}
     },
     onKill(e){for(let k=1;k<=MSEGN;k+=2){const i=tri(e,MSP[k]);boom(e.trx[i],e.trY[i],10,k<4)}
       for(let i=0;i<14&&fxOk();i++)FX.push({x:e.hx+rnd(-12,12),y:e.hy+rnd(-8,8),vx:rnd(-60,60),vy:rnd(-70,20),life:1.2,l0:1.2,c:[LL,MG,CY,WH][i&3],s:2})}
@@ -896,19 +897,19 @@ init(){
       const p=fPos(e);
       c.save();c.translate(X,Y+FOY);c.scale(FS,FS);c.translate(-X,-Y);
       // Ra's disc, spinning faster during the spiral
-      if(!f&&(e.tel&&e.tel.k==='sp'||e.spir>0)&&((t*12)|0)&1){c.fillStyle=pat(YL);c.fillRect(X+30-58,Y-44-58,116,116)}
+      if(!f&&(e.tel&&e.tel.k==='sp'||e.spir>0)&&blinkAt(t,12,2)){c.globalAlpha=fxReduced()?.6:1;c.fillStyle=pat(YL);c.fillRect(X+30-58,Y-44-58,116,116);c.globalAlpha=1}
       dp(ph>=5?FU.discX[((t*3)|0)&1]:FU.disc[((t*(e.spir>0?14:3))|0)&3]);
       // the worm tail coiling off to the right
       for(let k=8;k>=0;k--){const s=FU.tail[k],x=X+38+k*8,y=Y+30+k*6+Math.sin(t*1.6-k*.6)*(3+k*1.4);c.drawImage(f?s.w:s.c,(x-s.c.width/2+(k===8?4:0))|0,(y-s.c.height/2)|0)}
       // kraken tentacles
       const tent=(i)=>{let x=X-8+i*16,y=Y+36+(i===1?4:0);for(let k=0;k<10;k++){const a=PI*.66+i*.08+Math.sin(t*1.8+i*1.3-k*.45)*.38;x+=Math.cos(a)*5.4;y+=Math.sin(a)*5.4;if(Y+FOY+FS*(y-Y)>BOT+8)break;const r=Math.max(2,Math.round(6.5-k*.5)),s=FU.tent[r];c.drawImage(f?s.w:s.c,(x-s.c.width/2)|0,(y-s.c.height/2)|0)}
-        if(!f&&e.tel&&e.tel.k==='cur'&&((t*16)|0)&1){c.fillStyle=pat(CY);c.fillRect((x-4)|0,(y-4)|0,9,9)}};
+        if(!f&&e.tel&&e.tel.k==='cur'&&blinkAt(t,16)){c.fillStyle=pat(CY);c.fillRect((x-4)|0,(y-4)|0,9,9)}};
       tent(2);
       dp(ph>=5?FU.torsoX:FU.torso);
       dp(FU.stk);
       if(!f){for(const sx of [X+28,X+40]){const ag=mod(t*.8+sx*.1,1),s=PUFF[ag<.5?0:1];c.drawImage(s,(sx-s.width/2-ag*14)|0,(Y-66-ag*30-s.height/2)|0)}c.fillStyle=((t*3)|0)&1?RD:rd;c.fillRect(X+28,Y-64,1,1);c.fillRect(X+40,Y-64,1,1)}
       dp(ph>=2?FU.hullX:FU.hull);
-      if(ph>=5){const cs=FU.core[((t*8)|0)&1];c.drawImage(f?FU.coreW[0]:cs,X-6-11,Y+2-11)}
+      if(ph>=5){const cs=FU.core[blinkAt(t,8)];c.drawImage(f?FU.coreW[0]:cs,X-6-11,Y+2-11)}
       else{const sc=((t*5)|0)%9;dp(FU.screen[sc<6?0:sc<8?1:2])}
       tent(0);tent(1);
       dp(ph>=3?FU.clawX:FU.claw[((t*1.4)|0)&1],0,ph>=3?0:ab);
@@ -920,14 +921,14 @@ init(){
       if(((t*4)|0)&1){c.fillStyle=WH;c.fillRect(X-88,Y-60+hb,3,2)}
       c.restore();
       // telegraphs (world coordinates)
-      if(e.tel){const tl=e.tel,bl=((t*16)|0)&1;
+      if(e.tel){const tl=e.tel,bl=blinkAt(t,16);
         if(tl.k==='ice'&&bl){c.fillStyle=pat(CY);c.fillRect(p.sx-32,p.sy-28,64,56)}
-        if(tl.k==='br'){c.fillStyle=bl?YL:OR;c.fillRect(p.mx-4,p.my-2,6,5);const y0=tl.low?174:26;for(let i=0;i<12;i++){const k=i/12,x=p.mx+(60-p.mx)*k,y=p.my+(y0-p.my)*k;if((i+((t*20)|0))&1)c.fillRect(x|0,y|0,2,1)}}
+        if(tl.k==='br'){c.fillStyle=bl?YL:OR;c.fillRect(p.mx-4,p.my-2,6,5);const y0=tl.low?174:26;for(let i=0;i<12;i++){const k=i/12,x=p.mx+(60-p.mx)*k,y=p.my+(y0-p.my)*k;if((i+stepAt(t,20,8))&1)c.fillRect(x|0,y|0,2,1)}}
         if(tl.k==='cur'){for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-tl.gy)<26)continue;c.fillStyle=bl?CY:WH;c.fillRect((tl.x)|0,y,2,2)}c.fillStyle=bl?WH:CY;c.fillRect((tl.x-3)|0,(tl.gy-26)|0,8,1);c.fillRect((tl.x-3)|0,(tl.gy+26)|0,8,1)}}
-      if(e.tel2){const bl=((t*16)|0)&1;for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-e.tel2.gy)<26)continue;c.fillStyle=bl?CY:WH;c.fillRect((e.tel2.x)|0,y,2,2)}}
-      if(e.fT>0||(e.dsp>0&&((t*10)|0)%4===0)){e.fT=Math.max(0,e.fT-1/60);if(((t*14)|0)&1){c.fillStyle=pat(MG);c.fillRect(p.sx-30,p.sy-28,60,60)}}
+      if(e.tel2){const bl=blinkAt(t,16);for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-e.tel2.gy)<26)continue;c.fillStyle=bl?CY:WH;c.fillRect((e.tel2.x)|0,y,2,2)}}
+      if(e.fT>0||(e.dsp>0&&((t*10)|0)%4===0)){e.fT=Math.max(0,e.fT-1/60);if(blinkAt(t,14,2)){c.globalAlpha=fxReduced()?.6:1;c.fillStyle=pat(MG);c.fillRect(p.sx-30,p.sy-28,60,60);c.globalAlpha=1}}
       if(ph>=4)for(let i=0;i<5;i++){c.fillStyle=Math.random()<.5?YL:WH;c.fillRect((p.sx+rnd(-80,100))|0,(p.sy+rnd(-80,80))|0,1,2)}
-      if(ph>=6&&((t*8)|0)&1){c.fillStyle=pat(RD);c.fillRect(p.sx-76,p.sy-90,184,180)}
+      if(ph>=6&&blinkAt(t,8,2)){c.globalAlpha=fxReduced()?.5:1;c.fillStyle=pat(RD);c.fillRect(p.sx-76,p.sy-90,184,180);c.globalAlpha=1}
     },
     onKill(e){const X=e.x-60,Y=e.y+40;for(let i=0;i<14;i++)boom(X+rnd(-160,120),Y+rnd(-110,110),16,i<7);
       for(let i=0;i<40&&fxOk();i++)FX.push({x:X+rnd(-110,80),y:Y+rnd(-90,90),vx:rnd(-90,60),vy:rnd(-90,40),life:1.6,l0:1.6,c:[YL,OR,CY,MG,LL,LG][i%6],s:i%3?2:3});shake=1;G.flashT=.3}
@@ -995,19 +996,19 @@ init(){
   const BAND=mkPat(OG,(i,j)=>((i+j)&1)?RD:null,2,2);
   const PTM=mkPat(TG,(i,j)=>((i+j)&1)?MG:null,2,2),PTC=mkPat(TG,(i,j)=>((i+j)&1)?CY:null,2,2);
   function drawGlobalBoss(g,e,f){const spr=f?SPR.bossW:(e.hp<e.mhp*.5?SPR.bossD:SPR.boss);if(!spr)return;g.save();g.translate((e.x-70)|0,(e.y-46)|0);g.scale(2,2);g.drawImage(spr,0,0);
-    if(!f){g.fillStyle=Math.floor(e.t*6)%2?WH:RD;g.fillRect(21,23,3,3)}g.restore()}
+    if(!f){g.fillStyle=blinkAt(e.t,6)?WH:RD;g.fillRect(21,23,3,3)}g.restore()}
   function corruptDraw(c,b,f){
     const cur=b.cur,s=cur.s,sub=cur.sub,t=b.t||0;
     OG.globalCompositeOperation='source-over';OG.clearRect(0,0,W,H);
     if(s.kind===0)drawGlobalBoss(OG,sub,f);
     else if(!run(s.F,()=>s.F.boss.draw(OG,sub,f))){toGlobal(b);drawGlobalBoss(OG,sub,f)}
-    if(!f){OG.globalCompositeOperation='source-atop';const so=((t*20)|0)%4;OG.save();OG.translate(0,so);OG.fillStyle=SCAN;OG.fillRect(0,-so,W,H);OG.restore();
-      const by=mod(t*70,H+40)-20;OG.fillStyle=BAND;OG.fillRect(0,by|0,W,10);OG.globalCompositeOperation='source-over';
+    if(!f){OG.globalCompositeOperation='source-atop';const so=stepAt(t,20,5)%4;OG.save();OG.translate(0,so);OG.fillStyle=SCAN;OG.fillRect(0,-so,W,H);OG.restore();
+      const by=mod(t*(fxReduced()?30:70),H+40)-20;OG.fillStyle=BAND;OG.fillRect(0,by|0,W,10);OG.globalCompositeOperation='source-over';
       TG.globalCompositeOperation='source-over';TG.clearRect(0,0,W,H);TG.drawImage(OC,0,0);TG.globalCompositeOperation='source-in';TG.fillStyle=PTM;TG.fillRect(0,0,W,H);
-      const j=((t*25)|0)%3;c.drawImage(TC,-2-j,0);TG.fillStyle=PTC;TG.fillRect(0,0,W,H);c.drawImage(TC,2+j,0)}
+      const j=fxReduced()?stepAt(t,25,4)%2:((t*25)|0)%3;c.drawImage(TC,-2-j,0);TG.fillStyle=PTC;TG.fillRect(0,0,W,H);c.drawImage(TC,2+j,0)}
     c.drawImage(OC,0,0);
-    if(!f){const k=(t*10)|0;for(let i=0;i<2;i++){const y0=(hash(k,i)*(H-20))|0,hh=2+((hash(k,i+5)*6)|0),dx=((hash(k,i+9)-.5)*12)|0;if(Math.abs(y0-sub.y)<70)c.drawImage(OC,0,y0,W,hh,dx,y0,W,hh)}}}
-  function drawHostTele(c,b){const cz=b.cz;if(!cz||cz.tele<=0||!b.cur)return;const t=b.t||0,bl=((t*16)|0)&1,sub=b.cur.sub;
+    if(!f){const k=stepAt(t,10,3),ga=fxReduced()?5:12;for(let i=0;i<2;i++){const y0=(hash(k,i)*(H-20))|0,hh=2+((hash(k,i+5)*6)|0),dx=((hash(k,i+9)-.5)*ga)|0;if(Math.abs(y0-sub.y)<70)c.drawImage(OC,0,y0,W,hh,dx,y0,W,hh)}}}
+  function drawHostTele(c,b){const cz=b.cz;if(!cz||cz.tele<=0||!b.cur)return;const t=b.t||0,bl=blinkAt(t,16),sub=b.cur.sub;
     if(cz.kind===0||cz.kind===3){for(let y=TOP+12;y<BOT-12;y+=6){if(Math.abs(y-cz.gy)<25)continue;c.fillStyle=bl?MG:CY;c.fillRect(W-6,y,3,2)}c.fillStyle=WH;c.fillRect(W-9,(cz.gy-25)|0,6,1);c.fillRect(W-9,(cz.gy+25)|0,6,1)}
     else{const r=Math.round(6+cz.tele*30);pixRing(c,sub.x,sub.y,r,bl?MG:CY)}}
   function pixRing(c,x,y,r,col){c.fillStyle=col;const n=Math.max(16,r*3);for(let i=0;i<n;i+=2){const a=i/n*TAU;c.fillRect((x+Math.cos(a)*r)|0,(y+Math.sin(a)*r)|0,1,1)}}

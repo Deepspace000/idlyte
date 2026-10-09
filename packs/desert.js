@@ -579,7 +579,7 @@ init(){
       if(e.bomb){if((e.dropT-=dt)<=0&&Math.abs(e.x-P.x)<150){e.bomb=false;ebShot(e.x,e.y+6,-20,16,{sty:'sbomb',ay:34,fuse:1.3,hw:1,hh:1});sfx()}}
       else if((e.shootT-=dt)<=0){e.shootT=rnd(2.2,3.6)*TM();if(room(1)){ebAim(e.x-6,e.y,68,rnd(-.08,.08),{sty:'grit'});sfx()}}},
     draw(c,e,fl){const im=(fl?SCAW:SCA)[Math.floor(e.t*18+e.bz)%4];const x=Math.floor(e.x-im.width/2),y=Math.floor(e.y-im.height/2);c.drawImage(im,x,y);
-      if(e.bomb&&!fl){c.drawImage(SBOMB,x+13,y+(im.height>>1)+3);if(Math.floor(e.t*8)%2){c.fillStyle='#ffffff';c.fillRect(x+15,y+(im.height>>1)+2,1,1)}}}};
+      if(e.bomb&&!fl){c.drawImage(SBOMB,x+13,y+(im.height>>1)+3);if(blinkAt(e.t,8)){c.fillStyle='#ffffff';c.fillRect(x+15,y+(im.height>>1)+2,1,1)}}}};
   /* ROYAL SCARAB BOMBERS: hold the line and drop sun balls that burst into aimed rings */
   E_.ringR={frames:ROY,white:ROYW,w:22,h:16,hp:4,pts:320,vx:-34,
     init(e){e.y0=clamp(e.y0,TOP+30,110);e.y=e.y0;e.dropT=rnd(1,2);e.shootT=rnd(1.5,2.5);e.bz=rnd(0,9)},
@@ -589,7 +589,7 @@ init(){
       if(lvl()>=2&&(e.shootT-=dt)<=0){e.shootT=rnd(2.6,3.4)*TM();if(room(3)){ebFan(e.x-10,e.y,3,.4,66,aimA(e.x-10,e.y),{sty:'grit'});sfx()}}},
     draw(c,e,fl){const im=(fl?ROYW:ROY)[Math.floor(e.t*16+e.bz)%4];const x=Math.floor(e.x-im.width/2),y=Math.floor(e.y-im.height/2);
       c.drawImage(im,x,y);if(!fl){const by=y+(im.height>>1)-3;c.fillStyle='#000000';c.fillRect(x-7,by-1,9,9);c.drawImage(SUNB,x-6,by);
-        if(e.dropT<.35&&Math.floor(e.t*16)%2){c.fillStyle='#ffffff';c.fillRect(x-4,by+2,5,5)}}}};
+        if(e.dropT<.35&&blinkAt(e.t,16)){c.fillStyle='#ffffff';c.fillRect(x-4,by+2,5,5)}}}};
   /* VULTURE GLIDERS: glide in, circle once (the telegraph), then dive at the ship with talons out and a feather fan */
   E_.dart={frames:VUL,white:VULW,w:26,h:14,hp:2,pts:220,vx:-84,
     init(e,o){e.st=0;e.y=clamp(o.rand?rnd(TOP+24,96):e.y,TOP+24,BOT-60);e.y0=e.y;e.cx=rnd(196,262);e.vy=0;e.lt=0},
@@ -603,7 +603,7 @@ init(){
     draw(c,e,fl){const set=fl?VULW:VUL;let k;
       if(e.st===2)k=4;else if(e.st===1)k=[1,2,3,2][Math.floor(e.t*10)%4];else k=[0,0,1,2,3,2][Math.floor(e.t*6)%6];
       const im=set[k];c.drawImage(im,Math.floor(e.x-im.width/2),Math.floor(e.y-im.height/2));
-      if(!fl&&e.st===1&&Math.floor(e.t*14)%2){c.fillStyle='#ffffff';c.fillRect(Math.floor(e.x-13),Math.floor(e.y-4),2,2)}}};
+      if(!fl&&e.st===1&&blinkAt(e.t,14)){c.fillStyle='#ffffff';c.fillRect(Math.floor(e.x-13),Math.floor(e.y-4),2,2)}}};
   /* SCORPION WALKERS: glued to the near dunes, they cock the tail and lob stinger shots in a gentle arc */
   E_.cross={frames:SCO,white:SCOW,w:20,h:13,hp:4,pts:260,
     init(e){e.wx=e.x+npos();e.cs=rnd(8,16);e.shootT=rnd(.8,2);e.cock=0;const gx=mod(Math.round(e.wx),NW);e.y=GW[gx]-8},
@@ -612,7 +612,7 @@ init(){
           if(room(n2)){for(let q=0;q<n2;q++){const tx=P.x+(q-(n2-1)/2)*26,vx=clamp((tx-e.x)/T,-120,-20),vy=clamp((P.y-e.y)/T-.5*ay*T,-130,-30);ebShot(e.x-4,e.y-10,vx,vy,{sty:'sting',ay,life:3.2})}sfx()}}}
       else if(live&&e.x<W-16&&e.x>110&&(e.shootT-=dt)<=0){e.shootT=rnd(2,2.8)*TM();e.cock=.45}},
     draw(c,e,fl){const set=fl?SCOW:SCO,im=e.cock>0?set[4]:set[Math.floor(e.t*9)%4];c.drawImage(im,Math.floor(e.x-im.width/2),Math.floor(e.y-im.height/2));
-      if(!fl&&e.cock>0&&Math.floor(e.t*20)%2){c.fillStyle='#ffffff';c.fillRect(Math.floor(e.x-4),Math.floor(e.y-8),2,2)}}};
+      if(!fl&&e.cock>0&&blinkAt(e.t,20)){c.fillStyle='#ffffff';c.fillRect(Math.floor(e.x-4),Math.floor(e.y-8),2,2)}}};
   /* SAND WORMS: a dust ring marks the spot, then the worm bursts out, arcs over, spits grit at the top and dives back in */
   const PWR=[7].concat(WSR);
   E_.pod={frames:[WH[8],WH[6],WH[10]].concat(WSG.slice(0,4)),white:[WHW[8]],w:16,h:14,hp:6,pts:420,vx:-1,
@@ -628,9 +628,9 @@ init(){
       if(!vis&&e.hvy>0)e.dead=1},
     draw(c,e,fl){
       if(e.st==null){const im=fl?WHW[8]:WH[8];c.drawImage(im,Math.floor(e.x-im.width/2),Math.floor(e.y-im.height/2));return}
-      if(e.st===0){const k=1-e.wt/.95,r=4+Math.floor(k*10),x=Math.floor(e.sx),y=Math.floor(e.gy);c.fillStyle=Math.floor(e.t*14)%2?'#ffffff':'#68372b';
+      if(e.st===0){const k=1-e.wt/.95,r=4+Math.floor(k*10),x=Math.floor(e.sx),y=Math.floor(e.gy);c.fillStyle=blinkAt(e.t,14)?'#ffffff':'#68372b';
         for(let q=0;q<14;q++){const a=q/14*TAU+e.t*2;c.fillRect(Math.floor(x+Math.cos(a)*r),Math.floor(y+Math.sin(a)*r*.3),1,1)}
-        c.drawImage(MOUND,x-17,y-7+((Math.floor(e.t*20)%2)));return}
+        c.drawImage(MOUND,x-17,y-7+((blinkAt(e.t,20))));return}
       drawWorm(c,e,7,WH,WHW,WSG,WSGW,WSR,fl,false);
       if(!fl&&e.hy>e.gy-14){c.fillStyle='#ffffaa';for(let q=0;q<3;q++)c.fillRect(Math.floor(e.sx-4+q*4),Math.floor(e.gy-2-((e.t*30+q*5)%6)),1,1)}}};
   /* ROCKS: sandstone blocks, falling obelisks, dust devils; and the solar beam lanes of the boss */
@@ -656,13 +656,13 @@ init(){
           c.fillStyle='#000000';for(let x=x2-((Math.floor(e.lt*90))%step);x>0;x-=step)c.fillRect(x,y+1,2,1);
           if(p>.5){c.fillStyle=pat('#ffffaa');c.fillRect(0,y-2-Math.floor(p*4),x2,1);c.fillRect(0,y+3+Math.floor(p*4),x2,1)}
           c.fillStyle=blink?'#ffffff':'#ffffaa';c.fillRect(2,y-3,2,7);c.fillRect(4,y-2,1,5);return}
-        const j=Math.floor(e.lt*30)%2,f=1-Math.min(1,(e.lt-e.ch)/.12);
+        const j=blinkAt(e.lt,30),f=1-Math.min(1,(e.lt-e.ch)/.12);
         c.fillStyle='#000000';c.fillRect(0,y-11,x2,1);c.fillRect(0,y+11,x2,1);
         c.fillStyle='#ff7777';c.fillRect(0,y-10,x2,21);c.fillStyle='#ff9966';c.fillRect(0,y-8+j,x2,17-2*j);
         c.fillStyle='#ffffaa';c.fillRect(0,y-6,x2,13);c.fillStyle='#ffffff';c.fillRect(0,y-3-j,x2,7+2*j);
         if(f>0){c.fillStyle='#ffffff';c.fillRect(0,y-12,x2,25)}
         c.fillStyle='#ffffaa';for(let q=0;q<10;q++){const xx=mod(x2-e.lt*400-q*37,x2);c.fillRect(Math.floor(xx),y-9+((q*7)%18),4,1)}return}
-      if(k==='obel'){if(e.warn>0){const bl=Math.floor(e.t*16)%2;c.fillStyle=bl?'#ffffff':'#ff7777';c.fillRect(Math.floor(e.x-6),TOP+1,13,2);c.fillRect(Math.floor(e.x-1),TOP+4,3,6+Math.floor((1-e.warn)*10));
+      if(k==='obel'){if(e.warn>0){const bl=blinkAt(e.t,16);c.fillStyle=bl?'#ffffff':'#ff7777';c.fillRect(Math.floor(e.x-6),TOP+1,13,2);c.fillRect(Math.floor(e.x-1),TOP+4,3,6+Math.floor((1-e.warn)*10));
           c.fillStyle='#000000';c.fillRect(Math.floor(e.x-1),TOP+11+Math.floor((1-e.warn)*10),3,1);
           for(let q=0;q<3;q++){c.fillStyle='#9a6759';c.fillRect(Math.floor(e.x-4+q*4),Math.floor(TOP+4+((e.t*40+q*7)%14)),1,1)}return}
         const im=(fl?OBLW:OBL)[Math.floor(e.t*5)%8];c.drawImage(im,Math.floor(e.x-im.width/2),Math.floor(e.y-im.height/2));return}
@@ -674,26 +674,26 @@ init(){
   /* ---------- enemy bullet styles: dark outlines so they read on the bright sky ---------- */
   A.bullets={
     grit(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);
-      c.fillStyle='#9a3a3a';c.fillRect(x-1,y-1,3,3);c.fillStyle=Math.floor(b.t*12)%2?'#ffffff':'#ff7777';c.fillRect(x-1,y-1,2,2)},
-    sol(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=Math.floor(b.t*16)%2;c.fillStyle='#000000';c.fillRect(x-3,y-2,7,5);c.fillRect(x-2,y-3,5,7);
+      c.fillStyle='#9a3a3a';c.fillRect(x-1,y-1,3,3);c.fillStyle=blinkAt(b.t,12)?'#ffffff':'#ff7777';c.fillRect(x-1,y-1,2,2)},
+    sol(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=blinkAt(b.t,16);c.fillStyle='#000000';c.fillRect(x-3,y-2,7,5);c.fillRect(x-2,y-3,5,7);
       c.fillStyle='#ff7777';c.fillRect(x-2,y-2,5,5);c.fillStyle=f?'#ffffff':'#ffffaa';c.fillRect(x-1,y-2,3,5);c.fillRect(x-2,y-1,5,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,3,3)},
-    sun(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle=Math.floor(b.t*10)%2?'#ffffaa':'#ffffff';c.fillRect(x,y-1,1,3);c.fillRect(x-1,y,3,1)},
+    sun(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle=blinkAt(b.t,10)?'#ffffaa':'#ffffff';c.fillRect(x,y-1,1,3);c.fillRect(x-1,y,3,1)},
     flare(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),l=Math.hypot(b.vx,b.vy)||1,tx=-b.vx/l,ty=-b.vy/l;
       c.fillStyle='#9a3a3a';c.fillRect(Math.floor(x+tx*7),Math.floor(y+ty*7),2,2);c.fillStyle='#ff9966';c.fillRect(Math.floor(x+tx*4.5-1),Math.floor(y+ty*4.5-1),2,2);
       c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,2,2)},
     ray(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),l=Math.hypot(b.vx,b.vy)||1,ux=b.vx/l,uy=b.vy/l;
       for(let k=-4;k<=4;k+=2){c.fillStyle='#000000';c.fillRect(Math.floor(x+ux*k)-1,Math.floor(y+uy*k)-1,3,3)}
       for(let k=-4;k<=4;k+=2){c.fillStyle=k<0?'#ff7777':'#ffffff';c.fillRect(Math.floor(x+ux*k),Math.floor(y+uy*k),2,1)}},
-    sting(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle=Math.floor(b.t*14)%2?'#ffffff':'#9ad2e0';c.fillRect(x,y-1,1,2)},
+    sting(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ff7777';c.fillRect(x-1,y-1,3,3);c.fillStyle=blinkAt(b.t,14)?'#ffffff':'#9ad2e0';c.fillRect(x,y-1,1,2)},
     feather(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),l=Math.hypot(b.vx,b.vy)||1,ux=b.vx/l,uy=b.vy/l;
       c.fillStyle='#000000';for(let k=-3;k<=2;k++)c.fillRect(Math.floor(x+ux*k)-1,Math.floor(y+uy*k)-1,3,3);
       c.fillStyle='#ff7777';for(let k=-3;k<=0;k++)c.fillRect(Math.floor(x+ux*k),Math.floor(y+uy*k),1,1);c.fillStyle='#ffffff';c.fillRect(Math.floor(x+ux*2),Math.floor(y+uy*2),1,1);c.fillRect(x,y,1,1)},
     sand(c,b){const x=Math.floor(b.x),y=Math.floor(b.y);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#9a3a3a';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffaa';c.fillRect(x-1,y-1,2,1);c.fillStyle=Math.floor(b.t*8+b.y)%2?'#ffffff':'#ff7777';c.fillRect(x,y,1,1)},
-    orb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=Math.floor(b.t*12)%2;c.fillStyle='#000000';c.fillRect(x-3,y-3,7,7);c.fillStyle='#ff7777';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);
+    orb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),f=blinkAt(b.t,12);c.fillStyle='#000000';c.fillRect(x-3,y-3,7,7);c.fillStyle='#ff7777';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);
       c.fillStyle='#ffffaa';c.fillRect(x-2,y-2,5,5);c.fillStyle=f?'#ffffff':'#ffffaa';c.fillRect(x-1,y-1,3,3);if(b.orb){c.fillStyle='#ffffff';c.fillRect(x-4+f*8,y,1,1);c.fillRect(x,y-4+f*8,1,1)}},
-    sbomb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),rem=(b.fuse||1.3)-b.t;c.drawImage(SBOMB,x-3,y-3);if(rem<.4||Math.floor(b.t*8)%2){c.fillStyle=rem<.4?'#ffffff':'#ff7777';c.fillRect(x,y-3,1,1)}},
+    sbomb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),rem=(b.fuse||1.3)-b.t;c.drawImage(SBOMB,x-3,y-3);if(rem<.4||blinkAt(b.t,8)){c.fillStyle=rem<.4?'#ffffff':'#ff7777';c.fillRect(x,y-3,1,1)}},
     sunb(c,b){const x=Math.floor(b.x),y=Math.floor(b.y),rem=(b.fuse||1.3)-b.t;c.fillStyle='#000000';c.fillRect(x-4,y-4,9,9);c.drawImage(SUNB,x-4,y-4);
-      if(rem<.45&&Math.floor(b.t*20)%2){c.fillStyle='#ffffff';c.fillRect(x-2,y-2,5,5)}}
+      if(rem<.45&&blinkAt(b.t,20)){c.fillStyle='#ffffff';c.fillRect(x-2,y-2,5,5)}}
   };
 
   /* =====================================================================
@@ -733,11 +733,11 @@ init(){
       if(e.curW>0){e.curW-=dt;if(e.curW<=0&&live&&room(14)){ebCurtain(W-4,TOP+8,BOT-10,15,-[58,62,68][L-1],e.curG,50,{sty:'sand'});sfx()}}
       bossWear(e,live,0,0,14,10)},
     draw(c,e,fl){
-      fl=fl&&Math.floor(e.t*24)%2===0;
-      if(e.curW>0){const g=e.curG,bl=Math.floor(e.t*16)%2;c.fillStyle=bl?'#ffffff':'#ff7777';for(let y=TOP+8;y<BOT-10;y+=5){if(Math.abs(y-g)<25)continue;c.fillRect(W-6,y,2,2)}
+      fl=fl&&blinkAt(e.t,24)===0;
+      if(e.curW>0){const g=e.curG,bl=blinkAt(e.t,16);c.fillStyle=bl?'#ffffff':'#ff7777';for(let y=TOP+8;y<BOT-10;y+=5){if(Math.abs(y-g)<25)continue;c.fillRect(W-6,y,2,2)}
         c.fillStyle='#ffffaa';c.fillRect(W-9,Math.floor(g-25),6,1);c.fillRect(W-9,Math.floor(g+25),6,1)}
-      if(e.st==='tun'||e.st==='warn'){const x=Math.floor(e.st==='warn'?e.tx:e.bx),y=Math.floor(e.gy),jit=Math.floor(e.t*24)%2;
-        if(e.st==='warn'){const k=1-e.wt,r=6+Math.floor(k*16);c.fillStyle=Math.floor(e.t*14)%2?'#ffffff':'#000000';
+      if(e.st==='tun'||e.st==='warn'){const x=Math.floor(e.st==='warn'?e.tx:e.bx),y=Math.floor(e.gy),jit=blinkAt(e.t,24);
+        if(e.st==='warn'){const k=1-e.wt,r=6+Math.floor(k*16);c.fillStyle=blinkAt(e.t,14)?'#ffffff':'#000000';
           for(let q=0;q<22;q++){const a=q/22*TAU+e.t*3;c.fillRect(Math.floor(x+Math.cos(a)*r),Math.floor(y+Math.sin(a)*r*.3),2,1)}
           c.fillStyle='#ffffaa';for(let q=0;q<6;q++)c.fillRect(Math.floor(x-10+q*4),Math.floor(y-4-((e.t*60+q*9)%(10+k*20))),1,2)}
         c.drawImage(MOUND,x-17,y-8+jit);c.drawImage(MOUND,x-6-17,y-5);c.drawImage(MOUND,x+10-17,y-4+(1-jit));
@@ -814,21 +814,21 @@ init(){
         else if(b.orbs.length&&!b.beam&&(b.relT-=dt)<=0){b.relT=.28;for(let k=0;k<b.orbs.length;k++){const o=b.orbs[k];if(o&&o.orb){o.orb=0;const a=aimA(o.x,o.y)+rnd(-.08,.08),sp=L>=2?80:72;o.vx=Math.cos(a)*sp;o.vy=Math.sin(a)*sp;o.life=o.t+5;sfx();break}}}}
       /* H: rotating spiral arms (enraged, and phase 3 on the hardest level) */
       if((ph===4||(ph===3&&L>=3))&&!b.beam&&!b.spi&&(b.T.spi-=dt)<=0)b.spi={t:0,a:rnd(0,TAU),dir:Math.random()<.5?-1:1,e:0};
-      if(b.spi){const Q=b.spi;Q.t+=dt;Q.e-=dt;if(Q.e<=0){Q.e=.16;Q.a+=.27*Q.dir;if(room(3)){ebSpiral(dx,dy,3,50,Q.a,{sty:'sun',life:6});}if(Math.floor(Q.t*6)%2)sfx()}
+      if(b.spi){const Q=b.spi;Q.t+=dt;Q.e-=dt;if(Q.e<=0){Q.e=.16;Q.a+=.27*Q.dir;if(room(3)){ebSpiral(dx,dy,3,50,Q.a,{sty:'sun',life:6});}if(blinkAt(Q.t,6))sfx()}
         if(Q.t>2.4){b.spi=null;b.T.spi=7*tm}}
       /* I: a curtain of sand with a gap drifting in from the right edge */
       if((ph>=3||(ph>=2&&L>=2))&&!b.beam&&(b.T.cur-=dt)<=0){b.T.cur=[0,0,9,8,6.5][ph]*tm;if(room(15)){ebCurtain(W-4,TOP+6,BOT-6,17,-56,rnd(TOP+46,BOT-46),54,{sty:'sand'});sfx()}}
     },
     draw(c,b,fl){
-      fl=fl&&Math.floor(b.bt*24)%2===0;   /* under heavy fire the white flash flickers instead of hiding the art */
+      fl=fl&&blinkAt(b.bt,24)===0;   /* under heavy fire the white flash flickers instead of hiding the art */
       const f=b.hp/b.mhp,ph=raPh(b),dm=f>.6?0:f>.3?1:2,[dx,dy]=discXY(b),charging=b.beam&&b.beam.t<b.beam.ch,firing=b.beam&&!charging;
       const bx=Math.floor(b.x),by=Math.floor(b.y),fr=Math.floor(b.bt*6)%4;
       /* sun rays and disc */
       if(!fl){const rays=(charging||firing||ph>=4)?RAYH:RAYS;if(ph!==3||charging||firing||Math.floor(b.bt*3)%3)c.drawImage(rays[fr],Math.floor(dx-59),Math.floor(dy-59))}
       let dk=ph>=4?'hot':ph===3?'dim':'norm';if(charging)dk=Math.floor(b.bt*(8+b.beam.t*14))%2?'charge':dk;if(firing)dk='charge';
-      if(b.fan&&b.fan.st===0&&Math.floor(b.bt*16)%2)dk='charge';
+      if(b.fan&&b.fan.st===0&&blinkAt(b.bt,16))dk='charge';
       c.drawImage(fl?DISCW:DISC[dk],Math.floor(dx-DISCR-1),Math.floor(dy-DISCR-1));
-      if(!fl&&charging){const k=b.beam.t/b.beam.ch,r=Math.floor(DISCR+4+(1-k)*20);c.fillStyle=Math.floor(b.bt*20)%2?'#ffffff':'#ffffaa';for(let q=0;q<24;q++){const a=q/24*TAU+b.bt*2;c.fillRect(Math.floor(dx+Math.cos(a)*r),Math.floor(dy+Math.sin(a)*r),2,2)}}
+      if(!fl&&charging){const k=b.beam.t/b.beam.ch,r=Math.floor(DISCR+4+(1-k)*20);c.fillStyle=blinkAt(b.bt,20)?'#ffffff':'#ffffaa';for(let q=0;q<24;q++){const a=q/24*TAU+b.bt*2;c.fillRect(Math.floor(dx+Math.cos(a)*r),Math.floor(dy+Math.sin(a)*r),2,2)}}
       if(!fl&&firing){c.fillStyle='#ffffff';for(const e of E){if(e.kind!=='lane'||!e.on)continue;const x2=e.x2,ly=e.ly;for(let s=0;s<=1;s+=.08){c.fillRect(Math.floor(dx+(x2-dx)*s)-1,Math.floor(dy+(ly-dy)*s)-1,3,3)}}}
       /* wings: the far wing behind, then the near wing */
       const wf=[0,1,2,1][Math.floor(b.wf)%4];
@@ -840,8 +840,8 @@ init(){
       /* engine vents under the plinth */
       for(let q=0;q<5;q++){const h=2+((Math.floor(b.bt*20)+q*3)%4);c.fillStyle=q%2?'#ff9966':'#ffffaa';c.fillRect(bx-17+q*8,by+53,3,h);c.fillStyle='#ffffff';c.fillRect(bx-16+q*8,by+53,1,1)}
       /* eye glow before a volley, ankhs glow before the arms fire */
-      if(b.T&&b.T.bolt<.35&&Math.floor(b.bt*16)%2){const [ex,ey]=eyeXY(b);c.fillStyle='#ffffff';c.fillRect(Math.floor(ex)-1,Math.floor(ey)-1,3,3)}
-      if(b.arm){const on=b.arm.st===1||Math.floor(b.bt*14)%2;if(on){for(const [ax,ay] of [ankhA(b),ankhB(b)]){c.fillStyle='#9ad2e0';c.fillRect(Math.floor(ax)-3,Math.floor(ay)-3,7,7);c.fillStyle='#ffffff';c.fillRect(Math.floor(ax)-1,Math.floor(ay)-1,3,3)}
+      if(b.T&&b.T.bolt<.35&&blinkAt(b.bt,16)){const [ex,ey]=eyeXY(b);c.fillStyle='#ffffff';c.fillRect(Math.floor(ex)-1,Math.floor(ey)-1,3,3)}
+      if(b.arm){const on=b.arm.st===1||blinkAt(b.bt,14);if(on){for(const [ax,ay] of [ankhA(b),ankhB(b)]){c.fillStyle='#9ad2e0';c.fillRect(Math.floor(ax)-3,Math.floor(ay)-3,7,7);c.fillStyle='#ffffff';c.fillRect(Math.floor(ax)-1,Math.floor(ay)-1,3,3)}
           if(b.arm.st===0){c.fillStyle=pat('#ffffff');const [ax,ay]=ankhA(b),[bx2,by2]=ankhB(b);if(ph<3){c.fillRect(0,Math.floor(ay),Math.floor(ax)-4,1);c.fillRect(0,Math.floor(by2),Math.floor(bx2)-4,1)}
             else{for(let s=0;s<60;s++){c.fillRect(Math.floor(ax-s*4*Math.cos(.3)),Math.floor(ay+s*4*Math.sin(.3)),1,1);c.fillRect(Math.floor(bx2-s*4*Math.cos(.3)),Math.floor(by2-s*4*Math.sin(.3)),1,1)}}}}}
       /* white-hot shimmer when enraged */

@@ -171,7 +171,7 @@ function frames(w,h,kit,o){const a=[0,1,2,3].map(f=>fin(cnv(w,h,g=>{KIT[kit](g,f
 
 /* ---------- enemy bullets ---------- */
 function mkBullet(kind,c1,c2,c3){
-  return (c,b)=>{const x=b.x|0,y=b.y|0,w=(b.t*10|0)&1;
+  return (c,b)=>{const x=b.x|0,y=b.y|0,w=blinkAt(b.t,10);
     if(kind==='orb'){px(c,K,x-3,y-3,7,7);px(c,c1,x-2,y-2,5,5);px(c,c2,x-1,y-1,3,3);px(c,WH,x-1,y-1,1,1);px(c,c3||c2,x+(w?1:-2),y+(w?-2:1))}
     else if(kind==='needle'){const a=Math.atan2(b.vy,b.vx),dx=Math.cos(a),dy=Math.sin(a);for(let i=-5;i<=3;i++){px(c,i>1?WH:i>-2?c2:c1,x+dx*i,y+dy*i)}px(c,K,x+dx*4,y+dy*4)}
     else if(kind==='big'){px(c,K,x-5,y-5,11,11);px(c,c1,x-4,y-4,9,9);px(c,c2,x-3,y-3,7,7);px(c,c3||WH,x-2,y-2,4,4);px(c,WH,x-2,y-2,2,2);if(w){px(c,c2,x+5,y,1,1);px(c,c2,x-6,y,1,1)}}
@@ -261,8 +261,8 @@ function capital(cfg,isMini){
     draw(c,b,f){make();
       const im=f?white:body;c.drawImage(im,(b.x-im.width/2)|0,(b.y-im.height/2)|0);
       if(cfg.deco)cfg.deco(c,b,f);
-      if(b.lance&&!f){const L=b.lance;if(!L.fired&&((L.t*14)|0)%2===0){c.fillStyle=RD;c.fillRect(4,L.y|0,(b.x-b.w*.4)|0,1);c.fillStyle=WH;c.fillRect((b.x-b.w*.4-3)|0,L.y-1,3,3)}}
-      if(b.chg===1&&!f&&((b.st*14)|0)%2===0){c.fillStyle=WH;c.fillRect((b.x-b.w*.5)|0,(b.y-1)|0,6,3)}
+      if(b.lance&&!f){const L=b.lance;if(!L.fired&&blinkAt(L.t,14)===0){c.fillStyle=RD;c.fillRect(4,L.y|0,(b.x-b.w*.4)|0,1);c.fillStyle=WH;c.fillRect((b.x-b.w*.4-3)|0,L.y-1,3,3)}}
+      if(b.chg===1&&!f&&blinkAt(b.st,14)===0){c.fillStyle=WH;c.fillRect((b.x-b.w*.5)|0,(b.y-1)|0,6,3)}
     },
     onKill(b){const n=cfg.boom||(isMini?10:26);for(let i=0;i<n;i++){const x=b.x+rnd(-b.w*.45,b.w*.45),y=b.y+rnd(-b.h*.4,b.h*.4);boom(x,y,10,i%3===0);
       for(let k=0;k<3;k++)FX.push({x,y,vx:rnd(-50,50),vy:rnd(-60,30),life:1.1,l0:1.1,c:cfg.debris[k%cfg.debris.length],s:2})}}

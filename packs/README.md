@@ -139,3 +139,8 @@ g.dev.step(20); g.dev.show();    // advance 20 s of game time, draw one frame an
 g.dev.boss(); g.dev.step(5); g.dev.show();   // spawn the boss and watch it
 ```
 The pane throttles animation frames, so always use `g.dev.show()` or `g.dev.sheet(...)` to draw, then take the screenshot. Call `g.dev.run()` again to unfreeze. Check the console for errors (read_console_messages) and run long simulations (`g.dev.step(120)`) to be sure nothing throws.
+
+
+## Flashing and blinking
+
+The player can choose FLASHING EFFECTS: REDUCED (default) or NORMAL. Do not write your own fast on/off timers such as `Math.floor(t*16)%2`. Use `blinkAt(t,16)` (an on/off wave that REDUCED limits to 4 steps a second; pass a third number for a lower cap, for example `blinkAt(t,12,2)` for big areas) and `stepAt(t,n,cap)` for stepping counters. Test `fxReduced()` for anything that flashes the whole screen or a large area, and fade it with `ctx.globalAlpha` instead of switching it on and off. Full screen flashes go through `G.flashT`, which index.html limits to 2 a second and 25% white.

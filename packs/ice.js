@@ -371,20 +371,20 @@ init(){
 
   /* ---------- bullets ---------- */
   const bullets={
-    needle(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-3,y-1,7,3);c.fillRect(x-1,y-2,3,5);c.fillStyle='#70a4b2';c.fillRect(x-2,y,5,1);c.fillRect(x,y-1,1,3);c.fillStyle=((b.t*16)|0)&1?'#ffffff':'#9ad2e0';c.fillRect(x-1,y,3,1);c.fillStyle='#ffffff';c.fillRect(x,y,1,1)},
+    needle(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-3,y-1,7,3);c.fillRect(x-1,y-2,3,5);c.fillStyle='#70a4b2';c.fillRect(x-2,y,5,1);c.fillRect(x,y-1,1,3);c.fillStyle=blinkAt(b.t,16)?'#ffffff':'#9ad2e0';c.fillRect(x-1,y,3,1);c.fillStyle='#ffffff';c.fillRect(x,y,1,1)},
     snowball(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#352879';c.fillRect(((b.x-b.vx*.09)|0)-1,((b.y-b.vy*.09)|0)-1,2,2);c.fillStyle='#6c5eb5';c.fillRect(((b.x-b.vx*.05)|0)-1,((b.y-b.vy*.05)|0)-1,2,2);
       c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);c.fillStyle='#9ad2e0';c.fillRect(x-2,y-2,5,5);c.fillStyle='#ffffff';c.fillRect(x-2,y-2,3,3);c.fillRect(x-1,y-2,3,1);c.fillStyle='#70a4b2';c.fillRect(x,y+2,2,1);c.fillRect(x+2,y,1,2)},
-    bubble(c,b){const x=b.x|0,y=b.y|0,f=((b.t*8)|0)&1;c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);c.fillStyle=f?'#ccff99':'#9ad284';c.fillRect(x-2,y-2,5,5);c.fillStyle='#2c5a2c';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,1,1)},
+    bubble(c,b){const x=b.x|0,y=b.y|0,f=blinkAt(b.t,8);c.fillStyle='#000000';c.fillRect(x-2,y-3,5,7);c.fillRect(x-3,y-2,7,5);c.fillStyle=f?'#ccff99':'#9ad284';c.fillRect(x-2,y-2,5,5);c.fillStyle='#2c5a2c';c.fillRect(x-1,y-1,3,3);c.fillStyle='#ffffff';c.fillRect(x-1,y-1,1,1)},
     shard(c,b){const sp=Math.hypot(b.vx,b.vy)||1,nx=b.vx/sp,ny=b.vy/sp,x=b.x,y=b.y,C=['#ffffff','#9ad2e0','#70a4b2','#352879'];
       c.fillStyle='#000000';for(let k=0;k<3;k++)c.fillRect(Math.round(x-nx*k*2)-1,Math.round(y-ny*k*2)-1,3,3);
       for(let k=0;k<4;k++){c.fillStyle=C[k];c.fillRect(Math.round(x-nx*k*2),Math.round(y-ny*k*2),k?1:2,k?1:2)}},
-    frost(c,b){const x=b.x|0,y=b.y|0,f=((b.t*6)|0)&1;c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#cc99ff';
+    frost(c,b){const x=b.x|0,y=b.y|0,f=blinkAt(b.t,6);c.fillStyle='#000000';c.fillRect(x-2,y-2,5,5);c.fillStyle='#cc99ff';
       if(f){c.fillRect(x-2,y,5,1);c.fillRect(x,y-2,1,5)}else{c.fillRect(x-2,y-2,1,1);c.fillRect(x+2,y-2,1,1);c.fillRect(x-2,y+2,1,1);c.fillRect(x+2,y+2,1,1);c.fillRect(x-1,y-1,3,3)}
       c.fillStyle='#ffffff';c.fillRect(x,y,1,1)},
     beam(c,b){const sp=Math.hypot(b.vx,b.vy)||1,nx=b.vx/sp,ny=b.vy/sp,C=['#ffffff','#ffffaa','#ff9966','#ff77ff','#cc44cc','#6f3d86'];
       c.fillStyle='#000000';for(let k=0;k<4;k++)c.fillRect(Math.round(b.x-nx*k*2.5)-1,Math.round(b.y-ny*k*2.5)-1,3,3);
       for(let k=0;k<6;k++){c.fillStyle=C[k];c.fillRect(Math.round(b.x-nx*k*2.5),Math.round(b.y-ny*k*2.5),k<2?2:1,k<2?2:1)}},
-    ember(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);c.fillStyle='#ff9966';c.fillRect(x-1,y-1,3,3);c.fillStyle=((b.t*14)|0)&1?'#ffffff':'#ffffaa';c.fillRect(x,y,1,1)},
+    ember(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#000000';c.fillRect(x-2,y-1,5,3);c.fillRect(x-1,y-2,3,5);c.fillStyle='#ff9966';c.fillRect(x-1,y-1,3,3);c.fillStyle=blinkAt(b.t,14)?'#ffffff':'#ffffaa';c.fillRect(x,y,1,1)},
     wisp(c,b){const x=b.x|0,y=b.y|0;c.fillStyle='#6f3d86';c.fillRect(((b.x-b.vx*.06)|0),((b.y-b.vy*.06)|0),2,1);c.fillStyle='#000000';c.fillRect(x-1,y-1,3,3);c.fillStyle='#cc99ff';c.fillRect(x-1,y,3,1);c.fillRect(x,y-1,1,3);c.fillStyle='#ffffff';c.fillRect(x,y,1,1)}
   };
 
@@ -423,7 +423,7 @@ init(){
         e.y+=Math.sin(e.age*6)*dt*14;
         if(was&&!e.fade&&live&&e.x>110&&e.x<W-10&&Math.random()<.5){ebAim(e.x-8,e.y,70,0,{sty:'wisp'});sfxEnemyLaser()}},
       draw(c,e,fl){const f=Math.floor((e.t||0)*10)%4,x=Math.round(e.x-15),y=Math.round(e.y-8);
-        let solid=!e.fade;if(e.blink)solid=Math.floor((e.t||0)*30)%2===0;
+        let solid=!e.fade;if(e.blink)solid=blinkAt((e.t||0),30)===0;
         if(solid)c.drawImage(fl?WRW[f]:WRF[f],x,y);else{c.globalAlpha=.8;c.drawImage(WRG[f],x,y);c.globalAlpha=1}},
       onKill(e){shatter(e.x,e.y,10,45,['#cc99ff','#8a5aa6','#ffffff','#ff77ff'])}
     },
@@ -470,7 +470,7 @@ init(){
         if(e.calved)e.vy+=((e.edge>0?-6:6)-e.vy)*Math.min(1,dt*.55);
         e.x+=e.vx*dt;e.y+=e.vy*dt},
       draw(c,e,fl){const big=!!e.big,set=big?RK.big:RK.sm,s=(e.spr||0)%set.length,a=e.ang==null?(e.t||0)*(e.spin||1):e.ang,fi=((Math.floor(a/(Math.PI*2)*16)%16)+16)%16;
-        const im=(fl?(big?RK.bigW:RK.smW):set)[s][fi];let x=e.x;if(e.calveT>0)x+=(Math.floor((e.t||0)*24)%2?1:-1)*(e.calveT<.5?1.5:.8);
+        const im=(fl?(big?RK.bigW:RK.smW):set)[s][fi];let x=e.x;if(e.calveT>0)x+=(blinkAt((e.t||0),24)?1:-1)*(e.calveT<.5?1.5:.8);
         c.drawImage(im,Math.round(x-im.width/2),Math.round(e.y-im.height/2));
         if(e.calveT>0){const k=Math.floor((e.t||0)*12);c.fillStyle=k%2?'#ffffff':'#9ad2e0';c.fillRect(Math.round(x-7+(k*5)%14),Math.round(e.y+(e.edge>0?-9:8)),3,1);c.fillRect(Math.round(x+5-(k*3)%10),Math.round(e.y+(e.edge>0?-8:7)),1,1)}},
       onKill(e){shatter(e.x,e.y,e.big?16:7,e.big?70:45,SHARDC);
@@ -610,7 +610,7 @@ init(){
         else{const p=Math.floor(tt*12)%3;disc(c,cx,cy,6,'#cc44cc');disc(c,cx,cy,5,p?'#ff77ff':'#ff9966');disc(c,cx,cy,3,'#ffffaa');disc(c,cx,cy,1,'#ffffff');
           c.fillStyle=pat('#ff77ff');const rl=4+p*2;c.fillRect(cx-9-rl,cy,rl,1);c.fillRect(cx+10,cy,rl,1);c.fillRect(cx,cy-9-rl,1,rl);c.fillRect(cx,cy+10,1,rl)}}
       if(ph===2&&Math.floor(tt*3)%2){c.fillStyle='#9ad2e0';c.fillRect(ox+22,oy+39,3,2)}
-      if(ph===3){c.fillStyle=Math.floor(tt*8)%2?'#ff7777':'#ffffff';c.fillRect(ox+22,oy+39,3,2)}
+      if(ph===3){c.fillStyle=blinkAt(tt,8)?'#ff7777':'#ffffff';c.fillRect(ox+22,oy+39,3,2)}
       if(ph>=2)for(let k=0;k<RL.length;k++)if(((Math.floor(tt*6)-k)%8+8)%8===0){c.fillStyle=ph===3?'#ff77ff':'#ccff99';c.fillRect(ox+RL[k][0],oy+RL[k][1],1,1)}
       if(ph>=2)for(let k=0;k<3;k++){const t=TUR[k],tx=ox+t[0],ty=oy+t[1],a=Math.atan2(P.y-ty,P.x-tx),ca=Math.cos(a),sa=Math.sin(a);
         c.drawImage(t[2]<0?TURU:TURD,tx-5,t[2]<0?ty-6:ty-2);
@@ -619,10 +619,10 @@ init(){
         if(b.tf>0&&b.tfi===k)disc(c,Math.round(tx+ca*8),Math.round(ty+sa*8),1,'#ffffff')}
       for(let k=0;k<NC;k++)if(r>=CK[k])c.drawImage(CC[k],ox,oy);
       for(let k=0;k<SPARK.length;k++){const s=SPARK[k];if(s[2]>=0&&r>=CK[s[2]]&&(Math.floor(tt*3)+k)%7===0){c.fillStyle='#ffffff';c.fillRect(ox+s[0]-1,oy+s[1],3,1);c.fillRect(ox+s[0],oy+s[1]-1,1,3)}}
-      if(b.fall)for(const f of b.fall){if(f.t>1&&Math.floor(f.t*20)%2)continue;c.drawImage(CC[f.c],ox+Math.round(f.x),oy+Math.round(f.y))}
+      if(b.fall)for(const f of b.fall){if(f.t>1&&blinkAt(f.t,20))continue;c.drawImage(CC[f.c],ox+Math.round(f.x),oy+Math.round(f.y))}
       if(b.st==='tele'&&b.tele>0&&ph===3){const ex=b.x-72,ey=b.y,ca=Math.cos(b.ta),sa=Math.sin(b.ta);
         for(let k=1;k<40;k++){const x=ex+ca*k*6,y=ey+sa*k*6;if(x<0||y<TOP||y>BOT)break;c.fillStyle=(k+Math.floor(tt*20))%2?'#ff77ff':'#6f3d86';c.fillRect(Math.round(x),Math.round(y),2,1)}
-        disc(c,Math.round(ex),Math.round(ey),Math.round((1-b.tele)*3),Math.floor(tt*16)%2?'#ffffff':'#ff77ff')}
+        disc(c,Math.round(ex),Math.round(ey),Math.round((1-b.tele)*3),blinkAt(tt,16)?'#ffffff':'#ff77ff')}
       if(fl){c.globalAlpha=.45;c.drawImage(HULLW,ox,oy);c.globalAlpha=1}
     },
     onKill(b){shatter(b.x,b.y,40,110,SHARDC);shatter(b.x+30,b.y,20,90,['#ff77ff','#ffffaa','#ff9966'])}

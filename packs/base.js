@@ -345,7 +345,7 @@ init(){
         e.y=Math.max(TOP+10,Math.min(BOT-10,e.y0+Math.sin(e.t*4.2+e.ph)*11));e.vy=Math.cos(e.t*4.2+e.ph)*46;
         if(live&&e.gun&&e.x<W-30&&e.x>P.x+40&&(e.shootT-=dt)<=0){e.gun=false;enemyShot(e,0)}},
       draw(c,e,fl){const t=e.t||0,f=Math.floor(t*6)%2,x=(e.x-7)|0,y=(e.y-7)|0;
-        if(!fl){c.fillStyle=Math.floor(t*20)%2?MG:WH;c.fillRect(x+15,y+7,2,2);c.fillStyle=pat(mg);c.fillRect(x+16,y+6,3,4)}
+        if(!fl){c.fillStyle=blinkAt(t,20)?MG:WH;c.fillRect(x+15,y+7,2,2);c.fillStyle=pat(mg);c.fillRect(x+16,y+6,3,4)}
         c.drawImage(fl?DRW[f]:DR[f],x,y)}},
     /* HEAVY GUNSHIPS: flickering front shield (immune while up), paired aimed shots */
     ringR:{w:28,h:16,hp:3,pts:260,
@@ -358,7 +358,7 @@ init(){
         if(!fl){const n=2+Math.floor(t*20)%3;c.fillStyle=MG;c.fillRect(x+32,y+7,n,5);c.fillStyle=WH;c.fillRect(x+32,y+8,n-1,3)}
         c.drawImage(fl?GSW[f]:GS[f],x,y);
         const q=(e.sc||0)%3.4;
-        if(q<1.4&&!(q>1.15&&Math.floor(t*24)%2)){const cx=e.x+2,cyy=e.y;
+        if(q<1.4&&!(q>1.15&&blinkAt(t,24))){const cx=e.x+2,cyy=e.y;
           for(let i=0;i<26;i++){const a=Math.PI*.62+i/25*Math.PI*.76,xx=Math.round(cx+Math.cos(a)*19),yy=Math.round(cyy+Math.sin(a)*12);
             c.fillStyle=(i+Math.floor(t*16))%6===0?WH:CY;c.fillRect(xx,yy,1,1);if((xx+yy)&1){c.fillStyle=cy;c.fillRect(xx+1,yy,1,1)}}}}},
     /* REPAIR TENDERS: heal nearby enemies with a visible beam; carry a power-up */
@@ -372,7 +372,7 @@ init(){
             const s=d-(o.hp<o.mhp?40:0);if(s<b0){b1=b0;e.tg[1]=e.tg[0];b0=s;e.tg[0]=o}else if(s<b1){b1=s;e.tg[1]=o}}}
         for(const o of e.tg)if(o&&!o.dead&&o.hp<o.mhp){o.hp=Math.min(o.mhp,o.hp+o.mhp*.16*dt);if(Math.random()<dt*6)FX.push({x:o.x+rnd(-5,5),y:o.y+rnd(-4,4),vx:0,vy:-18,life:.4,c:GR,s:1})}},
       draw(c,e,fl){const t=e.t||0,f=Math.floor(t*6)%4,x=(e.x-13)|0,y=(e.y-11)|0;
-        if(!fl&&e.tg){const ph=Math.floor(t*24);for(const o of e.tg)if(o&&!o.dead&&o.x>-30){dotLine(c,e.x-12,e.y+4,o.x,o.y,4,ph,GR,CY);if(ph%2){c.fillStyle=pat(GR);c.fillRect((o.x-3)|0,(o.y-3)|0,7,7)}}}
+        if(!fl&&e.tg){const ph=stepAt(t,24,8);for(const o of e.tg)if(o&&!o.dead&&o.x>-30){dotLine(c,e.x-12,e.y+4,o.x,o.y,4,ph,GR,CY);if(ph%2){c.fillStyle=pat(GR);c.fillRect((o.x-3)|0,(o.y-3)|0,7,7)}}}
         c.drawImage(fl?TDW[f]:TD[f],x,y);
         if(!fl&&e.carry){c.fillStyle=PWC[e.carry]||WH;c.fillRect(x+12,y+16,3,2)}}},
     /* TURRET BATTERIES: glued to the hull, tracking twin barrel, short bursts */
@@ -415,19 +415,19 @@ init(){
           if(fl)c.globalAlpha=.5;c.drawImage(sp_,(e.x-sp_.width/2)|0,(e.y-sp_.height/2)|0);c.globalAlpha=1}}}
   };
   function drawGate(c,e){const x=e.x|0,t=e.t||0,st=e.st||0,top=!e.part;
-    const lens=st===2?WH:st===1?(Math.floor(t*14)%2?MG:WH):rd;
+    const lens=st===2?WH:st===1?(blinkAt(t,14)?MG:WH):rd;
     if(top){c.drawImage(EMT,x-5,HULL_T-2);c.fillStyle=lens;c.fillRect(x-1,HULL_T+4,3,2)}
     else{c.drawImage(EMB,x-5,HULL_B-6);c.fillStyle=lens;c.fillRect(x-1,HULL_B-6,3,2)}
     const y0=e.ya|0,y1=e.yb|0;
-    if(st===1){dotLine(c,x,y0,x,y1,4,Math.floor(t*30),MG,mg);if(Math.floor(t*10)%2){c.fillStyle=pat(mg);c.fillRect(x-3,top?HULL_T+2:HULL_B-9,7,7)}}
-    else if(st===2){const fl=Math.floor(t*30)%2;c.fillStyle=pat(mg);c.fillRect(x-3,y0,7,y1-y0);c.fillStyle=MG;c.fillRect(x-1,y0,3,y1-y0);c.fillStyle=fl?WH:LV;c.fillRect(x,y0,1,y1-y0);
+    if(st===1){dotLine(c,x,y0,x,y1,4,stepAt(t,30,8),MG,mg);if(blinkAt(t,10)){c.fillStyle=pat(mg);c.fillRect(x-3,top?HULL_T+2:HULL_B-9,7,7)}}
+    else if(st===2){const fl=blinkAt(t,30);c.fillStyle=pat(mg);c.fillRect(x-3,y0,7,y1-y0);c.fillStyle=MG;c.fillRect(x-1,y0,3,y1-y0);c.fillStyle=fl?WH:LV;c.fillRect(x,y0,1,y1-y0);
       const gy=(y0+((t*90)%(y1-y0+1)))|0;c.fillStyle=WH;c.fillRect(x-1,gy,3,2)}
     const ny=top?y1:y0;c.drawImage(NODE,x-3,ny-2);c.fillStyle=st===2?WH:st===1?MG:(Math.floor(t*2)%2?cy:VI);c.fillRect(x,ny,1,1)}
   function drawBeam(c,e){const t=e.lt||0,y=Math.round(e.by!=null?e.by:e.y),x1=Math.round(e.ox)-2;if(x1<2)return;
-    if(e.st===1){dotLine(c,0,y,x1,y,5,Math.floor((e.t||0)*40),MG,mg);
+    if(e.st===1){dotLine(c,0,y,x1,y,5,stepAt(e.t||0,40,8),MG,mg);
       const r=Math.max(1,Math.round(9-t*7));c.fillStyle=pat(MG);c.fillRect(x1-r,y-r,r*2+1,r*2+1);c.fillStyle=WH;c.fillRect(x1-1,y-1,3,3);
       for(let i=0;i<5;i++){const a=i*1.26+t*9,d=14*(1-((t*2+i*.2)%1));c.fillStyle=LV;c.fillRect((x1+Math.cos(a)*d)|0,(y+Math.sin(a)*d)|0,1,1)}}
-    else{const w=Math.random()<.5?1:0;c.fillStyle=pat(mg);c.fillRect(0,y-4-w,x1,9+2*w);c.fillStyle=MG;c.fillRect(0,y-2,x1,5);c.fillStyle=WH;c.fillRect(0,y-1,x1,2+w);
+    else{const w=fxReduced()?blinkAt(e.t||0,16,3):(Math.random()<.5?1:0);c.fillStyle=pat(mg);c.fillRect(0,y-4-w,x1,9+2*w);c.fillStyle=MG;c.fillRect(0,y-2,x1,5);c.fillStyle=WH;c.fillRect(0,y-1,x1,2+w);
       c.fillStyle=pat(WH);c.fillRect(x1-6,y-6,12,13);
       for(let i=0;i<6;i++){c.fillStyle=Math.random()<.5?WH:LV;c.fillRect((Math.random()*x1)|0,y+((Math.random()*12-6)|0),2,1)}}}
 
@@ -435,10 +435,10 @@ init(){
   const bullets={
     missile(c,b){const s=Math.hypot(b.vx,b.vy)||1,ux=b.vx/s,uy=b.vy/s,x=b.x,y=b.y;
       c.fillStyle=D;c.fillRect((x-ux*9)|0,(y-uy*9)|0,1,1);c.fillStyle=GM;c.fillRect((x-ux*7)|0,(y-uy*7)|0,2,1);
-      c.fillStyle=Math.floor(b.t*20)%2?WH:OR;c.fillRect((x-ux*5-1)|0,(y-uy*5)|0,2,2);
+      c.fillStyle=blinkAt(b.t,20)?WH:OR;c.fillRect((x-ux*5-1)|0,(y-uy*5)|0,2,2);
       c.fillStyle=rd;c.fillRect((x-ux*3-1)|0,(y-uy*3-1)|0,3,3);c.fillStyle=RD;c.fillRect((x-ux*1.5-1)|0,(y-uy*1.5-1)|0,3,3);
       c.fillStyle=WH;c.fillRect((x-1)|0,(y-1)|0,2,2)},
-    orb(c,b){const x=b.x|0,y=b.y|0,a=Math.floor(b.t*16)%2;c.fillStyle=rd;c.fillRect(x-3,y-2,6,5);c.fillRect(x-2,y-3,4,7);
+    orb(c,b){const x=b.x|0,y=b.y|0,a=blinkAt(b.t,16);c.fillStyle=rd;c.fillRect(x-3,y-2,6,5);c.fillRect(x-2,y-3,4,7);
       c.fillStyle=a?RD:WH;c.fillRect(x-2,y-1,4,3);c.fillRect(x-1,y-2,2,5);c.fillStyle=WH;c.fillRect(x-1,y-1,2,2)}
   };
 
@@ -612,10 +612,10 @@ init(){
       dp(ph>=4?BP.skirtX:BP.skirt,0,0);
       if(!fl){for(const nx of [-10,10]){const n=9+((Math.random()*(ph>=4?9:6))|0);c.fillStyle=pat(mg);c.fillRect(X+nx-4,Y+45,9,n);for(let k=0;k<n;k++){const wd=k<n*.4?5:k<n*.75?3:1;c.fillStyle=k<3?WH:k<n*.5?MG:k<n*.8?mg:PU;c.fillRect(X+nx-(wd>>1),Y+45+k,wd,1)}c.fillStyle=WH;c.fillRect(X+nx,Y+45,1,(n*.5)|0)}}
       dp(BP.torso,0,0);
-      if(ph>=3){const pu=Math.floor(t*8)%2,cs=ph>=4?CORE_O[pu]:CORE[pu];c.drawImage(fl?whiteCore(cs):cs,X-4-(cs.width>>1),Y-13-(cs.height>>1));
+      if(ph>=3){const pu=blinkAt(t,8),cs=ph>=4?CORE_O[pu]:CORE[pu];c.drawImage(fl?whiteCore(cs):cs,X-4-(cs.width>>1),Y-13-(cs.height>>1));
         if(!fl&&ph>=4)for(let i=0;i<4;i++){const a=Math.random()*6.283,d=9+Math.random()*5;c.fillStyle=Math.random()<.5?WH:LV;c.fillRect((X-4+Math.cos(a)*d)|0,(Y-13+Math.sin(a)*d)|0,1,1)}}
       if(ph<=2)dp(BP.chest,0,0);else if(ph===3)dp(BP.chestO,0,0);
-      if(!fl&&ph<=2&&Math.floor(t*5)%2){c.fillStyle=MG;c.fillRect(X-8,Y-16,7,1);c.fillRect(X-8,Y-13,7,1);c.fillRect(X-8,Y-10,7,1)}
+      if(!fl&&ph<=2&&blinkAt(t,5)){c.fillStyle=MG;c.fillRect(X-8,Y-16,7,1);c.fillRect(X-8,Y-13,7,1);c.fillRect(X-8,Y-10,7,1)}
       dp(ph>=4?BP.headX:BP.head,0,hb);
       if(!fl){const vx=X-22,vy=Y-52+hb,sc=Math.floor(t*22)%16;
         c.fillStyle=ph>=4?rd:cy;c.fillRect(vx,vy,16,3);c.fillStyle=ph>=4?RD:CY;c.fillRect(vx,vy+1,16,1);c.fillStyle=WH;c.fillRect(vx+sc,vy,2,3);
