@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.30</title>
+<title>Idlyte v2.31</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1340,7 +1340,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.30';
+const VERSION='2.31';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2799,7 +2799,7 @@ const THINGS=[];
   add('atrium',r=>r.w>>1,()=>'WALK AMONG THE TREES',()=>toast('THE ATRIUM TREES RUSTLE IN THE AIR VENTS.'));
   add('mall',r=>r.w>>1,()=>'SHOP FOR COSTUMES',scr('mall'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
-  for(const r of ROOMS)if(r.bay)add(r.id,r.w>>1,()=>SAVE.ship===r.bay?'THIS SHIP IS ON THE LAUNCH PAD':'PUT THE '+SHIPS[r.bay].n+' ON THE LAUNCH PAD',()=>{if(SAVE.ship!==r.bay){SAVE.ship=r.bay;rebuildShip();toast(SHIPS[r.bay].n+' IS READY TO FLY');save()}});
+  for(const r of ROOMS)if(r.bay)add(r.id,r.w>>1,()=>'FLY THE '+SHIPS[r.bay].n+' ON A MISSION',()=>{if(SAVE.ship!==r.bay){SAVE.ship=r.bay;rebuildShip();save()}HUB.screen='hangar';UI.focus=0});
   add('zoo',r=>r.w>>1,()=>'VISIT THE ALIEN ZOO',scr('zoo'));
   add('bridge',34,()=>'LOOK AT THE STAR MAP',scr('starmap'));
   add('bridge',86,()=>'LOOK AT THE TROPHIES',scr('trophy'));
@@ -3173,12 +3173,14 @@ function drawHub(){
 /* the ship's stats, shown when you walk into its hangar bay */
 function drawBayCard(r){
   const i=r.bay,s=SHIPS[i],keep=SAVE.ship;let st,pw;SAVE.ship=i;try{st=baseStats();pw=shipPowerRaw()}finally{SAVE.ship=keep}
-  const lines=[['HULL',st.hp],['SPEED',Math.round(st.speed)],['FIRE RATE',st.fire.toFixed(1)],['DAMAGE',st.dmg.toFixed(1)],['DRONES',st.opts],['START SHIELD',st.startShield.toFixed(0)+' S'],['SHIP POWER',Math.round(pw)]];
-  const w=176,h=34+lines.length*8+12,x=(W-w)>>1,y=18;
-  ctx.fillStyle='#000000dd';ctx.fillRect(x,y,w,h);ctx.fillStyle='#6c5eb5';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillRect(x,y,1,h);ctx.fillRect(x+w-1,y,1,h);
-  text(s.n+(SAVE.ship===i?'   (ON THE LAUNCH PAD)':''),x+6,y+4,'#ffffff',1);text(fitText(s.d,w-12),x+6,y+13,'#70a4b2',1);
-  lines.forEach((l,k)=>{text(l[0],x+6,y+26+k*8,'#959595',1);textR(String(l[1]),x+w-6,y+26+k*8,'#9ad284',1)});
-  text('E: '+(SAVE.ship===i?'ALREADY FLYING THIS SHIP':'PUT IT ON THE LAUNCH PAD'),x+6,y+h-10,'#b8c76f',1);
+  const lines=[['HULL',st.hp],['SPEED',Math.round(st.speed)],['FIRE RATE',st.fire.toFixed(1)],['DAMAGE',st.dmg.toFixed(1)],['DRONES',st.opts],['POWER',Math.round(pw)]];
+  const cw=100,h=26+lines.length*8+12,cx=Math.round(HUB.cam.x),cyy=Math.round(HUB.cam.y),rx0=r.x0-cx,rx1=r.x1-cx,ry=yTop(r.d)-cyy;
+  let x=rx1+4;if(x+cw>W-2)x=rx0-cw-4;if(x<2)x=Math.max(2,W-cw-2);   // beside the bay, never over the parked ship
+  const y=Math.max(16,Math.min(H-h-4,ry+2));
+  ctx.fillStyle='#000000dd';ctx.fillRect(x,y,cw,h);ctx.fillStyle='#6c5eb5';ctx.fillRect(x,y,cw,1);ctx.fillRect(x,y+h-1,cw,1);ctx.fillRect(x,y,1,h);ctx.fillRect(x+cw-1,y,1,h);
+  text(s.n,x+5,y+4,'#ffffff',1);if(SAVE.ship===i)text('ON THE LAUNCH PAD',x+5,y+13,'#9ad284',1);else text('IN ITS BAY',x+5,y+13,'#70a4b2',1);
+  lines.forEach((l,k)=>{text(l[0],x+5,y+24+k*8,'#959595',1);textR(String(l[1]),x+cw-5,y+24+k*8,'#9ad284',1)});
+  text('E: FLY A MISSION',x+5,y+h-10,'#b8c76f',1);
 }
 /* ===== extra screens ===== */
 function shareValue(){let v=0;for(const c of COMPANIES){const s=SAVE.sh[c.id];v+=Math.floor(s.own*s.p)}return v}
