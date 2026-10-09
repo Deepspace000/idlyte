@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.39</title>
+<title>Idlyte v2.42</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1353,7 +1353,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.39';
+const VERSION='2.42';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4168,7 +4168,7 @@ function padPoll(dt){
   for(const p of gps)if(p&&p.connected){gp=p;break}
   if(!gp){PAD.x=0;PAD.y=0;return}
   const b=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed),ax=gp.axes[0]||0,ay=gp.axes[1]||0;
-  const cur={L:b(14)||ax<-.5,R:b(15)||ax>.5,U:b(12)||ay<-.5,D:b(13)||ay>.5,A:b(0),B:b(1),X:b(2),Y:b(3),S:b(9)};
+  const cur={L:b(14)||ax<-.5,R:b(15)||ax>.5,U:b(12)||ay<-.5,D:b(13)||ay>.5,A:b(0),B:b(1),X:b(2),Y:b(3),S:b(9),RB:b(5),RT:b(7)};
   PAD.x=(cur.L?-1:0)+(cur.R?1:0);PAD.y=(cur.U?-1:0)+(cur.D?1:0);
   const press=(k,key,repeat)=>{
     if(!cur[k])return;
@@ -4177,7 +4177,8 @@ function padPoll(dt){
   };
   const menu=MODE==='loot'||(MODE==='hub'&&HUB.screen);
   if(menu){press('L','arrowleft',1);press('R','arrowright',1);press('U','arrowup',1);press('D','arrowdown',1)}
-  press('A','enter',0);press('B','escape',0);press('Y','h',0);press('X','m',0);press('S','i',0);
+  if(MODE==='surface'){press('A','enter',0);press('Y','g',0);press('S','b',0)}   // in the sub game: B, X and the shoulder buttons fire, Y is stuck, Start beams up
+  else{press('A','enter',0);press('B','escape',0);press('Y','h',0);press('X','m',0);press('S','i',0)}
   if(cur.L||cur.R)INP.last='pad';
   PAD.prev=cur;
 }
@@ -4905,6 +4906,6 @@ window.__g.dev={
 <script src="packs/bigthemes2.js?v=2.10"></script>
 <script src="packs/swarm1.js?v=2.32"></script>
 <script src="packs/swarm2.js?v=2.32"></script>
-<script src="surface.js?v=2.39"></script>
+<script src="surface.js?v=2.42"></script>
 </body>
 </html>

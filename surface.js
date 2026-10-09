@@ -908,7 +908,7 @@ SURF.start=function(idx){
   SURF.en=[];SURF.bul=[];SURF.eb=[];SURF.fx=[];SURF.txt=[];SURF.coinsFly=[];
   SURF.cam={x:Math.max(0,SURF.p.x-140),y:Math.max(0,SURF.p.y-110)};
   SURF.cut={mode:'in',t:0,hx:SURF.p.x+5,hy:Math.max(12,SURF.p.y-64)};SURF.p.hidden=true;
-  SURF.visit=0;SURF.t=0;SURF.msg=[WORLDS[idx].n,3];SURF.beam=null;SURF.done=0;SURF.help=6;
+  SURF.visit=0;SURF.t=0;SURF.msg=[WORLDS[idx].n,3];SURF.beam=null;SURF.done=0;SURF.help=10;
   SURF.guard=null;SURF.touch={};SURF.fireDown=false;
   L.spawns.forEach(sp=>{sp.e=null;sp.t=0});
   L.chests.forEach(c=>c.open=0);
@@ -932,15 +932,15 @@ function hitsSolid(x,y,w,h){const L=SURF.L,x0=Math.floor(x/TS),x1=Math.floor((x+
 function inp(){
   const k=UI.keys,T=SURF.touch||{};
   const l=!!(k.arrowleft||k.a||T.l||PAD.x<0),r=!!(k.arrowright||k.d||T.r||PAD.x>0);
-  const jump=!!(k[' ']||k.w||k.k||k.arrowup||T.j||(PAD.prev&&PAD.prev.A)),fire=!!(k.x||k.j||k.z||k.enter||k.control||T.f||(PAD.prev&&(PAD.prev.X||PAD.prev.B)));
-  const up=!!(k.arrowup||k.i||T.u||PAD.y<0),down=!!(k.arrowdown||k.s||T.d||PAD.y>0);
+  const jump=!!(k[' ']||k.w||k.k||k.arrowup||T.j||(PAD.prev&&PAD.prev.A)),fire=!!(k.x||k.j||k.z||k.r||k.enter||k.control||T.f||SURF.mouseFire||(PAD.prev&&(PAD.prev.X||PAD.prev.B||PAD.prev.RB||PAD.prev.RT)));
+  const up=!!(k.arrowup||k.w||k.i||T.u||PAD.y<0),down=!!(k.arrowdown||k.s||T.d||PAD.y>0);
   const jumpB=!!(k[' ']||k.k||T.j||(PAD.prev&&PAD.prev.A));
   return{l,r,jump,jumpB,fire,up,down}
 }
 /* ---------------- update ---------------- */
 SURF.key=function(k){
   if(k==='b'||k==='escape'||k==='t'){SURF.beamUp();return}
-  if(k==='r'){const p=SURF.p;if(p&&p.dead<=0&&SURF.t-(SURF.rt||-9)>3){SURF.rt=SURF.t;const cp=sv().cp[SURF.idx];p.x=cp?cp.x:SURF.L.start.x;p.y=(cp?cp.y-16:SURF.L.start.y);p.vx=p.vy=0;p.ride=null;p.inv=1;SURF.msg=['BACK AT THE LAST BEAM PAD',1.6]}return}
+  if(k==='g'){const p=SURF.p;if(p&&p.dead<=0&&SURF.t-(SURF.rt||-9)>3){SURF.rt=SURF.t;const cp=sv().cp[SURF.idx];p.x=cp?cp.x:SURF.L.start.x;p.y=(cp?cp.y-16:SURF.L.start.y);p.vx=p.vy=0;p.ride=null;p.inv=1;SURF.msg=['BACK AT THE LAST BEAM PAD',1.6]}return}
   if(k==='enter'||k==='e'){const L=SURF.L,p=SURF.p;if(L.exit&&Math.abs(p.x-L.exit.x)<20&&Math.abs(p.y+8-L.exit.y)<24)tryExit()}
 };
 function tryExit(){
@@ -999,6 +999,12 @@ SURF.tick=function(dt){
     /* wind lifts */
     for(const u of L.ups)if(p.x+p.w>u.x&&p.x<u.x+u.w&&p.y+p.h>u.y&&p.y<u.y+u.h){p.vy-=900*dt;if(p.vy<-95)p.vy=-95}
     p.jb-=dt;p.coy-=dt;
+    if(p.drop>0)p.drop-=dt;
+    /* S and jump together: drop down through a thin platform, a lift or the top of a ladder */
+    const dEdge=I.down&&!p.dprev;p.dprev=I.down;
+    if(((I.jump&&I.down&&!p.jumpHeld)||(SURF.touch&&SURF.touch.d&&dEdge))&&!beamed&&!p.lad&&p.on){
+      const fx=Math.floor((p.x+p.w/2)/TS),fy=Math.floor((p.y+p.h+1)/TS),ft=tile(fx,fy);
+      if(ft===2||ft===9||ft===7||p.ride){p.drop=.3;p.on=false;p.ride=null;p.y+=2;p.vy=40;p.jumpHeld=true;p.jb=0;p.coy=0;try{sfxTone(400,160,.1,'square',.02,{att:.002})}catch(e){}}}
     if(I.jump&&!p.jumpHeld&&!beamed&&!p.lad){p.jb=.12}
     if(!I.jump)p.jumpHeld=false;
     if(p.jb>0&&(p.on||p.coy>0)){p.vy=-222;p.on=false;p.coy=0;p.jb=0;p.jumpHeld=true;try{sfxTone(260,520,.12,'square',.02,{att:.002})}catch(e){}}
@@ -1022,8 +1028,8 @@ SURF.tick=function(dt){
       /* one way tiles and lifts */
       let land=null;
       const ty0=Math.floor(botOld/TS),ty1=Math.floor(botNew/TS);
-      for(let ty=ty0;ty<=ty1;ty++){for(let tx=Math.floor(p.x/TS);tx<=Math.floor((p.x+p.w-.01)/TS);tx++){const t=tile(tx,ty);if((t===2||t===9||(t===7&&!p.lad&&tile(tx,ty-1)!==7))&&botOld<=ty*TS+1&&botNew>=ty*TS){const yy=ty*TS-p.h;if(!land||yy<land.y)land={y:yy,k:'t'}}}}
-      for(const q of L.lifts){if(p.x+p.w>q.x&&p.x<q.x+q.w){const top=q.y;if(botOld<=top+3+(q.dy>0?q.dy:0)&&botNew>=top-2){const yy=top-p.h;if(!land||yy<land.y)land={y:yy,k:'l',q}}}}
+      for(let ty=ty0;ty<=ty1;ty++){for(let tx=Math.floor(p.x/TS);tx<=Math.floor((p.x+p.w-.01)/TS);tx++){const t=tile(tx,ty);if(!(p.drop>0)&&(t===2||t===9||(t===7&&!p.lad&&tile(tx,ty-1)!==7))&&botOld<=ty*TS+1&&botNew>=ty*TS){const yy=ty*TS-p.h;if(!land||yy<land.y)land={y:yy,k:'t'}}}}
+      if(!(p.drop>0))for(const q of L.lifts){if(p.x+p.w>q.x&&p.x<q.x+q.w){const top=q.y;if(botOld<=top+3+(q.dy>0?q.dy:0)&&botNew>=top-2){const yy=top-p.h;if(!land||yy<land.y)land={y:yy,k:'l',q}}}}
       if(hitsSolid(p.x+(p.lad?2:0),ny,p.lad?p.w-4:p.w,p.h)){const ty=Math.floor((ny+p.h)/TS);const yy=ty*TS-p.h;if(!land||yy<land.y)land={y:yy,k:'s'}}
       if(land){p.y=land.y;p.vy=0;p.on=true;p.coy=.09;if(land.q)p.ride=land.q;
         const bx=Math.floor((p.x+p.w/2)/TS),by=Math.floor((p.y+p.h+1)/TS),tt=tile(bx,by);
@@ -1250,7 +1256,10 @@ function hud(){
   /* progress along the level */
   ctx.fillStyle='#000000aa';ctx.fillRect(4,VH-8,90,5);ctx.fillStyle=GREEN[1];ctx.fillRect(5,VH-7,Math.round(88*clamp(p.x/(SURF.L.LW*TS),0,1)),3);
   if(SURF.msg&&SURF.msg[1]>0)textC(SURF.msg[0],40,YL,1);
-  if(SURF.help>0){ctx.fillStyle='#000000aa';ctx.fillRect(0,VH-31,VW,24);textC('MOVE: ARROWS OR A D   JUMP: SPACE   FIRE: X   BEAM UP: B   STUCK: R',VH-18,WH,1);textC('LADDERS: PRESS UP OR DOWN NEXT TO ONE',VH-28,YL,1)}
+  if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
+    if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
+    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('BEAM UP: B   STUCK: G   LADDERS: W/S   S+SPACE: DROP DOWN',VH-27,YL,1);textC('GAMEPAD: A JUMP   X, B OR RB FIRE   START BEAM UP',VH-17,'#9ad2e0',1)}}
+  else if(!(typeof isTouch!=='undefined'&&isTouch)){textC('FIRE: X, R OR MOUSE   BEAM UP: B',VH-9,'#6c6c6c',1)}
   if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,52,9);text('JET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(24,17,30,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(25,18,Math.round(28*f),4);ctx.fillStyle=WH;ctx.fillRect(25,18,Math.round(28*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
@@ -1270,9 +1279,10 @@ function setTouch(e,down){
   else{const id=SURF.tp[e.pointerId];if(id){delete SURF.touch[id];delete SURF.tp[e.pointerId]}}
   return true;
 }
-cv.addEventListener('pointerdown',e=>{if(MODE==='surface'){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}setTouch(e,true)}},true);
-cv.addEventListener('pointerup',e=>{if(MODE==='surface')setTouch(e,false)},true);
-cv.addEventListener('pointercancel',e=>{if(MODE==='surface')setTouch(e,false)},true);
+cv.addEventListener('pointerdown',e=>{if(MODE==='surface'){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}if(e.pointerType==='mouse'&&e.button===0)SURF.mouseFire=true;setTouch(e,true)}},true);
+cv.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')SURF.mouseFire=false;if(MODE==='surface')setTouch(e,false)},true);
+addEventListener('blur',()=>{SURF.mouseFire=false});
+cv.addEventListener('pointercancel',e=>{SURF.mouseFire=false;if(MODE==='surface')setTouch(e,false)},true);
 cv.addEventListener('pointermove',e=>{if(MODE!=='surface')return;const [x,y]=ptIn(e);const id=SURF.tp&&SURF.tp[e.pointerId];if(!id)return;const b=(SURF.touchBtns||[]).find(q=>q.id===id);if(b&&!(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)){delete SURF.touch[id];delete SURF.tp[e.pointerId]}},true);
 SURF.WORLDS=WORLDS;
 })();
