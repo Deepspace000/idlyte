@@ -25,13 +25,13 @@ const WORLDS=[
   rock:['#68372b','#9a3a3a',RD,OR],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#9a3a3a','#ffffaa'],crumble:1,glow:CY,plant:{leaf:['#2c5a2c','#9ad284','#ccff99'],fl:[MG,RD,YL],kind:'desert'},
   en:[
    {id:'dunecrab',n:'DUNE SCORPION',ai:'walker',kit:'crab',o:{shape:'scorpion'},pal:['#2a1008',BR,TN,OR,YL],w:18,h:12,hp:3,spd:26,gold:2},
-   {id:'sandskipper',n:'SAND SKIPPER',ai:'hopper',kit:'crab',o:{shape:'spider'},pal:['#2a1008',rd,RD,OR,YL],w:12,h:12,hp:2,spd:50,gold:2},
+   {id:'sandskipper',n:'SAND SKIPPER',ai:'hopper',kit:'crab',o:{shape:'hopper'},pal:['#2a1008',rd,RD,OR,YL],w:16,h:16,hp:2,spd:50,gold:2},
    {id:'shardturret',n:'SHARD TURRET',ai:'turret',kit:'turretk',o:{shape:'crystal'},pal:[VI,mg,MG,CY,WH],w:14,h:18,hp:4,cd:1.8,range:150,bul:{n:3,sp:80,sd:.35},gold:3},
-   {id:'dustwisp',n:'DUST WISP',ai:'flyer',kit:'wing',o:{wing:'wisp'},pal:[BR,TN,OR,YL,WH],w:14,h:14,hp:2,spd:62,gold:2,fly:1},
+   {id:'dustwisp',n:'DUST DEVIL',ai:'flyer',kit:'wing',o:{wing:'wisp'},pal:[BR,TN,OR,YL,WH],w:14,h:20,hp:2,spd:62,gold:2,fly:1},
    {id:'crystalgolem',n:'CRYSTAL GOLEM',ai:'charger',kit:'golem',o:{crystal:1},pal:[VI,mg,MG,CY,WH],w:22,h:24,hp:10,spd:20,gold:6}]},
  {n:'DERELICT STARSHIP',sub:'A CRASHED CARGO SHIP, OVERGROWN WITH GLOWING PLANTS',lw:380,ship:1,
   sky:['#0a0630','#1c1840',VI,BL],skyY:.5,ridge:[['#1c1840','#2a1d52'],['#352879','#4a2f86']],
-  rock:['#1c2a4a','#3c5a8a','#70a4b2','#ccffff'],topc:['#6c6c6c','#bbbbbb','#ffffaa'],plat:['#6c6c6c','#9ad2e0'],glow:CY,plant:{leaf:['#1b5a3a','#2c8a2c','#9ad284'],fl:[CY,MG,YL],kind:'ship'},
+  rock:['#1c2a4a','#3c5a8a','#70a4b2','#ccffff'],wallc:['#060a14','#0a1220','#101a30','#2c4a6a'],topc:['#6c6c6c','#bbbbbb','#ffffaa'],plat:['#6c6c6c','#9ad2e0'],glow:CY,plant:{leaf:['#1b5a3a','#2c8a2c','#9ad284'],fl:[CY,MG,YL],kind:'ship'},
   en:[
    {id:'cargobot',n:'CARGO BOT',ai:'walker',kit:'droid',pal:[D,GM,YG,YL,WH],w:16,h:16,hp:4,spd:26,gold:2},
    {id:'sparkwisp',n:'SPARK WISP',ai:'dropper',kit:'cap',o:{ghost:1},pal:[VI,cy,CY,WH,WH],w:14,h:14,hp:2,spd:26,gold:2,fly:1},
@@ -40,35 +40,36 @@ const WORLDS=[
    {id:'loadermech',n:'LOADER MECH',ai:'charger',kit:'golem',o:{mech:1},pal:[D,GM,OR,YL,WH],w:26,h:28,hp:14,spd:22,gold:8,shoot:{cd:2.6,sp:80}}]},
  {n:'MAGMA CAVERNS',sub:'LAVA POOLS, FALLING ROCKS AND FIRE BEASTS',lw:420,
   sky:['#0a0200','#2a0a08',rd,OR],skyY:.45,ridge:[['#2a0a08','#68372b'],['#68372b','#ff9966']],cavern:1,
-  rock:['#0a0200','#2a0a08','#68372b','#9a3a3a'],topc:['#444444','#9a3a3a','#ff9966'],plat:['#444444','#ff9966'],lava:1,glow:YL,plant:{leaf:['#68372b','#ff9966','#ffffaa'],fl:[YL,RD,WH],kind:'magma'},
+  rock:['#2a0a08','#68372b','#9a3a3a','#ff9966'],wallc:['#05010a','#0a0204','#1c0808','#ff9966'],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#444444','#ff9966'],lava:1,glow:YL,plant:{leaf:['#68372b','#ff9966','#ffffaa'],fl:[YL,RD,WH],kind:'magma'},
   en:[
    {id:'lavaslug',n:'LAVA SLUG',ai:'walker',kit:'blob',o:{slug:1},pal:['#2a0a08',rd,OR,YL,WH],w:22,h:10,hp:4,spd:18,gold:2},
-   {id:'ashbat',n:'ASH BAT',ai:'flyer',kit:'wing',o:{wing:'bat'},pal:[K,D,GM,LM,RD],w:20,h:12,hp:3,spd:44,gold:3,fly:1,shoot:{cd:3,sp:75}},
-   {id:'emberspitter',n:'EMBER SPITTER',ai:'lobber',kit:'turretk',o:{shape:'spitter'},pal:[BR,rd,OR,YL,WH],w:16,h:16,hp:5,cd:2.4,range:170,gold:3},
+   {id:'ashbat',n:'ASH BAT',ai:'flyer',kit:'wing',o:{wing:'bat'},pal:['#1c0808',D,GM,LL,RD],w:26,h:16,hp:3,spd:44,gold:3,fly:1,shoot:{cd:3,sp:75}},
+   {id:'emberspitter',n:'EMBER SPITTER',ai:'lobber',kit:'turretk',o:{shape:'spitter'},pal:[BR,rd,OR,YL,WH],w:22,h:20,hp:5,cd:2.4,range:170,gold:3},
    {id:'magmahopper',n:'MAGMA HOPPER',ai:'hopper',kit:'blob',o:{legs:1,angry:1},pal:['#2a0a08',rd,RD,OR,YL],w:14,h:14,hp:4,spd:60,gold:3},
    {id:'obsidianknight',n:'OBSIDIAN KNIGHT',ai:'charger',kit:'golem',o:{knight:1},pal:[K,'#1c1840',VI,BL,RD],w:20,h:26,hp:14,spd:24,gold:8}]},
  {n:'ALIEN MOTHERSHIP',sub:'A LIVING SHIP: SLIME WALLS, EGG POOLS AND A HIVE GUARD',lw:480,ship:1,
   sky:['#0a0630','#352879',mg,CY],skyY:.5,ridge:[['#1c1840','#6c5eb5'],['#6c5eb5','#ff77ff']],
-  rock:['#3a0a38','#8a3aa6',mg,MG],topc:['#9a3a3a','#ff77ff','#ffffaa'],plat:['#6f3d86','#ffffaa'],glow:PG,plant:{leaf:['#3a0a38','#cc44cc','#ff77ff'],fl:[PG,YL,CY],kind:'hive'},
+  rock:['#3a0a38','#8a3aa6',mg,MG],wallc:['#100210','#1c0420','#2a0a2a','#8a3aa6'],topc:['#9a3a3a','#ff77ff','#ffffaa'],plat:['#6f3d86','#ffffaa'],glow:PG,plant:{leaf:['#3a0a38','#cc44cc','#ff77ff'],fl:[PG,YL,CY],kind:'hive'},
   en:[
    {id:'hivebug',n:'HIVE BEETLE',ai:'walker',kit:'crab',o:{shape:'beetle'},pal:['#3a0a38',PU,mg,MG,YL],w:18,h:12,hp:5,spd:30,gold:3},
    {id:'stinger',n:'STINGER',ai:'flyer',kit:'wing',o:{wing:'wasp'},pal:['#3a0a38',mg,MG,PG,WH],w:18,h:12,hp:4,spd:40,gold:3,fly:1,shoot:{cd:2,sp:85}},
    {id:'eggpod',n:'EGG POD',ai:'turret',kit:'turretk',o:{shape:'egg'},pal:['#3a0a38',mg,MG,PG,WH],w:14,h:20,hp:8,cd:1.6,range:160,bul:{n:5,sp:85,sd:.7},gold:4},
-   {id:'leaper',n:'LEAPER',ai:'hopper',kit:'blob',o:{legs:1,eyes:'three'},pal:['#3a0a38',PU,mg,PG,WH],w:14,h:14,hp:5,spd:68,gold:3},
+   {id:'leaper',n:'LEAPER',ai:'hopper',kit:'blob',o:{frog:1},pal:['#3a0a38',PU,mg,PG,WH],w:14,h:14,hp:5,spd:68,gold:3},
    {id:'hiveguard',n:'HIVE GUARD',ai:'charger',kit:'golem',o:{mandibles:1,eye:PG},pal:['#3a0a38',PU,mg,MG,PG],w:28,h:30,hp:22,spd:26,gold:12,shoot:{cd:2.2,sp:88}}]}
 ];
 const PARAM=[
  {gapMax:5,dens:.5,dmg:1,resp:50,caves:2,wt:{flat:3,stairs:3,gap:2,floaters:2,springs:3,cliff:1,tower:1,cavezone:3,hill:2}},
  {gapMax:6,dens:.65,dmg:1,resp:45,caves:3,wt:{flat:2,stairs:3,gap:2,floaters:2,crumble:3,cliff:2,tower:1,cavezone:3,hill:2}},
- {gapMax:7,dens:.8,dmg:1,resp:40,caves:3,wt:{flat:2,stairs:2,gap:3,floaters:3,liftgap:2,cliff:2,tower:2,updraft:3,gates:3,cavezone:3}},
+ {gapMax:7,dens:.8,dmg:1,resp:40,caves:3,wt:{flat:2,stairs:2,gap:3,floaters:3,liftgap:2,cliff:2,tower:2,updraft:3,gates:3,mezz:4,cavezone:3}},
  {gapMax:7,dens:1,dmg:2,resp:35,caves:4,wt:{flat:2,stairs:3,gap:1,lava:7,liftgap:2,cliff:3,tower:2,cavezone:3,hill:2}},
- {gapMax:8,dens:1.2,dmg:2,resp:30,caves:4,wt:{flat:2,stairs:3,gap:3,floaters:2,liftgap:3,cliff:3,tower:2,gates:3,cavezone:4,hill:2}}
+ {gapMax:8,dens:1.2,dmg:2,resp:30,caves:4,wt:{flat:2,stairs:3,gap:3,floaters:2,liftgap:3,cliff:3,tower:2,gates:3,mezz:4,cavezone:4,hill:2}}
 ];
 
 /* ---------------- sprites ---------------- */
 function ellp(g,cx,cy0,rx,ry,pal){ell(g,cx,cy0,rx,ry,pal)}
 const KITS={
   blob(g,f,w,h,o){const cx=w/2,cy0=h/2+(o.slug?1:0),b=f&1?1:0;
+    if(o.frog){px(g,o.pal[1],1,h-3,4,3+b);px(g,o.pal[1],w-5,h-3,4,3+b);ell(g,cx,cy0+1,w/2-1,h/2-3,o.pal);px(g,K,3,cy0+2,w-6,1);px(g,o.pal[4],4,cy0+3,w-8,1);for(const x0 of [cx-5,cx+2]){ell(g,x0+1.5,cy0-4,2.6,2.6,[K,WH,WH,WH]);px(g,K,x0+1,cy0-4,2,2)}return}
     if(o.legs){px(g,o.pal[1],w*.25,h-3,2,3+b);px(g,o.pal[1],w*.7,h-3,2,3+b);px(g,o.pal[2],w*.25-1,h-1,4,1);px(g,o.pal[2],w*.7-1,h-1,4,1)}
     ell(g,cx,cy0,w/2-1,h/2-(o.legs?2:1),o.pal);
     if(o.slug){for(let i=0;i<5;i++)px(g,o.pal[4],w*.2+i*3,cy0-h*.3+(i+f)%2,1,1);px(g,o.pal[3],1,cy0,2,2)}
@@ -86,42 +87,52 @@ const KITS={
       ell(g,cx,cy0+1,w/2-4,h/3,o.pal);
       for(let a=0;a<7;a++){const t=a/6,x=w-3+Math.sin(t*3.2)*1-t*3,y=cy0-t*(h*.7)+(a>4?(a-4)*1.2:0);px(g,o.pal[3],x,y,2,2)}px(g,RD,w-6,2+k,2,2);   // curled tail with a sting
       thick(g,o.pal[3],cx-w*.3,cy0,2,cy0-2-k,2);thick(g,o.pal[3],cx-w*.3,cy0+2,1,cy0+3+k,2);px(g,K,cx-w*.2,cy0-1,2,2)}
+    else if(o.shape==='hopper'){ // a grasshopper cocked to jump
+      line(g,o.pal[2],cx+1,cy0+2,cx+5,cy0-3);line(g,o.pal[2],cx+5,cy0-3,cx+7,h-1);line(g,o.pal[2],cx,cy0+2,cx+3,cy0-2);line(g,o.pal[2],cx+3,cy0-2,cx+3,h-1);
+      ell(g,cx,cy0,w*.28,h*.22,o.pal);ell(g,cx-w*.28,cy0-2,3,3,o.pal);px(g,K,cx-w*.28-1,cy0-3,2,2);px(g,YL,cx-w*.28-1,cy0-3,1,1);line(g,o.pal[3],cx-w*.28-1,cy0-5,cx-w*.28-3,cy0-8-(f&1));line(g,o.pal[2],cx-3,cy0+2,cx-5,h-1)}
     else{ // spider: bent legs
       ell(g,cx,cy0-1,w*.28,h*.3,o.pal);px(g,K,cx-3,cy0-2,2,2);px(g,K,cx+1,cy0-2,2,2);
       for(let s=-1;s<=1;s+=2)for(let i=0;i<3;i++){const x0=cx+s*(i+1)*2,kx=x0+s*5,ky=cy0-4-((f+i)&1)*2;line(g,o.pal[2],x0,cy0,kx,ky);line(g,o.pal[2],kx,ky,kx+s*3,h-1)}}},
   wing(g,f,w,h,o){const cx=w/2,cy0=h/2+1,fl=[0,3,0,-3][f%4],up=[-5,-2,2,-2][f%4];
-    if(o.wing==='wisp'){ell(g,cx,cy0,w/2-2,h/2-2,o.pal);for(let i=0;i<5;i++)px(g,o.pal[3],cx+3+i*2,cy0+Math.sin(i+f)*2,2,1);px(g,K,cx-3,cy0-1,2,2);px(g,WH,cx-3,cy0-1,1,1)}
+    if(o.wing==='wisp'){for(let j=0;j<h;j++){const t=j/h,rw=Math.max(1,(1-t)*(w/2-1)+1),sx=Math.sin(j*.9+f*1.57)*rw*.55;for(let i=-1;i<=1;i++){px(g,rampAt(o.pal,.3+t*.4+(i===0?.25:0),i+j,j),cx+sx+i*rw*.55,h-1-j,Math.max(1,rw*.5),1)}}px(g,WH,cx+Math.sin(f)*3,h*.3,1,1);px(g,o.pal[3],cx-3,h*.6,1,1)}
     else if(o.wing==='moth'){
       ell(g,cx+1,cy0+1,w*.2,h*.28,o.pal);ell(g,cx-w*.2,cy0,3,3,o.pal);px(g,K,cx-w*.2-1,cy0-1,2,2);line(g,o.pal[3],cx-w*.2-1,cy0-3,cx-w*.2-4,cy0-6);line(g,o.pal[3],cx-w*.2+1,cy0-3,cx-w*.2+3,cy0-6);   // body, head, antennae
       ell(g,cx+2,cy0-3+up*.6,w*.32,h*.36,[o.pal[0],o.pal[1],o.pal[2],o.pal[3]]);ell(g,cx+3,cy0-3+up*.6,2,2,[K,o.pal[4],WH,WH]);ell(g,cx+w*.15,cy0-1,w*.2,h*.22,[o.pal[0],o.pal[1],o.pal[2]])}
     else if(o.wing==='bat'){
-      ell(g,cx-1,cy0,3.5,4,o.pal);ell(g,cx-3,cy0-3,3,3,o.pal);poly(g,[[cx-5,cy0-5],[cx-5,cy0-8],[cx-3,cy0-5]],o.pal);poly(g,[[cx-1,cy0-5],[cx+1,cy0-8],[cx,cy0-4]],o.pal);px(g,RD,cx-4,cy0-3,1,1);px(g,WH,cx-4,cy0,1,2);px(g,WH,cx-2,cy0,1,2);
-      const tip=up-4;poly(g,[[cx+1,cy0-1],[cx+4,cy0+tip],[cx+8,cy0+tip+4],[cx+9,cy0+tip+1],[cx+w*.5,cy0+tip+5],[cx+w*.5-1,cy0+2],[cx+3,cy0+3]],o.pal)}
+      const tip=[-6,-2,3,-2][f%4],ww=w*.5-1;
+      for(const s of [-1,1]){const X=x=>cx+s*x;
+        poly(g,[[X(2),cy0-1],[X(ww*.45),cy0-4+tip],[X(ww),cy0-6+tip],[X(ww-2),cy0+tip*.3-1],[X(ww*.72),cy0+2+tip*.3],[X(ww*.5),cy0+1],[X(ww*.28),cy0+4],[X(2),cy0+3]],[o.pal[0],o.pal[1],o.pal[2],o.pal[3]]);
+        px(g,o.pal[4],X(ww*.45),cy0-4+tip,1,1);px(g,o.pal[4],X(ww),cy0-6+tip,1,1)}
+      ell(g,cx,cy0+1,3,4,[o.pal[0],o.pal[1],o.pal[2]]);ell(g,cx,cy0-3,2.5,2.5,[o.pal[0],o.pal[1],o.pal[2]]);
+      poly(g,[[cx-3,cy0-5],[cx-3,cy0-8],[cx-1,cy0-5]],o.pal);poly(g,[[cx+1,cy0-5],[cx+3,cy0-8],[cx+3,cy0-5]],o.pal);px(g,RD,cx-2,cy0-3,1,1);px(g,RD,cx+1,cy0-3,1,1);px(g,WH,cx-1,cy0-1,1,1);px(g,WH,cx,cy0-1,1,1)}
     else{ // wasp
       ell(g,cx+w*.2,cy0+1,w*.24,h*.3,[o.pal[0],o.pal[1],YL,YL]);for(let i=0;i<3;i++)px(g,K,cx+w*.1+i*3,cy0-h*.2,1,h*.45);px(g,RD,w-2,cy0+1,2,1);
       ell(g,cx-2,cy0,3.5,3.5,o.pal);ell(g,cx-6,cy0-1,2.5,2.5,o.pal);px(g,RD,cx-8,cy0-2,2,2);line(g,K,cx-7,cy0-3,cx-9,cy0-5);
       const wy=cy0-5+up*.5;ell(g,cx+1,wy,w*.18,3,[o.pal[3],o.pal[4],WH,WH]);ell(g,cx+w*.14,wy+1,w*.14,2.5,[o.pal[3],o.pal[4],WH,WH])}},
   golem(g,f,w,h,o){const cx=w/2,sw=f&1;
-    thick(g,o.pal[1],cx-4,h*.7,cx-4-sw,h-1,4);thick(g,o.pal[1],cx+4,h*.7,cx+4+sw,h-1,4);px(g,K,cx-7-sw,h-1,6,1);px(g,K,cx+1+sw,h-1,6,1);
-    poly(g,[[1,h*.3],[w-1,h*.3],[w-5,h*.74],[5,h*.74]],o.pal);
-    for(let s=-1;s<=1;s+=2){const ax=s<0?3:w-4,sy=h*.34+(sw?1:0)*s*.6;thick(g,o.pal[2],ax,h*.34,ax+s*-1,h*.78+(s<0?sw:1-sw)*2,3);ell(g,ax+s*-1,h*.84+(s<0?sw:1-sw)*2,2.6,2.6,o.pal)}
-    ell(g,cx-2,h*.2,w*.19,h*.14,o.pal);
-    if(o.knight){poly(g,[[cx-6,h*.12],[cx-2,h*.02],[cx+3,h*.12]],[K,VI,BL]);px(g,o.eye||RD,cx-6,h*.2,5,2)}
-    else if(o.mech){px(g,CY,cx-8,h*.15,6,4);px(g,WH,cx-8,h*.15,2,1);poly(g,[[cx-3,h*.4],[cx+4,h*.4],[cx+3,h*.56],[cx-2,h*.56]],[K,D,GM]);thick(g,o.pal[3],w-3,h*.38,w+1,h*.8,3);px(g,o.eye||RD,w-3,h*.82,3,2);px(g,YL,cx-6,h*.62,2,2);px(g,YL,cx+2,h*.62,2,2)}
-    else if(o.mandibles){px(g,o.eye||PG,cx-7,h*.17,3,2);px(g,o.eye||PG,cx-3,h*.17,3,2);thick(g,o.pal[4],cx-7,h*.26,cx-9,h*.36,2);thick(g,o.pal[4],cx-1,h*.26,cx+1,h*.36,2);for(let i=0;i<3;i++)px(g,o.pal[0],4+i*5,h*.45,3,1)}
-    else{px(g,o.eye||RD,cx-7,h*.17,3,2);px(g,o.eye||RD,cx-2,h*.17,3,2);line(g,K,cx-8,h*.12,cx-5,h*.15);line(g,K,cx-1,h*.12,cx-3,h*.15)}
-    if(o.cap){ell(g,cx-2,h*.07,w*.45,h*.11,[BR,TN,OR,YL,WH]);for(let i=0;i<4;i++)px(g,YL,cx-9+i*5,h*.04+(i%2),2,2);px(g,TN,cx-3,h*.12,2,2)}
-    if(o.crystal){for(let i=0;i<4;i++){const x=3+i*(w-8)/3;poly(g,[[x,h*.34],[x+2,h*(.02+(i%2)*.1)],[x+4,h*.34]],[MG,CY,WH])}}
-    if(o.horns){thick(g,LL,cx-8,h*.14,cx-11,h*.02,2);thick(g,LL,cx+3,h*.14,cx+6,h*.02,2)}},
+    thick(g,o.pal[1],cx-3,h*.74,cx-3-sw,h-1,3);thick(g,o.pal[1],cx+3,h*.74,cx+3+sw,h-1,3);px(g,K,cx-6-sw,h-1,5,1);px(g,K,cx+1+sw,h-1,5,1);
+    poly(g,[[5,h*.3],[w-5,h*.3],[w-7,h*.76],[7,h*.76]],o.pal);
+    for(const s of [-1,1]){const sx=s<0?3:w-4,ex=s<0?1:w-2,ey=h*.74+((s<0?sw:1-sw)*2);ell(g,sx,h*.34,3.5,3,o.pal);thick(g,o.pal[2],sx,h*.36,ex,ey,3);ell(g,ex,ey+1,2.8,2.8,[o.pal[0],o.pal[1],o.pal[3],o.pal[4]])}
+    ell(g,cx,h*.17,w*.2,h*.13,o.pal);
+    if(o.knight){poly(g,[[cx-6,h*.12],[cx,h*.0],[cx+6,h*.12]],[K,VI,BL]);line(g,RD,cx,0,cx+4,h*.12);px(g,o.eye||RD,cx-4,h*.17,8,2)}
+    else if(o.mech){px(g,CY,cx-5,h*.12,10,5);px(g,WH,cx-5,h*.12,3,1);px(g,K,cx-5,h*.12,10,1);poly(g,[[cx-3,h*.42],[cx+4,h*.42],[cx+3,h*.58],[cx-2,h*.58]],[K,D,GM]);px(g,YL,cx-6,h*.64,2,2);px(g,YL,cx+4,h*.64,2,2);thick(g,o.pal[3],w-3,h*.5,w+1,h*.82,3);px(g,o.eye||RD,w-3,h*.84,3,2)}
+    else if(o.mandibles){px(g,o.eye||PG,cx-5,h*.13,3,3);px(g,o.eye||PG,cx+2,h*.13,3,3);thick(g,o.pal[4],cx-4,h*.24,cx-6,h*.34,2);thick(g,o.pal[4],cx+4,h*.24,cx+6,h*.34,2);for(let i=0;i<3;i++)px(g,o.pal[0],7+i*4,h*.45,2,1)}
+    else{px(g,o.eye||RD,cx-5,h*.14,3,2);px(g,o.eye||RD,cx+2,h*.14,3,2);line(g,K,cx-6,h*.1,cx-2,h*.13);line(g,K,cx+6,h*.1,cx+2,h*.13);px(g,K,cx-3,h*.22,6,1)}
+    if(o.cap){ell(g,cx,h*.05,w*.46,h*.09,[BR,TN,OR,YL,WH]);for(let i=0;i<4;i++)px(g,YL,cx-9+i*5,h*.02+(i%2),2,2)}
+    if(o.crystal){for(let i=0;i<5;i++){const x=cx-8+i*4;poly(g,[[x,h*.12],[x+2,h*(-.02+(i%2)*.08)],[x+4,h*.12]],[MG,CY,WH])}}
+    if(o.horns){thick(g,LL,cx-6,h*.1,cx-9,0,2);thick(g,LL,cx+6,h*.1,cx+9,0,2)}},
   turretk(g,f,w,h,o){const cx=w/2,pulse=f&1;
     if(o.shape==='plant'){thick(g,o.pal[1],cx,h,cx,h*.4,3);ell(g,cx,h*.3,w/2-1,h*.3,[o.pal[0],o.pal[2],o.pal[3],YL]);px(g,K,cx-3,h*.28,6,2);for(let i=0;i<5;i++)px(g,WH,cx-4+i*2,h*.28-(i%2),1,1);poly(g,[[1,h],[cx,h-6],[w-1,h]],o.pal)}
     else if(o.shape==='egg'){poly(g,[[2,h],[w-2,h],[w-3,h-4],[3,h-4]],[o.pal[0],o.pal[1],o.pal[1]]);ell(g,cx,h*.5,w/2-1,h*.42,[o.pal[0],o.pal[1],o.pal[2],o.pal[3]]);
       if(pulse){px(g,K,cx-1,h*.28,3,h*.4);px(g,o.pal[4],cx,h*.45,1,2)}else px(g,K,cx,h*.3,1,h*.36);for(let i=0;i<4;i++)px(g,o.pal[4],3+i*3,h*.4+(i%2)*5,1,1)}
     else if(o.shape==='crystal'){poly(g,[[cx-6,h],[cx-3,h*.3],[cx,0],[cx+3,h*.3],[cx+6,h]],o.pal);poly(g,[[cx-3,h],[cx,h*.2],[cx+3,h]],[o.pal[2],o.pal[3],WH]);if(pulse)px(g,WH,cx,h*.25,1,2)}
     else if(o.shape==='gargoyle'){poly(g,[[2,h],[w-2,h],[w-3,h*.45],[2,h*.45]],o.pal);poly(g,[[1,h*.5],[cx,0],[w-1,h*.5]],o.pal);px(g,RD,cx-3,h*.4,2,2);px(g,RD,cx+2,h*.4,2,2);poly(g,[[0,h*.7],[3,h*.3],[3,h*.8]],o.pal)}
-    else if(o.shape==='spitter'){ // a squat lizard with a glowing mouth and a bulging throat
-      ell(g,cx+1,h*.65,w*.4,h*.28,o.pal);poly(g,[[1,h*.5],[w*.4,h*.35],[w*.45,h*.65],[1,h*.7]],o.pal);px(g,K,1,h*.6,w*.3,2);px(g,pulse?YL:OR,2,h*.6,w*.28,1);px(g,WH,4,h*.4,2,2);px(g,K,4,h*.42,1,1);
-      ell(g,cx-1,h*.55+(pulse?-1:1),3,3,[rd,OR,YL,YL]);thick(g,o.pal[1],w-2,h*.8,w+1,h*.45,2);for(let i=0;i<3;i++)px(g,o.pal[3],cx+i*3-2,h*.4-(i%2),2,2)}
+    else if(o.shape==='spitter'){ // a squat lizard with its head cocked up like a mortar
+      ell(g,cx+2,h*.72,w*.38,h*.22,o.pal);thick(g,o.pal[1],w-2,h*.85,w+1,h*.55,2);
+      poly(g,[[3,h*.62],[w*.3,h*.32],[w*.62,h*.18],[w*.7,h*.45],[w*.55,h*.72]],o.pal);                        // the raised head
+      poly(g,[[1,h*.35],[w*.34,h*.06],[w*.42,h*.2],[w*.16,h*.46]],o.pal);px(g,K,3,h*.3,w*.28,3);px(g,pulse?YL:OR,4,h*.33,w*.2,1);   // open mouth
+      px(g,WH,w*.4,h*.2,2,2);px(g,K,w*.42,h*.22,1,1);px(g,WH,w*.52,h*.26,2,2);px(g,K,w*.54,h*.28,1,1);
+      ell(g,w*.4,h*.5+(pulse?-1:1),3,3,[rd,OR,YL,YL]);for(let i=0;i<3;i++)px(g,o.pal[3],w*.55+i*3,h*.62-(i%2),2,2)}
     else{poly(g,[[cx-4,h],[cx+4,h],[cx+3,2],[cx-3,2]],o.pal);ell(g,cx,5,5,5,[K,mg,MG,pulse?WH:MG]);for(let i=0;i<3;i++)px(g,MG,cx-3,h*.4+i*5,6,1)}},
   cap(g,f,w,h,o){const cx=w/2,k=f&1;
     for(let i=0;i<4;i++){const x0=3+i*(w-6)/3;line(g,o.pal[3],x0,h*.5,x0+(k?1:-1),h-1)}
@@ -197,6 +208,8 @@ function mkPlants(W_){
   t(15,18,g=>{thick(g,lf[1],7,18,7,6,2);for(let i=0;i<5;i++){const a=-1.2+i*.6;thick(g,i%2?lf[1]:lf[2],7,6,7+Math.sin(a)*8,6-Math.cos(a)*6+2,1);px(g,lf[2],7+Math.sin(a)*8,6-Math.cos(a)*6+2,1,1)}ell(g,7,5,2,2,[lf[0],fl[0],fl[1],WH])});   // frond tree
   t(11,20,g=>{px(g,lf[1],5,6,2,14);for(let k=0;k<3;k++){px(g,lf[2],2,9+k*4,3,1);px(g,lf[2],6,11+k*4,3,1)}ell(g,5.5,5,5,5,[lf[0],fl[0],fl[1],WH]);ell(g,5.5,5,2,2,[fl[2],WH,WH,WH])});   // giant flower
   t(9,16,g=>{px(g,lf[1],4,5,1,11);ell(g,4.5,3,3.5,3.5,[W_.glow,WH,WH,WH]);for(let k=0;k<3;k++)px(g,lf[2],1+(k&1)*5,9+k*2,3,1)});   // glowing bulb stalk
+  if(P.kind==='hive')t(12,9,g=>{for(let i=0;i<3;i++)ell(g,3+i*3.2,6-(i%2)*2,3,3.5,[lf[0],lf[1],fl[2],WH]);px(g,fl[0],2,5,1,1)});
+  if(P.kind==='desert')for(let k=0;k<3;k++)t(14,16+k*2,g=>{for(let i=0;i<4;i++){const hh=8+((i*7+k*3)%7)+k*2,x=2+i*3;poly(g,[[x,17],[x+1,17-hh],[x+3,17]],[[VI,mg,MG,WH],[BL,cy,CY,WH],[PU,LV,MG,WH]][(i+k)%3])}});
   hg(7,24,g=>{px(g,lf[1],3,0,1,22);for(let k=0;k<7;k++){px(g,lf[2],2-(k&1)*2,2+k*3,3,1);px(g,lf[2],4,3+k*3,3,1)}px(g,fl[0],2,22,3,2);px(g,W_.glow,3,23,1,1)});   // long vine
   hg(5,16,g=>{px(g,lf[1],2,0,1,15);for(let k=0;k<5;k++){px(g,lf[2],1-(k&1),2+k*3,2,1);px(g,lf[2],3,3+k*3,2,1)}px(g,fl[0],2,14,2,2)});             // hanging vine
   hg(5,11,g=>{px(g,lf[1],2,0,1,9);for(let k=0;k<3;k++){px(g,lf[2],(k&1)?0:3,2+k*3,2,1)}ell(g,2.5,9,2,2,[lf[0],W_.glow,WH,WH])});                   // glowing lantern fruit
@@ -233,7 +246,8 @@ function genLevel(idx){
   let lastCheck=5,dryDir=1;
   while(x<LW-34){
     const kind=pickW(),x0=x;
-    if(kind==='flat'){const n=rn(6,12);flat(n);groundSpawns(x0,n,cyc-1)}
+    if(kind==='flat'){const n=rn(6,12);flat(n);groundSpawns(x0,n,cyc-1);
+      if(!Wd.ship&&!Wd.cavern&&n>=9&&R()<.6){feats.push({x:x0+2,y:cyc-6,t:1,w:n-4,h:2});for(let i=x0+3;i<x0+n-3;i+=2)L.coins.push({x:i*TS+4,y:(cyc-8)*TS,v:1})}}
     else if(kind==='stairs'||kind==='hill'){
       const up=kind==='hill'||(R()<.5&&cyc>13),st=rn(3,6),sw=rn(2,3);
       for(let s=0;s<st&&x<LW-34;s++){cyc+=up?-1:1;cyc=clamp(cyc,11,26);for(let k=0;k<sw;k++)top[x++]=cyc}
@@ -245,7 +259,7 @@ function genLevel(idx){
       const gx=x;for(let i=0;i<n;i++){top[x++]=-1;floorAt[x-1]=fl}
       if(kind==='crumble'){for(let i=0;i<n;i++)feats.push({x:gx+i,y:cyc,t:6})}
       else if(kind==='lava'){for(let i=0;i<n;i++)feats.push({x:gx+i,y:fl-1,t:4});for(let i=1;i<n-1;i+=4)plats.push({x:gx+i,y:cyc-1+(i%3===0?-1:0),w:3})}
-      else{for(let i=0;i<n;i++)feats.push({x:gx+i,y:fl-1,t:3});coinArc(gx,cyc-2,n,3)}
+      else{for(let i=0;i<n;i++)feats.push({x:gx+i,y:fl-1,t:Wd.lava?4:3});coinArc(gx,cyc-2,n,3)}
       flat(2);
     }
     else if(kind==='floaters'||kind==='liftgap'||kind==='gates'||kind==='updraft'){
@@ -274,6 +288,13 @@ function genLevel(idx){
       feats.push({x:tx,y:cyc-th,t:1,w:4,h:th});
       let py=cyc-3,side=0;while(py>cyc-th+2){plats.push({x:side?tx-8:tx-4,y:py,w:4});py-=3;side^=1}
       L.chests.push({x:(tx+1)*TS,y:(cyc-th)*TS-10,open:0,v:5+idx*3});spawn(2,(tx+2)*TS,(cyc-th-1)*TS);groundSpawns(tx-6,14,cyc-1);
+    }
+    else if(kind==='mezz'){
+      const n=rn(26,34),gx=x;for(let i=0;i<n;i++)top[x++]=cyc;
+      for(let k=0;k<7;k++)feats.push({x:gx+2+k*2,y:cyc-1-k,t:1,w:2,h:k+1});
+      feats.push({x:gx+16,y:cyc-8,t:1,w:n-18,h:2});
+      for(let i=gx+18;i<gx+n-3;i+=3)L.coins.push({x:i*TS+4,y:(cyc-10)*TS,v:1});
+      L.chests.push({x:(gx+n-8)*TS,y:(cyc-8)*TS-10,open:0,v:5+idx*3});spawn(R()<.5?0:3,(gx+22)*TS,(cyc-9)*TS);groundSpawns(gx+14,n-16,cyc-1);
     }
     else if(kind==='cavezone'){
       const n=rn(38,52),zx=x;for(let i=0;i<n;i++)top[x++]=cyc;cavezones.push({x:zx,n,s:cyc});groundSpawns(zx,n,cyc-1);
@@ -376,16 +397,21 @@ SURF.assets_=idx=>{
   const R=rng(300+idx);
   a.far=[0,1].map(l=>cnv(320,100,g=>{const nz=B.mkNoise(40+idx*3+l);const col=Wd.ridge[l];for(let i=0;i<320;i++){const h=30+nz.fbm(i*.02+l*7,3,3)*(50-l*10);for(let j=100-h;j<100;j++)px(g,j<100-h+2?col[1]:col[0],i,j)}}));
   if(Wd.ship||Wd.cavern)a.wall=cnv(128,96,g=>{
-    const R2=rng(90+idx),rk=Wd.rock;
+    const R2=rng(90+idx),rk=Wd.wallc||Wd.rock,hive=Wd.plant&&Wd.plant.kind==='hive';
     for(let j=0;j<96;j++)for(let i=0;i<128;i++)px(g,rampAt([rk[0],rk[0],rk[1]],.15+((i*3+j*5)%7)/22,i,j),i,j);
-    if(Wd.ship){
+    if(Wd.ship&&!hive){
       for(let py=0;py<96;py+=32)for(let pxx=0;pxx<128;pxx+=32){px(g,rk[1],pxx,py,32,1);px(g,K,pxx,py+1,32,1);px(g,rk[1],pxx,py,1,32);px(g,K,pxx+1,py,1,32);for(const [rx,ry] of [[3,3],[28,3],[3,28],[28,28]])px(g,rk[2],pxx+rx,py+ry,2,2)}
       for(let i=0;i<6;i++){const wx=8+((i*53)%104),wy=6+((i*29)%80);px(g,K,wx,wy,3,12);px(g,rk[1],wx+3,wy,1,12);px(g,Wd.glow,wx+1,wy+3,1,1)}      // vents and pipes
       for(let i=0;i<3;i++){const wx=6+i*42,wy=10+(i%2)*30;px(g,K,wx,wy,24,14);px(g,'#05021a',wx+1,wy+1,22,12);for(let k=0;k<6;k++)px(g,[WH,CY,YL][k%3],wx+3+((k*7)%18),wy+2+((k*5)%9),1,1);px(g,rk[3],wx,wy,24,1)}  // windows onto space
     }else{
+      if(hive)for(let i=0;i<9;i++){const x0=(R2()*128)|0;for(let j=0;j<96;j++){const xx=(x0+Math.sin(j*.15+i)*5)|0;px(g,rk[2],mod(xx,128),j,2,1);px(g,rk[3],mod(xx,128),j,1,1)}}
       for(let i=0;i<50;i++){const cxx=((R2()*128)|0),cyy=((R2()*96)|0),rr=1+((R2()*4)|0);ell(g,cxx,cyy,rr+1,rr,[rk[0],rk[1],rk[2]])}
       for(let i=0;i<8;i++){const x0=(R2()*128)|0;line(g,rk[3],x0,0,x0+(R2()*6-3),96)}                                                                            // glowing cracks
     }});
+  a.skyobj=cnv(110,60,g=>{
+    if(idx===0){ell(g,55,30,22,22,[VI,PU,mg,MG,WH]);for(let i=0;i<110;i++){const an=i/110*TAU;if(Math.sin(an)>0||Math.abs(Math.cos(an))>.4)px(g,i%2?YL:OR,55+Math.cos(an)*38,30+Math.sin(an)*9,2,1)}}
+    else if(idx===1){ell(g,36,28,16,16,[OR,YL,WH,WH]);ell(g,82,38,8,8,[RD,OR,YL,WH])}
+    else{}});
   a.coin=cnv(7,7,g=>{ell(g,3.5,3.5,3,3,GREEN);px(g,WH,2,2,1,1)});
   a.chest=[cnv(14,10,g=>{poly(g,[[0,3],[14,3],[14,10],[0,10]],[BR,TN,OR]);poly(g,[[0,0],[14,0],[14,4],[0,4]],[BR,OR,YL]);px(g,GREEN[3],6,3,2,3);px(g,K,0,3,14,1)}),
     cnv(14,10,g=>{poly(g,[[0,5],[14,5],[14,10],[0,10]],[BR,TN,OR]);px(g,GREEN[2],2,0,10,5);px(g,GREEN[4],4,1,2,2);px(g,GREEN[3],8,2,2,2)})];
@@ -615,9 +641,11 @@ SURF.draw=function(){
   const L=SURF.L,A=SURF.A,Wd=SURF.W,p=SURF.p,cam=SURF.cam;
   let sx=0,sy0=0;if(shakeS>0){shakeS-=1/60;sx=(Math.random()-.5)*3;sy0=(Math.random()-.5)*3}
   ctx.save();ctx.translate(sx|0,sy0|0);
-  if(Wd.ship||Wd.cavern){ctx.fillStyle=Wd.rock[0];ctx.fillRect(0,0,VW,VH);const wi=A.wall,ox=-Math.floor(mod(cam.x*.45,128)),oy=-Math.floor(mod(cam.y*.45,96));for(let y=oy;y<VH;y+=96)for(let x=ox;x<VW;x+=128)ctx.drawImage(wi,x,y)}else ctx.drawImage(A.sky,0,0);
+  if(!Wd.ship&&!Wd.cavern&&A.skyobj&&(SURF.idx<2)){}
+  if(Wd.ship||Wd.cavern){ctx.fillStyle=(Wd.wallc||Wd.rock)[0];ctx.fillRect(0,0,VW,VH);const wi=A.wall,ox=-Math.floor(mod(cam.x*.45,128)),oy=-Math.floor(mod(cam.y*.45,96));for(let y=oy;y<VH;y+=96)for(let x=ox;x<VW;x+=128)ctx.drawImage(wi,x,y)}else ctx.drawImage(A.sky,0,0);
   /* far layers move slower than the ground */
-  const horizon=clamp(150-(cam.y-(20*TS-100))*.35,60,230);
+  if(!Wd.ship&&!Wd.cavern&&SURF.idx<2){ctx.drawImage(A.skyobj,Math.floor(190-cam.x*.03),Math.floor(10-cam.y*.04));ctx.fillStyle=Wd.glow;for(let i=0;i<22;i++){const sx=mod(i*47-L.tick*(6+i%5),VW+20),sy=mod(i*31+Math.sin(L.tick*.7+i)*12,110)+4;ctx.globalAlpha=.5;ctx.fillRect(sx|0,sy|0,2,2);ctx.globalAlpha=1}}
+  const horizon=clamp(150-(cam.y-(20*TS-100))*.35,100,230);
   if(!Wd.ship&&!Wd.cavern)for(let l=0;l<2;l++){const img=A.far[l],f=l?.35:.18,ox=-Math.floor(mod(cam.x*f,320)),oy=Math.floor(horizon-img.height+(l?18:0));
     for(let x=ox;x<VW;x+=320)ctx.drawImage(img,x,oy)}
   /* decor in the middle distance */
@@ -637,10 +665,11 @@ SURF.draw=function(){
     ctx.drawImage(im,X,Y);ctx.globalAlpha=1;
     if(t===1||t===6){const gl=L.g[ty*L.LW+tx-1],gr=L.g[ty*L.LW+tx+1],gu=ty>0?L.g[(ty-1)*L.LW+tx]:1,gd=ty<L.LH-1?L.g[(ty+1)*L.LW+tx]:1;ctx.fillStyle=K;if(gl===0)ctx.fillRect(X,Y,1,8);if(gr===0)ctx.fillRect(X+7,Y,1,8);if(gu===0)ctx.fillRect(X,Y-1,8,1);if(gd===0)ctx.fillRect(X,Y+7,8,1)}
     if(t===1){const h=((tx*73856093)^(ty*19349663))>>>0,sw=Math.floor(L.tick*1.5+h%7)%2;
-      if(ty>0&&L.g[(ty-1)*L.LW+tx]===0&&h%100<62){const pl=A.plants.top[h%A.plants.top.length];ctx.drawImage(pl,X+4-(pl.width>>1)+sw,Y-pl.height+1)}
+      const cl=(((tx>>2)*2654435761)>>>0)%100,prob=cl<55?85:10;
+      if(ty>0&&L.g[(ty-1)*L.LW+tx]===0&&h%100<prob){const pl=A.plants.top[h%A.plants.top.length];ctx.drawImage(pl,X+4-(pl.width>>1)+sw,Y-pl.height+1)}
       else if(ty<L.LH-1&&L.g[(ty+1)*L.LW+tx]===0&&h%100<44){const pl=A.plants.hang[h%A.plants.hang.length];ctx.drawImage(pl,X+2+sw,Y+7)}}
   }
-  if(Wd.lava){const gy=VH-60;for(let i=0;i<12;i++){ctx.globalAlpha=.05+i*.012;ctx.fillStyle=i<6?'#ff9966':'#ffffaa';ctx.fillRect(0,gy+i*5,VW,5)}ctx.globalAlpha=1}
+  if(Wd.lava){const gy=VH-80;for(let i=0;i<16;i++){ctx.globalAlpha=.06+i*.016;ctx.fillStyle=i<6?'#ff9966':'#ffffaa';ctx.fillRect(0,gy+i*5,VW,5)}ctx.globalAlpha=1}
   /* laser gates */
   for(const gt of (L.gates||[])){for(let j=0;j<gt.h;j++){const X=Math.floor(gt.x*TS-cam.x),Y=Math.floor((gt.y+j)*TS-cam.y);if(gt.on){ctx.drawImage(T.gate[tf],X,Y)}else{ctx.fillStyle=D;ctx.fillRect(X+3,Y,2,8)}}}
   /* wind */
