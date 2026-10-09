@@ -116,10 +116,11 @@ const KIT={
   },
   /* a long thin eel or streak */
   eel(g,f,w,h,o){const cy=h/2;let ox=2;
-    for(let i=0;i<w-6;i++){const x=ox+i,y=cy+Math.sin(i*.35-f*1.57)*(h*.25*(i/(w-6)+.2)),th=Math.max(1,Math.round((1-i/(w-6))*h*.34+1));
+    for(let i=0;i<w-6;i++){const x=ox+i,y=cy+Math.sin(i*.35-f*1.57)*(h*.25*(i/(w-6)+.2)),th=Math.max(1,Math.round((1-i/(w-6))*h*(o.th||.34)+1));
       for(let k=0;k<th;k++)px(g,rampAt(o.pal,1-k/th*.9-(i%5===0?.15:0),x,y+k),x,y-th/2+k)}
     ell(g,5,cy,4,Math.max(3,h*.22),o.pal);px(g,o.eye||WH,3,cy-1,2,1);px(g,o.eye||WH,3,cy+1,2,1);
     for(let i=0;i<3;i++)px(g,o.spark||CY,w*.4+i*5,cy-h*.3+((f+i)&1)*h*.5,1,1);
+    if(o.lure){ell(g,3,cy-h*.42,3,3,[K,rd,YL,WH]);line(g,o.pal[3],5,cy-2,4,cy-h*.38)}
     if(o.tent){for(let t=0;t<3;t++){const yy=cy+(t-1)*2;let xx=w-8;g.fillStyle=o.pal[3];for(let i=0;i<8;i++){xx++;g.fillRect(xx,(yy+Math.sin(i*.7-f*1.57+t)*2)|0,1,1)}}
       for(let a=0;a<8;a++)px(g,o.eye||WH,5+Math.cos(a/8*TAU)*5,cy+Math.sin(a/8*TAU)*h*.32)}
   },

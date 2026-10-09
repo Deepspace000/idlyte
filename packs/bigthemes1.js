@@ -20,23 +20,23 @@ const bubble=(r,ramp)=>cnv(r*2+2,r*2+2,g=>{ell(g,r+1,r+1,r,r,ramp);px(g,WH,r-1,r
 const RUST=['#1c1008',BR,TN,'#d8a878',YL],WRECK=['#0a0604','#2a1a14',BR,TN,'#d8a878'],TEAL=[K,'#1b3036','#3c6a78',cy,CY],DEAD=['#07050e','#1c1008','#2a1a14',BR,TN];
 function titanBoss(g,w,h){
   const cy0=h/2;
-  poly(g,[[2,cy0+8],[10,cy0-22],[w*.62,cy0-30],[w-4,cy0-12],[w-4,cy0+14],[w*.55,cy0+34],[10,cy0+24]],RUST);               // main hull
-  poly(g,[[w*.3,cy0-30],[w*.38,cy0-h*.46],[w*.62,cy0-h*.46],[w*.7,cy0-26]],RUST);poly(g,[[w*.34,cy0-h*.44],[w*.58,cy0-h*.44],[w*.58,cy0-h*.36],[w*.34,cy0-h*.36]],TEAL);   // bridge
-  for(let i=0;i<4;i++){ell(g,w*.26+i*w*.13,cy0-28,7,5,RUST);thick(g,K,w*.26+i*w*.13-3,cy0-30,w*.26+i*w*.13-16,cy0-26,3)}    // top turrets
-  for(let i=0;i<3;i++){ell(g,w*.3+i*w*.14,cy0+30,7,5,RUST);thick(g,K,w*.3+i*w*.14-3,cy0+31,w*.3+i*w*.14-16,cy0+28,3)}
-  for(let i=0;i<9;i++)px(g,RUST[0],10+i*(w-24)/9,cy0-16,1,30);                                                                // armour seams
+  poly(g,[[2,cy0+8],[10,cy0-22],[w*.62,cy0-30],[w-4,cy0-12],[w-4,cy0+14],[w*.55,cy0+34],[10,cy0+24]],WRECK);               // main hull
+  poly(g,[[w*.3,cy0-30],[w*.38,cy0-h*.46],[w*.62,cy0-h*.46],[w*.7,cy0-26]],WRECK);poly(g,[[w*.34,cy0-h*.44],[w*.58,cy0-h*.44],[w*.58,cy0-h*.36],[w*.34,cy0-h*.36]],TEAL);   // bridge
+  for(let i=0;i<4;i++){ell(g,w*.26+i*w*.13,cy0-28,7,5,WRECK);thick(g,K,w*.26+i*w*.13-3,cy0-30,w*.26+i*w*.13-16,cy0-26,3)}    // top turrets
+  for(let i=0;i<3;i++){ell(g,w*.3+i*w*.14,cy0+30,7,5,WRECK);thick(g,K,w*.3+i*w*.14-3,cy0+31,w*.3+i*w*.14-16,cy0+28,3)}
+  for(let i=0;i<9;i++)px(g,WRECK[0],10+i*(w-24)/9,cy0-16,1,30);                                                                // armour seams
   for(let i=0;i<12;i++)px(g,TEAL[3],14+((i*37)%(w-34)),cy0-12+((i*13)%26),2,1);                                              // lamps
-  g.clearRect(w*.2,cy0+6,16,8);g.clearRect(w*.46,cy0-20,10,6);                                                                // battle damage
+  g.clearRect(w*.2,cy0+6,16,8);g.clearRect(w*.46,cy0-20,10,6);g.clearRect(w*.7,cy0+14,9,6);g.clearRect(w*.12,cy0-8,7,5);for(let i=0;i<14;i++)px(g,CY,w*.18+((i*47)%(w*.6)),cy0+8+((i*13)%10),1,1);                                                                // battle damage
   ell(g,w-12,cy0,9,11,[K,'#1b3036',cy,CY,WH]);                                                                                 // the reactor glows through the hull
   px(g,YL,w-15,cy0-4,3,2);for(let i=0;i<3;i++){px(g,'#ff9966',w-2,cy0-12+i*10,3,4)}                                          // engines
-  poly(g,[[2,cy0+8],[-0,cy0+2],[2,cy0-2]],RUST);
+  poly(g,[[2,cy0+8],[-0,cy0+2],[2,cy0-2]],WRECK);
 }
 function wardenBody(g,w,h){
   const cy0=h/2;
-  poly(g,[[w*.2,cy0],[w*.3,cy0-h*.4],[w*.75,cy0-h*.35],[w-3,cy0],[w*.75,cy0+h*.35],[w*.3,cy0+h*.4]],RUST);
+  poly(g,[[w*.2,cy0],[w*.3,cy0-h*.4],[w*.75,cy0-h*.35],[w-3,cy0],[w*.75,cy0+h*.35],[w*.3,cy0+h*.4]],WRECK);
   ell(g,w*.35,cy0,12,12,TEAL);px(g,K,w*.35-6,cy0-2,10,4);px(g,CY,w*.35-4,cy0-1,6,2);
-  for(let s=-1;s<=1;s+=2){thick(g,RUST[2],w*.55,cy0+s*h*.3,6,cy0+s*h*.42,5);ell(g,8,cy0+s*h*.42,6,5,RUST);thick(g,K,6,cy0+s*h*.42,0,cy0+s*h*.42,3)}
-  for(let i=0;i<6;i++)px(g,RUST[0],w*.4+i*5,cy0-h*.3,1,h*.6);
+  for(let s=-1;s<=1;s+=2){thick(g,WRECK[2],w*.55,cy0+s*h*.3,6,cy0+s*h*.42,5);ell(g,8,cy0+s*h*.42,6,5,WRECK);thick(g,K,6,cy0+s*h*.42,0,cy0+s*h*.42,3)}
+  for(let i=0;i<6;i++)px(g,WRECK[0],w*.4+i*5,cy0-h*.3,1,h*.6);
 }
 const TITAN={
   pal:RUST,
@@ -59,8 +59,8 @@ const TITAN={
             [{a:'fan',n:9,sd:1.3,sp:82,cd:1.3,s:'orb',m:0},{a:'ring',n:18,sp:56,cd:2.8,s:'shard',m:1},{a:'curtain',n:12,sp:74,gap:30,cd:4.2,s:'orb'},{a:'rain',n:7,both:1,sp:64,cd:4.4,s:'dot'},{a:'lance',n:9,sp:150,w:.9,cd:6.2,s:'needle'},{a:'summon',type:'dart',n:3,cd:9}]]},
   scene:K_=>({seed:10,sky:['#07050e','#0e0a1c','#1c1008','#2a1a14'],skyFn:(x,y)=>y/200*.5+.08+Math.sin(x*.02)*.03,stars:[VI,BL,CY,WH],dir:[1,.55],
     layers:[
-      {z:'bg',t:'clouds',ramp:['#07050e','#1c1008','#3a1c10','#68372b'],seed:3,vx:6,alpha:.5,thr:.52},
-      {z:'bg',t:'objs',n:2,vx:4,seed:20,list:[darken(hulk(300,110,7,DEAD,CY),.55),darken(hulk(250,90,8,DEAD,OR),.55)]},
+      {z:'bg',t:'clouds',ramp:['#07050e','#0e0a1c','#1b3036','#3c6a78'],seed:3,vx:6,alpha:.45,thr:.52},
+      {z:'bg',t:'objs',n:2,vx:4,seed:20,list:[darken(hulk(300,110,7,DEAD,CY),.75),darken(hulk(250,90,8,DEAD,OR),.75)]},
       {z:'bg',t:'objs',n:9,vx:12,seed:19,list:[bubble(2,[rd,OR,YL]),bubble(3,[BR,OR,YL]),bubble(2,[rd,OR,YL])]},
       {z:'bg',t:'objs',n:5,vx:9,seed:21,list:[hulk(150,62,1,DEAD,CY),hulk(110,46,2,DEAD,OR),hulk(190,70,3,DEAD,CY)],lights:CY},
       {z:'mid',t:'objs',n:7,vx:24,seed:22,list:[chunk(7,1,RUST),chunk(11,2,RUST),chunk(5,3,RUST)]},
@@ -81,7 +81,7 @@ function leviBoss(g,w,h){
   for(let i=0;i<22;i++){px(g,i%3?CY:WH,w*.2+((i*53)%(w*.65)),cy0-30+((i*29)%46),1,1)}                                                                  // lights along the body
   poly(g,[[3,cy0+4],[w*.3,cy0+8],[w*.28,cy0+12],[3,cy0+10]],[K,'#0a0630',VI]);                                                                         // jaw line
   ell(g,22,cy0-8,7,7,[K,VI,CY,WH]);px(g,K,19,cy0-9,3,4);                                                                                              // eye
-  ell(g,w*.55,cy0,12,13,[K,OR,YL,WH]);for(let i=0;i<4;i++)px(g,K,w*.55-8,cy0-6+i*4,16,1);                                                                  // the heart, warm so it stands out
+  ell(g,w*.55,cy0,15,16,[K,K,'#3a0a40',PU]);ell(g,w*.55,cy0,11,12,[mg,MG,YL,WH]);for(let i=0;i<3;i++)px(g,rampAt([mg,MG],.5,i,0),w*.55-8,cy0-5+i*5,16,1);                                                                  // the heart, warm so it stands out
   for(let i=0;i<5;i++)px(g,i%2?PEARL[2]:GLOW[1],8+i*3,cy0+14+i*2,w*.4-i*4,1);                                                                         // hard dither bands on the belly
 }
 function sirenBody(g,w,h){
@@ -97,7 +97,7 @@ const NEBULA={
   en:{
     ring:{kit:'jelly',w:34,h:24,o:{pal:GLOW,tn:5,tc:LV,eye:[K,VI,CY,WH]},hp:1.4,pts:170,vx:-40,mv:'sine',mvp:{a:30,f:2.4},at:'aim',atp:{n:1,sp:70,s:'orb',cd:2.4}},
     ringR:{kit:'manta',w:38,h:28,o:{pal:CYAN,fins:1,eye:WH},hp:3,pts:270,vx:-44,mv:'sine',mvp:{a:22,f:1.8},at:'aim',atp:{n:5,sd:.9,sp:74,s:'shard',cd:3}},
-    dart:{kit:'eel',w:42,h:18,o:{pal:[K,VI,cy,CY,WH],spark:YL,eye:YL},hp:1.7,pts:190,vx:-120,mv:'zig',mvp:{p:.45,a:70},at:false},
+    dart:{kit:'eel',w:44,h:22,o:{pal:[K,'#0a1030',VI,cy,CY],spark:YL,eye:YL,th:.46,lure:1},hp:1.7,pts:190,vx:-120,mv:'zig',mvp:{p:.45,a:70},at:false},
     cross:{kit:'orb',w:30,h:30,o:{pal:PEARL,eye:[K,mg,MG,WH],spikes:10,sl:5,sc:MG,tip:WH,ring:1,rc:CY},hp:4.5,pts:350,vx:-30,mv:'bounce',mvp:{vy:20},at:'ring',atp:{n:10,sp:50,s:'bub',cd:3}},
     pod:{kit:'beast',w:46,h:30,o:{pal:GLOW,eye:WH},hp:8,pts:540,vx:-22,mv:'drift',mvp:{a:10},at:'aim',atp:{n:7,sd:1.4,sp:64,s:'bub',cd:3.4}}
   },
@@ -105,7 +105,7 @@ const NEBULA={
     phases:[[{a:'fan',n:5,sd:1,sp:72,cd:1.7,s:'orb',m:0},{a:'lance',n:8,sp:140,w:.9,cd:5.5,s:'needle'}],
             [{a:'fan',n:7,sd:1.2,sp:76,cd:1.5,s:'orb',m:0},{a:'ring',n:14,sp:50,cd:3.4,s:'bub',m:0},{a:'lance',n:9,sp:150,w:.8,cd:4.5,s:'needle'}],
             [{a:'fan',n:9,sd:1.4,sp:80,cd:1.3,s:'orb',m:0},{a:'ring',n:16,sp:54,cd:2.9,s:'bub',m:0},{a:'lance',n:10,sp:160,w:.7,cd:3.8,s:'needle'},{a:'rain',n:7,sp:54,cd:4.6,s:'dot'}]]},
-  boss:{w:176,h:118,hp:2.7,x:234,bob:40,charge:11,chargeDist:120,debris:[BL,LV,CY,MG],build:leviBoss,core:{x:8,y:0,w:28,h:28},boom:36,
+  boss:{w:176,h:118,hp:2.7,x:234,bob:40,charge:11,chargeDist:120,debris:[BL,LV,CY,MG],build:leviBoss,core:{x:8,y:0,w:28,h:28},boom:36,deco(c,b,f){if(f)return;const p=((b.t*3)|0)%2;c.fillStyle=p?'#ffffaa':'#ffffff';c.fillRect((b.x+8-3)|0,(b.y-3)|0,6,6);c.fillStyle=p?'#ff77ff':'#ffffaa';c.fillRect((b.x+8-6)|0,(b.y-1)|0,12,2);c.fillRect((b.x+8-1)|0,(b.y-6)|0,2,12)},
     muz:[[-.48,-.06],[-.3,-.2],[.1,-.35]],
     phases:[[{a:'spiral',arms:3,cnt:14,gap:.1,sp:56,cd:5.2,s:'orb',m:0},{a:'fan',n:7,sd:1.2,sp:76,cd:2,s:'shard',m:0},{a:'mines',n:3,ay:-14,life:2.6,cd:4.2,s:'bub'}],
             [{a:'spiral',arms:4,cnt:16,gap:.09,sp:58,cd:4.8,s:'orb',m:0},{a:'fan',n:9,sd:1.4,sp:80,cd:1.7,s:'shard',m:0},{a:'mines',n:4,ay:-16,life:2.6,cd:3.6,s:'bub'},{a:'rain',n:8,both:1,sp:58,cd:4.4,s:'dot'}],

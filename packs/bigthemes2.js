@@ -22,8 +22,8 @@ const GOLD=['#2a1500',BR,OR,YL,WH],METAL=[K,'#1c1840',GM,LM,LL],HOT=[rd,OR,YL,WH
 function forgeBoss(g,w,h){
   const cx=w/2,cy0=h/2;
   for(let i=0;i<10;i++){const a=i/10*TAU;thick(g,METAL[2],cx,cy0,cx+Math.cos(a)*(h/2-6),cy0+Math.sin(a)*(h/2-6),3)}                                      // the cage spokes
-  for(const rr of [h/2-4,h/2-14]){for(let i=0;i<150;i++){const a=i/150*TAU;px(g,rampAt(METAL,.5+.5*Math.sin(a-1),i,0),cx+Math.cos(a)*rr*1.12,cy0+Math.sin(a)*rr,2,2)}}   // two rings
-  ell(g,cx,cy0,h/2-22,h/2-22,['#2a1500',rd,OR,YL]);for(let i=0;i<7;i++){const a=i/7*TAU;line(g,'#2a1500',cx+Math.cos(a)*9,cy0+Math.sin(a)*9,cx+Math.cos(a)*(h/2-22),cy0+Math.sin(a)*(h/2-22))}ell(g,cx,cy0,8,8,[BR,OR,YL,WH]);   // the star, banded and seamed
+  for(const rr of [h/2-4,h/2-14]){for(let i=0;i<150;i++){const a=i/150*TAU;px(g,rampAt(STEELB,.5+.5*Math.sin(a-1),i,0),cx+Math.cos(a)*rr*1.12,cy0+Math.sin(a)*rr,2,2)}}   // two rings
+  ell(g,cx,cy0,h/2-22,h/2-22,['#3a2a10',BR,YL,WH]);for(let i=0;i<7;i++){const a=i/7*TAU;line(g,'#2a1500',cx+Math.cos(a)*9,cy0+Math.sin(a)*9,cx+Math.cos(a)*(h/2-22),cy0+Math.sin(a)*(h/2-22))}ell(g,cx,cy0,8,8,[BR,OR,YL,WH]);   // the star, banded and seamed
   for(let i=0;i<8;i++){const a=i/8*TAU;ell(g,cx+Math.cos(a)*(h/2+2)*1.1,cy0+Math.sin(a)*(h/2+2),5,5,METAL);px(g,OR,cx+Math.cos(a)*(h/2+2)*1.1,cy0+Math.sin(a)*(h/2+2),2,2)}   // gun nodes
   poly(g,[[w-12,cy0-8],[w,cy0-14],[w,cy0+14],[w-12,cy0+8]],GOLD);                                                                                       // exhaust fins
   for(let i=0;i<12;i++){const a=i/12*TAU;px(g,YL,cx+Math.cos(a)*(h/2-24),cy0+Math.sin(a)*(h/2-24),2,2)}
@@ -47,7 +47,7 @@ const FORGE={
     phases:[[{a:'fan',n:5,sd:1,sp:76,cd:1.6,s:'orb',m:0},{a:'flare',n:5,sp:70,cd:4.2,s:'needle'}],
             [{a:'fan',n:7,sd:1.2,sp:80,cd:1.4,s:'orb',m:1},{a:'flare',n:6,sp:76,cd:3.6,s:'needle'},{a:'ring',n:14,sp:52,cd:3.4,s:'shard',m:0}],
             [{a:'fan',n:9,sd:1.4,sp:84,cd:1.2,s:'orb',m:1},{a:'flare',n:7,sp:80,cd:3,s:'needle'},{a:'ring',n:16,sp:56,cd:2.8,s:'shard',m:0},{a:'curtain',n:10,sp:70,gap:32,cd:4.8,s:'orb'}]]},
-  boss:{w:184,h:136,hp:2.9,x:232,bob:34,charge:12,chargeDist:110,debris:[OR,YL,WH,LL],build:forgeBoss,core:{x:0,y:0,w:42,h:42},boom:40,deco(c,b,f){if(f)return;const on=((b.t*2.5)|0)%2,x=b.x|0,y=b.y|0;c.fillStyle=on?'#ffffff':'#ffffaa';c.fillRect(x-5,y-5,10,10);c.fillStyle=on?'#ff9966':'#ffffff';c.fillRect(x-8,y-1,16,2);c.fillRect(x-1,y-8,2,16)},
+  boss:{w:184,h:136,hp:2.9,x:232,bob:34,charge:12,chargeDist:110,debris:[OR,YL,WH,LL],build:forgeBoss,core:{x:0,y:0,w:42,h:42},boom:40,deco(c,b,f){if(f)return;const on=((b.t*2.5)|0)%2,x=b.x|0,y=b.y|0;for(let i=0;i<8;i++){if(((b.t*2+i)|0)%3===0){const a=i/8*6.2832;c.fillStyle='#ffffaa';c.fillRect((x+Math.cos(a)*50)|0,(y+Math.sin(a)*50)|0,4,3)}}c.fillStyle=on?'#ffffff':'#ffffaa';c.fillRect(x-5,y-5,10,10);c.fillStyle=on?'#ff9966':'#ffffff';c.fillRect(x-8,y-1,16,2);c.fillRect(x-1,y-8,2,16)},
     muz:[[-.5,0],[-.35,-.34],[-.35,.34]],
     phases:[[{a:'ring',n:16,sp:50,cd:3.2,s:'flare',m:0},{a:'fan',n:7,sd:1.2,sp:78,cd:1.8,s:'orb',m:1},{a:'flare',n:6,sp:76,cd:4.4,s:'needle'}],
             [{a:'ring',n:18,sp:54,cd:2.8,s:'flare',m:0},{a:'fan',n:9,sd:1.4,sp:82,cd:1.5,s:'orb',m:2},{a:'flare',n:7,sp:82,cd:3.6,s:'needle'},{a:'spiral',arms:4,cnt:16,gap:.1,sp:58,cd:6,s:'shard',m:0},{a:'curtain',n:12,sp:72,gap:32,cd:5,s:'orb'}],
@@ -55,9 +55,9 @@ const FORGE={
   scene:K_=>({seed:12,sky:['#02030a','#0a1020','#1c2440','#3c5a7a'],skyFn:(x,y)=>y/200*.4+.1+Math.sin((x*.7-y)*.02)*.06,stars:[CY,YL,WH,WH],
     layers:[
       {z:'bg',t:'clouds',ramp:['#02030a','#0e1830','#2a3a5a','#5a7a9a'],seed:41,vx:5,alpha:.55,thr:.5},
-      {z:'bg',t:'clouds',ramp:['#0e0500','#2a1500',BR,OR],seed:46,vx:8,alpha:.25,thr:.62},
+      {z:'bg',t:'clouds',ramp:['#0e0500','#2a1500',BR,OR],seed:46,vx:8,alpha:.12,thr:.62},
       {z:'bg',t:'objs',n:4,vx:8,seed:42,list:[ring(70,GOLD),ring(46,METAL),ring(90,GOLD)]},
-      {z:'bg',t:'objs',n:6,vx:14,seed:43,list:[girder(170,16,METAL,1),girder(120,12,METAL,2),girder(220,18,GOLD,3)],lights:OR},
+      {z:'bg',t:'objs',n:6,vx:14,seed:43,list:[darken(girder(170,16,STEELB,1),.2),darken(girder(120,12,STEELB,2),.2),darken(girder(220,18,STEELB,3),.2)],lights:OR},
       {z:'mid',t:'objs',n:6,vx:26,seed:44,list:[panel(40,26,METAL),panel(30,20,GOLD),blob(5,GOLD)]},
       {z:'fg',t:'objs',n:2,vx:80,seed:45,list:[darken(girder(240,22,METAL,4),.35)]},
       {z:'fg',t:'streak',n:18,vx:100,len:5,cols:[YL,OR],seed:7}]}),
