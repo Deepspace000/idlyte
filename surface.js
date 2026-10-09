@@ -342,6 +342,242 @@ const ZTW=[
  [null,null,null,['#ff77cc',.16],['#66ff88',.22],['#aaff44',.34],['#cc2266',.22],['#ffaacc',.16],['#aa66ff',.2],['#ff44aa',.16],['#1a0030',.3],['#ff3366',.16]]];
 /* a level is one long journey made of set pieces: rolling ground, bridges over chasms, halls, forests, lakes, mountains,
    stairs, ruins and towers, with mazes, caves and nooks underneath, and a few very tall peaks and very deep abysses */
+/* ---------------- things to find, read, solve and survive: lore, characters, puzzles, events (generated per level) ---------------- */
+const LOREKIND=['WAYMAKER STONE','TEMPLE MURAL','TERMINAL LOG','SKELETON NOTE','HIVE WALL'];
+const LORE=[
+ [['WAYMAKER STONE','THE WAYMAKERS BUILT THE BEAM PADS ON EVERY WORLD. THEY WANTED TRAVELERS TO ALWAYS FIND A SAFE WAY HOME.'],
+  ['SKELETON NOTE','I AM COMMANDER ADA REYES. THE GLOWING LIGHTS IN THIS JUNGLE FOLLOW THE LOST. IF YOU SEE THEM, FOLLOW THEM BACK.'],
+  ['OLD MURAL','A GREAT SILVER SHIP CALLED THE SUNLARK ROSE OVER THE JUNGLE. IT WAS THE FASTEST SHIP EVER BUILT.'],
+  ['SCRATCHED WARNING','THE SWARM CAME FROM THE DARK BETWEEN THE STARS. IT EATS METAL AND SINGS WHILE IT EATS.'],
+  ['WAYMAKER STONE','WHEN THE SWARM CAME, THE WAYMAKERS BROKE THE SUNLARK INTO SIX PIECES AND HID THEM ON FIVE WORLDS.']],
+ [['TEMPLE MURAL','THIS TEMPLE GUARDS ONE PIECE OF THE SUNLARK. THE RED KEY AND THE BLUE KEY TOGETHER OPEN THE INNER DOOR.'],
+  ['BROKEN TABLET','THE BUILDERS BURIED THEIR TREASURE UNDER THE SAND AND DREW A MAP ON THREE BROKEN TABLETS. FIND ALL THREE.'],
+  ['SAND WORN NOTE','THE HERMIT HERE HAS LIVED ALONE FOR FORTY YEARS. HE KNOWS WHERE THINGS ARE HIDDEN. GO AND TALK TO HIM.'],
+  ['TEMPLE MURAL','THE SWARM CANNOT CROSS DEEP SAND. IT FLIES ABOVE IN A HUGE LIVING SHIP AND DROPS ITS SOLDIERS.'],
+  ['TEMPLE WALL','THE SUNLARK HAD SIX PARTS: HULL, ENGINE, REACTOR, WINGS, COCKPIT AND WEAPON CORE. EACH WORLD KEEPS ONE.']],
+ [['TERMINAL LOG 1','CARGO SHIP NOMAD. CAPTAIN OSEI. WE FOLLOWED A BEACON TO THESE WORLDS. OUR HOLD CARRIES ONE PART OF THE SUNLARK: THE REACTOR.'],
+  ['TERMINAL LOG 2','DAY 3. THE CREW HEARD SINGING FROM THE SKY. THE SWARM QUEEN SHIP IS ABOVE US. WE LOCKED THE REACTOR IN THE VAULT.'],
+  ['TERMINAL LOG 3','DAY 5. VAULT CODE, IN CASE I FORGET: THE CODE IS {CODE}. THE POWER NODES MUST BE SWITCHED ON IN THIS ORDER: {ORDER}.'],
+  ['TERMINAL LOG 4','DAY 8. THE SWARM FOLLOWS ANYONE CARRYING A SHIP PART. DO NOT CARRY MORE THAN YOU MUST. WE ARE RUNNING OUT OF AIR.'],
+  ['TERMINAL LOG 5','DAY 9. THE HULL IS BREAKING. THE MOTHERSHIP IS NOT A NEW SHIP. LOOK AT ITS RIBS. IT WAS ONCE THE SUNLARK.']],
+ [['SKELETON NOTE','I TRIED TO CARRY THE WINGS OUT THROUGH THE LAVA TUBES. THE FORGE WAKES WHEN YOU PULL ITS LEVER. RUN UP AND DO NOT LOOK BACK.'],
+  ['BURNT MURAL','THE SWARM MELTS SHIPS IN THE FIRE POOLS AND DRINKS THE METAL. THESE CAVES ARE ITS KITCHEN.'],
+  ['SKELETON NOTE','SOME CHESTS HERE ARE NOT CHESTS. A CURSED CHEST HAS TEETH. LOOK CLOSELY BEFORE YOU OPEN ONE.'],
+  ['SKELETON NOTE','A HUNTER TRACKS ANYONE WHO CARRIES A SHIP PART. IT SMELLS THE METAL. KEEP MOVING AND KEEP SHOOTING.'],
+  ['BURNT MURAL','THE LAST WAYMAKER MESSAGE: BRING THE SIX PIECES TOGETHER AND THE SUNLARK WILL FLY FREE AGAIN.']],
+ [['HIVE WALL','THE WALLS REMEMBER SOUNDS. THE POD CHAMBER SINGS A SONG. SING IT BACK IN THE SAME ORDER AND THE WALL WILL OPEN.'],
+  ['HIVE WALL','THE EGGS HERE HOLD THE SWARM CHILDREN. SOME HATCH WHEN YOU WALK NEAR. SOME HOLD ONLY GOLD.'],
+  ['HIVE WALL','THE QUEEN SHIP WAS BUILT FROM A STOLEN SHIP. ITS RIBS ARE THE RIBS OF THE SUNLARK.'],
+  ['GHOST VOICE','I WAS THE PILOT OF THE SUNLARK. THE SWARM TOOK MY SHIP AND MY BODY. I STAY HERE TO WARN THE ONES WHO COME.'],
+  ['THE WHOLE TRUTH','THIS MOTHERSHIP IS THE SUNLARK. THESE SIX PIECES ARE THE ONLY PARTS THE SWARM COULD NOT TAKE. BRING THEM TOGETHER AND IT WILL WAKE AND FLY HOME.']]
+];
+const COLN=['RED','BLUE','GREEN','YELLOW'],COLH=['#ff5544','#55aaff','#55ee66','#ffee55'];
+const NPCN={astro:'STRANDED ASTRONAUT',hermit:'THE HERMIT',trader:'TRADER BOT',ghost:'THE PILOT GHOST'};
+function featGen(c){
+  const {L,idx,rooms,top,rh,LW,LH,S,G,rect,chest,spawn,deco,pockets,elevAt}=c;
+  const RF=rng(7100+idx*131),rf=(a,b)=>a+Math.floor(RF()*(b-a+1)),TSZ=8;
+  const ia=L.ia=[],doors=L.doors=[],secrets=L.secrets=[],lights=L.lights=[],dark=L.dark=[];
+  L.targets=[];L.eggs=[];L.runs=[];L.chase=null;L.ev=null;L.frag=[];L.buried=null;
+  const doorAt=L.doorAt=new Map();
+  const loreKinds=[0,1,2,3,4];
+  const shuffled=rooms.slice();for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(RF()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]}
+  const wet=(r)=>{if(r.wet!==undefined)return r.wet;let w=false;for(let x=r.x0;x<r.x0+r.w&&!w;x++)for(let y=r.y1-4;y<r.y1;y++){const t=G(x,y);if(t===10||t===4){w=true;break}}return r.wet=w};
+  const takeRoom=(f)=>{for(let i=0;i<shuffled.length;i++){const r=shuffled[i];if(!r.used&&!wet(r)&&(!f||f(r))){r.used=true;return r}}return null};
+  const roomSpot=(r,m)=>{m=m||4;const lx=r.x0+rf(m,Math.max(m,r.w-m-1));return{x:lx*TSZ+4,y:r.y1*TSZ}};
+  const addIA=(o)=>{o.id=o.id||('i'+ia.length);ia.push(o);return o};
+  const secret=(name)=>{const id=idx+'_'+secrets.length;secrets.push({id,name});return id};
+  /* surface spots: flat stretches of open ground along the journey */
+  const spots=[];
+  for(let x=30;x<LW-70;x+=3){const t=top[x];if(t<0)continue;let ok=true;for(let q=0;q<7&&ok;q++){if(top[x+q]!==t)ok=false;else for(let y=t-1;y>=t-4;y--)if(G(x+q,y)!==0){ok=false;break}}if(ok)spots.push({x:x+3,y:t,u:false})}
+  const takeSpot=(minx,maxx)=>{const c=spots.filter(s=>!s.u&&s.x>=minx&&s.x<=maxx);if(!c.length)return null;const s=c[Math.floor(RF()*c.length)];s.u=true;for(const o of spots)if(Math.abs(o.x-s.x)<18)o.u=true;return s};
+  /* vault: a small chamber beside a room, behind a door */
+  const vaults=[];
+  const carveVault=(r,w,h)=>{
+    for(const side of (RF()<.5?[0,1]:[1,0])){
+      const wc=side?r.x0+r.w:r.x0-1,xl=side?wc+1:wc-w,xr=xl+w-1,yb=r.y1,yt=yb-h;
+      let ok=xl>6&&xr<LW-6&&yt>4;if(!ok)continue;let n=0,s=0;for(let y=yt-1;y<=yb+1;y++)for(let x=xl-1;x<=xr+1;x++){if(x===wc&&y>=yb-4&&y<yb)continue;n++;if(G(x,y)===1)s++}
+      if(s<n*.985)continue;
+      if(vaults.some(v=>v.xl<xr+3&&v.xr>xl-3&&v.yt<yb+3&&v.yb>yt-3))continue;
+      for(let y=yt;y<yb;y++)for(let x=xl;x<=xr;x++)S(x,y,0);
+      const v={xl,xr,yt,yb,wc,side,dir:side?-1:1,room:r,cells:[]};for(let y=yb-4;y<yb;y++)v.cells.push([wc,y]);vaults.push(v);
+      pockets.push({x0:xl,x1:xr+1,y0:yt,y1:yb,z:'ruins'});return v}
+    return null};
+  /* a small stone hut built on the floor of a room, when there is no solid rock beside the room to dig into */
+  const buildHut=(r,w)=>{const y1=r.y1,hy=y1-4;
+    for(const side of (RF()<.5?[0,1]:[1,0])){
+      const bx=side?r.x0+r.w:r.x0-1;let wallOk=true;for(let y=y1-5;y<y1;y++)if(G(bx,y)!==1)wallOk=false;if(!wallOk)continue;
+      for(let off=1;off<=9;off++){
+        const hx0=side?r.x0+r.w-off-w:r.x0+off,hx1=hx0+w-1;if(hx0<=r.x0+1||hx1>=r.x0+r.w-2)continue;
+        let ok=true;
+        for(let x=hx0-1;x<=hx1+1&&ok;x++){const q=x-r.x0;if(q<0||q>=r.hh.length||r.hh[q]<10)ok=false}
+        for(let y=y1-7;y<y1&&ok;y++)for(let x=hx0-1;x<=hx1+1&&ok;x++)if(G(x,y)!==0)ok=false;
+        for(let x=hx0-1;x<=hx1+1&&ok;x++)if(G(x,y1)!==1)ok=false;
+        if(vaults.some(v=>v.room===r))ok=false;
+        if(!ok)continue;
+        const inA=(x,y)=>x>=(hx0-1)*TSZ&&x<=(hx1+2)*TSZ&&y>=(hy-1)*TSZ&&y<=(y1+1)*TSZ;
+        L.coins=L.coins.filter(c=>!inA(c.x,c.y));L.spawns=L.spawns.filter(q=>!inA(q.x,q.y));L.chests=L.chests.filter(c=>!inA(c.x+7,c.y+5));L.deco=L.deco.filter(d=>!inA(d.x,d.y-4));L.checks=L.checks.filter(c=>!inA(c.x,c.y));
+        for(let x=hx0;x<=hx1;x++)S(x,hy,1);for(let y=hy;y<y1;y++){S(hx0,y,1);S(hx1,y,1)}
+        const wc=side?hx0:hx1,v={xl:hx0+1,xr:hx1-1,yt:y1-3,yb:y1,wc,side,dir:side?-1:1,room:r,hut:1,cells:[]};for(let y=y1-3;y<y1;y++)v.cells.push([wc,y]);vaults.push(v);
+        for(let x=hx0;x<=hx1;x+=2)L.coins.push({x:x*TSZ+4,y:(hy-2)*TSZ,v:1+(idx>>1)});
+        return v}}
+    return null};
+  const furnish=(v,val,n)=>{const mid=(v.xl+v.xr)>>1;chest(mid,v.yb,val);for(let x=v.xl+2;x<=v.xr-2;x+=3)L.coins.push({x:x*TSZ+4,y:(v.yb-2)*TSZ,v:2+(idx>>1)});return mid};
+  const setDoor=(v,lock,tile,extra)=>{const d=Object.assign({id:'d'+doors.length,lock,tile,open:0,cells:v.cells.slice(),vault:v},extra||{});doors.push(d);for(const [x,y] of d.cells){S(x,y,tile);doorAt.set(y*LW+x,d)}return d};
+  const vaultSecret=(v,name)=>{const sid=secret(name);v.sid=sid;return sid};
+  /* a door that is a cracked wall: shoot it */
+  const mkCrack=()=>{const v=vaultFrom(q=>q.w>=26);if(!v)return null;if(v.cells.length>3)v.cells=v.cells.slice(1);const d=setDoor(v,'crack',13,{hp:{}});vaultSecret(v,'CRACKED WALL');furnish(v,18+idx*5);return v};
+  const R_=p=>RF()<p;
+  /* --- chase: a tall room with a forge lever; the pool of lava rises while you climb zig zag ledges to a chest (magma) */
+  if(idx===3){const r=shuffled.filter(q=>!q.used&&q.w>=30&&q.h>=19).sort((p,q)=>q.h-p.h)[0];if(r)r.used=true;
+    if(r){const y1=r.y1;let bad=false;for(let x=r.x0;x<r.x0+r.w;x++)for(let y=y1-4;y<y1;y++){const t=G(x,y);if(t===4||t===10)bad=true}
+      if(bad){r.used=false}else{
+        const xl=r.x0,xr=r.x0+r.w-1,yb=y1,open=(x,y)=>{const q=x-r.x0;return q>=0&&q<r.hh.length&&y>=y1-r.hh[q]};
+        let sd=0,topRow=-1,topX=0;
+        for(let k=1;;k++){const R=y1-5*k;if(R<=r.yt+6)break;const C=[];for(let x=xl;x<=xr;x++){let okc=true;for(let y=R-3;y<=R;y++)if(!open(x,y)||G(x,y)===1)okc=false;if(okc)C.push(x)}
+          if(C.length<14)break;const Ln=Math.ceil(C.length*.62),seg=sd?C.slice(C.length-Ln):C.slice(0,Ln);for(const x of seg)if(G(x,R)===0)S(x,R,2);topRow=R;topX=seg[seg.length>>1];sd^=1}
+        if(topRow>0){const sid=secret('FORGE CLIMB');chest(topX,topRow,60);L.chests[L.chests.length-1].sec=sid;for(let q=-3;q<=3;q++)L.coins.push({x:(topX+q*2)*TSZ,y:(topRow-3)*TSZ,v:3});
+          let lx=null;for(let q=0;q<30&&lx===null;q++){const x=xl+4+Math.floor(RF()*(r.w-8));let okc=true;for(let y=y1-3;y<y1;y++)if(G(x,y)!==0)okc=false;if(okc&&G(x,y1)===1)lx=x}
+          if(lx===null)lx=(xl+xr)>>1;
+          const lv=addIA({k:'lever',x:lx*TSZ+4,y:y1*TSZ,forge:1,on:0});
+          L.chase={xl,xr,yt:r.yt,yb:y1,top:topRow,state:0,t:0,row:y1,set:[],sid,ent:{x:lx*TSZ-1,y:y1*TSZ-16}};pockets.push({x0:xl,x1:xr+1,y0:r.yt,y1:y1,z:'void'})}
+        else r.used=false}}}
+  /* --- lore: five per world, some inside rooms, some on the open ground */
+  const loreSpots=[];
+  const placeLore=(slot,where)=>{let p=null;
+    if(where==='surf'){const s=takeSpot(40,LW-80);if(s)p={x:s.x*TSZ+4,y:s.y*TSZ}}
+    if(!p){const r=takeRoom(q=>q.w>=20);if(r)p=roomSpot(r,5)}
+    if(p)addIA({k:'lore',slot,x:p.x,y:p.y})};
+  let codeStr='',orderStr='';
+  /* the puzzle codes are decided first so the logs can print them */
+  const digits=[rf(1,4),rf(1,4),rf(1,4)];codeStr=digits.join(' ');
+  const seqOrder=[0,1,2,3].sort(()=>RF()-.5).slice(0,idx===2?3:4);orderStr=seqOrder.map(i=>COLN[i]).join(', THEN ');
+  L.codeDigits=digits;L.seqOrder=seqOrder;
+  for(let k=0;k<(idx===4?4:5);k++)placeLore(k,k===1||k===3?'surf':idx===1&&k===0?'room':RF()<.4?'surf':'room');
+  if(idx===4)addIA({k:'lore',slot:4,x:0,y:0,final:1,hide:1});
+  /* --- people */
+  if(idx===0||idx===2||idx===4){const s=takeSpot(idx===0?30:120,idx===0?140:LW*.5)||takeSpot(30,LW*.5);if(s)addIA({k:'npc',npc:'trader',x:s.x*TSZ+4,y:s.y*TSZ})}
+  {const s=takeSpot(LW*.2,LW*.8);if(s)addIA({k:'npc',npc:'astro',x:s.x*TSZ+4,y:s.y*TSZ,qid:'q'+idx})}
+  if(idx===1){const r=takeRoom(q=>q.w>=26);if(r){const p=roomSpot(r,8);addIA({k:'npc',npc:'hermit',x:p.x,y:p.y})}}
+  if(idx===2||idx===4){const r=takeRoom(q=>q.w>=22);if(r){const p=roomSpot(r,6);addIA({k:'npc',npc:'ghost',x:p.x,y:p.y})}}
+  /* the astronaut's quest item sits in a room */
+  {const r=takeRoom(q=>q.w>=24&&q.j>0);if(r){const p=roomSpot(r,6);L.questItem={x:p.x,y:p.y,got:0}}}
+  /* --- vaults and puzzles, a different mix in each world */
+  const mkLever=(v,where)=>{const d=setDoor(v,'lever',11);vaultSecret(v,'LEVER VAULT');furnish(v,22+idx*5);
+    let p=null;const s=takeSpot(40,LW-80);if(where==='surf'&&s)p={x:s.x*TSZ+4,y:s.y*TSZ};else{const r2=takeRoom();if(r2)p=roomSpot(r2,5)}
+    if(!p)return d;addIA({k:'lever',x:p.x,y:p.y,door:d.id,on:0});return d};
+  const mkKey=(v,col)=>{const d=setDoor(v,col+'key',11,{col});vaultSecret(v,col.toUpperCase()+' KEY VAULT');furnish(v,22+idx*5);
+    const r2=takeRoom();if(r2){const p=roomSpot(r2,5);addIA({k:'key',col,x:p.x,y:p.y-4,got:0})}return d};
+  const mkPlate=(v)=>{const d=setDoor(v,'plate',11,{t:0});vaultSecret(v,'PLATE VAULT');furnish(v,22+idx*5);const r=v.room,dx=v.wc+v.dir*rf(6,9);addIA({k:'plate',x:dx*TSZ+4,y:r.y1*TSZ,door:d.id});return d};
+  const mkCode=(v)=>{const d=setDoor(v,'code',11);vaultSecret(v,'CODE VAULT');furnish(v,26+idx*5);const r=v.room,dx=v.wc+v.dir*3;addIA({k:'panel',x:dx*TSZ+4,y:r.y1*TSZ,door:d.id,code:digits});return d};
+  const mkSeq=(v,mode)=>{const d=setDoor(v,'seq',11);vaultSecret(v,mode==='echo'?'ECHO CHAMBER':'REACTOR PUZZLE');furnish(v,28+idx*5);const r=v.room,n=seqOrder.length,pods=[];
+    for(let i=0;i<4;i++){pods.push(addIA({k:'pod',x:(v.wc+v.dir*(5+i*4))*TSZ+4,y:r.y1*TSZ,col:i,door:d.id,mode,lit:0}))}
+    d.seq={mode,pods:pods.map(p=>p.id),order:seqOrder.slice(),step:0,play:0};
+    if(mode==='echo')addIA({k:'echo',x:(v.wc+v.dir*(5+4*4+1))*TSZ+4,y:r.y1*TSZ,door:d.id});return d};
+  const mkShrine=(v)=>{const sid=vaultSecret(v,'SHRINE');const mid=(v.xl+v.xr)>>1;addIA({k:'shrine',x:mid*TSZ+4,y:v.yb*TSZ,sid,perk:idx});furnish(v,15+idx*4)};
+  const tried=new Set();
+  const vaultFrom=(f,w,h)=>{for(let n=0;n<40;n++){const r=takeRoom(q=>!tried.has(q)&&(!f||f(q)));if(!r)return null;tried.add(r);const v=carveVault(r,w||rf(11,15),h||rf(7,9))||buildHut(r,w>=17?13:rf(8,10));if(v)return v;r.used=false}return null};
+  const want={
+    0:['crack','lever','plate','shrine'],
+    1:['crack','key:red','key:blue','crack','shrine','plate'],
+    2:['code','seq','lever','crack','shrine'],
+    3:['crack','key:red','lever','shrine','crack'],
+    4:['seq','plate','crack','key:blue','shrine']}[idx];
+  let temple=null;
+  for(const w of want){
+    if(w==='crack'){mkCrack();continue}
+    const v=vaultFrom();if(!v)continue;
+    if(w==='lever')mkLever(v,idx===0?'surf':'room');
+    else if(w==='plate')mkPlate(v);
+    else if(w==='code')mkCode(v);
+    else if(w==='seq')mkSeq(v,idx===2?'log':'echo');
+    else if(w==='shrine'){/* shrine vaults are hidden behind a cracked wall */if(v.cells.length>3)v.cells=v.cells.slice(1);const d=setDoor(v,'crack',13,{hp:{}});mkShrine(v)}
+    else if(w.startsWith('key:'))mkKey(v,w.slice(4));
+  }
+  /* the temple of the desert: an inner vault that needs both keys */
+  if(idx===1){const v=vaultFrom(q=>q.w>=30,17,10);if(v){const d=setDoor(v,'both',11);vaultSecret(v,'TEMPLE INNER DOOR');furnish(v,50);chest(v.xl+3,v.yb,40);d.col='both'}}
+  /* --- portals: from a room to a hidden island or a vault */
+  {const A=takeRoom(q=>q.w>=18),isl=(L.hidden||[]).filter(h=>h.rx>=4)[0];
+   if(A&&isl){const pa=roomSpot(A,5),pb={x:isl.x*TSZ+4,y:(isl.top0+0)*TSZ};const a=addIA({k:'portal',x:pa.x,y:pa.y,to:null,sid:secret('PORTAL TO A HIDDEN ISLAND')});const b=addIA({k:'portal',x:pb.x-14,y:pb.y,to:a.id,back:1});a.to=b.id}}
+  /* --- treasure map: three fragments, then a buried chest */
+  if(idx!==4){for(let q=0;q<3;q++){const r=takeRoom(w=>w.w>=16)||null;if(r){const p=roomSpot(r,4);L.frag.push(addIA({k:'frag',x:p.x,y:p.y-3,got:0,n:q}))}}
+    const s=takeSpot(LW*.15,LW*.9);if(s){L.buried={x:s.x*TSZ+4,y:s.y*TSZ,got:0,sid:secret('BURIED TREASURE')}}}
+  /* --- a timed target challenge and a mini boss lair */
+  {const r=takeRoom(q=>q.w>=36);if(r){const sid=secret('TARGET CHALLENGE');const p=roomSpot(r,10);addIA({k:'console',x:p.x,y:p.y,room:{x0:r.x0,w:r.w,y1:r.y1,hh:r.hh},sid,state:0,t:0});
+    for(let i=0;i<6;i++){const tx=r.x0+4+Math.floor(i*(r.w-8)/5),ty=r.y1-rf(8,Math.max(9,Math.min(r.h-3,16)));L.targets.push({x:tx*TSZ+4,y:ty*TSZ,hit:0})}}}
+  {const r=takeRoom(q=>q.w>=26);if(r){const sid=secret('MINI BOSS LAIR'),p=roomSpot(r,8);L.lair={x:p.x,y:r.y1*TSZ,sid,room:r};chest(Math.floor(p.x/TSZ)+6,r.y1,40+idx*12);L.chests[L.chests.length-1].sec=sid;spawn(4,p.x,(r.y1-1)*TSZ);const sp=L.spawns[L.spawns.length-1];sp.elite=1;sp.lair=1;sp.once=0;for(let q=0;q<8;q++)L.coins.push({x:(p.x+q*8-30),y:(r.y1-2)*TSZ,v:3})}}
+  /* --- dark rooms: a lantern or the glow of the walls shows the way */
+  for(let k=0;k<(idx===1||idx===3?3:idx===0?1:2);k++){const r=takeRoom(q=>q.w>=26&&q.j>0);if(!r)break;dark.push({x0:r.x0,x1:r.x0+r.w,y0:r.yt,y1:r.y1+1});r.dark=true;chest(r.x0+(r.w>>1),r.y1,16+idx*5);L.chests[L.chests.length-1].sec=secret('DARK ROOM TREASURE');
+    for(let q=0;q<5;q++)lights.push({x:(r.x0+4+Math.floor(q*(r.w-8)/4))*TSZ,y:(r.y1-rf(3,Math.max(4,r.h-4)))*TSZ,ph:RF()*6})}
+  /* --- mimics and eggs */
+  {const mp=idx===3?.16:idx===4?.1:idx===1?.06:.03;for(const ch of L.chests){if(ch.sec||ch.mimic)continue;if(RF()<mp)ch.mimic=1}
+   if(idx===4){for(const r of shuffled){if(RF()<.5&&r.w>=20)for(let q=0;q<rf(2,3);q++){const p=roomSpot(r,4);L.eggs.push({x:p.x,y:p.y,st:0,t:0,real:RF()<.5})}}}}
+  /* --- shiny creatures: a rare gold variant of some spawns */
+  {let n=0;for(const sp of L.spawns){if(sp.lair)continue;if(RF()<.035&&n<8){sp.shiny=1;n++}}if(n<2){for(let q=0;q<2;q++){const sp=L.spawns[rf(0,L.spawns.length-1)];if(sp&&!sp.lair)sp.shiny=1}}
+   secrets.push({id:idx+'_shiny',name:'SHINY CREATURE',shiny:1})}
+  /* --- logs that give the codes need the numbers */
+  L.loreFill=(txt)=>txt.replace('{CODE}',codeStr).replace('{ORDER}',orderStr);
+  /* --- fireflies that lead toward secrets are drawn at runtime from L.secretPts */
+  L.secretPts=doors.filter(d=>d.lock!=='crack'||true).map(d=>({x:d.cells[0][0]*TSZ+4,y:d.cells[0][1]*TSZ,sid:d.vault&&d.vault.sid}));
+  if(L.chase)L.secretPts.push({x:((L.chase.xl+L.chase.xr)>>1)*TSZ,y:L.chase.yb*TSZ,sid:L.chase.sid});
+  for(const o of ia){if(o.k==='console')L.secretPts.push({x:o.x,y:o.y,sid:o.sid});if(o.k==='portal'&&o.sid)L.secretPts.push({x:o.x,y:o.y,sid:o.sid})}
+  for(const c of L.chests)if(c.sec&&!(L.chase&&c.sec===L.chase.sid))L.secretPts.push({x:c.x,y:c.y,sid:c.sec});
+  /* --- collapsing runs on bridges */
+  if(idx>=1){let n=0;for(const k of L.kinds){if(!(k.k==='chasm'||k.k==='abyss')||k.c0==null||n>=(idx===1?2:1))continue;let ok=true;for(let x=k.x+2;x<k.x+k.w-2;x++){const t=G(x,k.c0);if(t!==2&&t!==0){ok=false;break}}
+      if(!ok)continue;let cnt=0;for(let x=k.x+1;x<k.x+k.w;x++)if(G(x,k.c0)===2){S(x,k.c0,6);cnt++}if(cnt>8){L.runs.push({y:k.c0,x0:k.x,x1:k.x+k.w});n++}}}
+  L.secretTotal=secrets.length;L.loreCount=ia.filter(o=>o.k==='lore').length;
+}
+
+/* ---------------- pictures for the things you can use ---------------- */
+function tintOf(c,col,a){return cnv(c.width,c.height,g=>{g.drawImage(c,0,0);g.globalCompositeOperation='source-atop';g.globalAlpha=a;g.fillStyle=col;g.fillRect(0,0,c.width,c.height)})}
+function mkFeatAssets(Wd,idx,T){
+  const F={glow:Wd.glow};
+  const gl=Wd.glow;
+  /* lore objects, one look per world */
+  F.lore=fin(cnv(12,14,g=>{
+    if(idx===0){poly(g,[[2,14],[3,3],[6,0],[9,3],[10,14]],[D,GM,LM,LL]);for(const [y,w] of [[4,3],[7,4],[10,3]])px(g,gl,6-(w>>1),y,w,1);px(g,K,5,5,2,1)}
+    else if(idx===1){poly(g,[[1,14],[1,3],[4,1],[6,3],[8,0],[11,2],[11,14]],[BR,TN,OR,YL]);for(const y of [5,8,11])px(g,BR,3,y,6,1);px(g,K,6,4,1,8)}
+    else if(idx===2){poly(g,[[1,7],[11,7],[11,13],[1,13]],[D,GM,LM]);px(g,D,5,13,2,1);px(g,K,2,2,8,6);px(g,'#0a2030',3,3,6,4);for(let i=0;i<3;i++)px(g,CY,3,3+i*2,3+(i%2)*3,1);px(g,YL,9,12,1,1);px(g,RD,2,12,1,1)}
+    else if(idx===3){poly(g,[[1,14],[2,9],[10,9],[11,14]],['#1c0808','#2a0a08',rd]);ell(g,6,5,3.6,3.6,[LM,LL,WH,WH]);px(g,K,4,4,2,2);px(g,K,7,4,2,2);px(g,K,6,7,1,2);px(g,OR,3,10,1,1);px(g,YL,8,11,1,1)}
+    else{ell(g,6,7,5,6.5,['#3a0a38',PU,mg,MG]);px(g,PG,3,5,6,1);px(g,K,5,5,2,1);px(g,PG,4,10,1,1);px(g,PG,8,9,1,1)}}));
+  /* people */
+  F.npc={};
+  F.npc.astro=fin(cnv(12,18,g=>{
+    px(g,LL,3,10,2,6);px(g,LL,7,10,2,6);px(g,GM,3,15,2,2);px(g,GM,7,15,2,2);
+    poly(g,[[2,7],[10,7],[10,13],[2,13]],[WH,LL,LL,LM]);px(g,OR,4,9,4,2);
+    ell(g,6,4,4,4,[NV,BL,CY,WH]);px(g,K,6,2,4,4);px(g,CY,7,3,3,2);px(g,WH,7,3,1,1);
+    px(g,LL,10,3,1,5);px(g,WH,10,2,2,2);px(g,LL,1,8,1,3)}));
+  F.npc.hermit=fin(cnv(12,18,g=>{
+    poly(g,[[1,17],[3,6],[6,3],[9,6],[11,17]],[BR,TN,'#5a3a30','#2a1008']);px(g,K,4,6,4,4);px(g,YL,4,7,1,1);px(g,YL,7,7,1,1);
+    px(g,TN,2,13,1,1);px(g,TN,9,14,1,1);line(g,'#b8884a',11,3,11,17);px(g,OR,10,2,3,2);px(g,YL,11,1,1,1)}));
+  F.npc.trader=fin(cnv(14,18,g=>{
+    px(g,K,2,15,4,3);px(g,K,8,15,4,3);px(g,LL,3,16,2,1);px(g,LL,9,16,2,1);
+    poly(g,[[2,8],[12,8],[12,15],[2,15]],[LL,LM,GM,D]);px(g,GREEN[3],4,10,6,3);px(g,GREEN[1],5,11,4,1);px(g,K,6,10,2,3);
+    poly(g,[[3,2],[11,2],[11,8],[3,8]],[LL,LM,GM]);px(g,K,4,3,6,4);px(g,GREEN[3],5,4,1,2);px(g,GREEN[3],8,4,1,2);px(g,GREEN[2],5,6,4,1);
+    line(g,LM,7,2,7,0);px(g,RD,6,0,3,1);px(g,YL,0,10,2,2);px(g,YL,12,10,2,2)}));
+  F.npc.ghost=fin(cnv(12,18,g=>{
+    ell(g,6,5,4.5,4.5,['#6c8aa8',CY,'#e0ffff',WH]);px(g,'#102030',4,3,5,4);px(g,CY,5,4,3,2);
+    poly(g,[[2,9],[10,9],[11,17],[9,15],[7,17],[5,15],[3,17],[1,17]],['#e0ffff',CY,'#6c8aa8']);px(g,'#102030',3,11,1,1);px(g,'#102030',8,11,1,1)}));
+  /* things to pull, press and carry */
+  F.lever=[0,1].map(on=>fin(cnv(12,12,g=>{px(g,D,1,9,10,3);px(g,GM,1,9,10,1);px(g,K,4,8,4,1);if(on){thick(g,LL,6,8,10,3,2);px(g,GREEN[3],9,1,3,3)}else{thick(g,LL,6,8,2,3,2);px(g,RD,1,1,3,3)}})));
+  F.plate=[0,1].map(dn=>cnv(16,5,g=>{if(!dn){px(g,K,0,3,16,2);px(g,D,1,1,14,3);px(g,YL,2,0,12,1);px(g,OR,4,2,8,1)}else{px(g,K,0,3,16,2);px(g,D,1,3,14,1);px(g,GREEN[3],2,3,12,1)}}));
+  F.key=[['#ff5544','#aa2020'],['#55aaff','#2060aa']].map(c=>fin(cnv(10,10,g=>{ell(g,3.5,3.5,3,3,[c[1],c[0],WH]);px(g,K,3,3,1,1);px(g,c[0],6,3,3,1);px(g,c[0],7,4,1,2);px(g,c[0],9,4,1,2)})));
+  F.frag=fin(cnv(10,10,g=>{poly(g,[[0,2],[6,0],[10,3],[9,8],[3,10],[1,7]],['#9a6759','#d8b070','#ffeeaa']);px(g,RD,4,4,1,1);px(g,RD,5,5,1,1);px(g,RD,6,4,1,1);px(g,RD,4,6,1,1);px(g,RD,6,6,1,1);px(g,'#68372b',2,3,3,1)}));
+  F.shrine=fin(cnv(14,16,g=>{poly(g,[[1,16],[3,9],[11,9],[13,16]],[LL,LM,GM,D]);px(g,K,6,11,2,5);poly(g,[[4,9],[5,6],[9,6],[10,9]],[LL,LM,GM]);ell(g,7,3.5,3.4,3.4,[YL,WH,WH,WH]);px(g,OR,7,2,1,1)}));
+  F.panel=fin(cnv(12,14,g=>{poly(g,[[1,1],[11,1],[11,14],[1,14]],[LM,GM,D]);px(g,K,2,2,8,4);px(g,CY,3,3,6,2);for(let j=0;j<3;j++)for(let i=0;i<3;i++)px(g,i===j?YL:LL,3+i*2,7+j*2,1,1)}));
+  F.crystal=fin(cnv(8,11,g=>{poly(g,[[4,0],[7,4],[6,10],[2,10],[1,4]],[BL,CY,WH]);px(g,WH,3,2,1,3)}));
+  /* a door and a cracked wall, drawn as map tiles */
+  F.door=cnv(8,8,g=>{px(g,K,0,0,8,8);px(g,'#6c6c88',1,0,6,8);px(g,'#ccccdd',1,0,6,1);px(g,'#ccccdd',1,0,1,8);px(g,'#44445a',6,0,1,8);px(g,'#44445a',1,7,6,1);px(g,'#8a8aa8',2,1,4,6);px(g,K,2,3,4,1);px(g,WH,2,1,1,1);px(g,WH,5,1,1,1);px(g,WH,2,6,1,1);px(g,WH,5,6,1,1)});
+  F.crack=cnv(8,8,g=>{g.drawImage(T.mid,0,0);g.globalAlpha=.25;g.fillStyle='#fff';g.fillRect(0,0,8,8);g.globalAlpha=1;line(g,K,1,0,3,3);line(g,K,3,3,2,5);line(g,K,2,5,4,7);line(g,K,5,1,6,4);line(g,K,6,4,5,6);px(g,gl,3,4,1,1);px(g,gl,6,5,1,1)});
+  /* the cursed chest: teeth, eyes and a tongue */
+  F.mimic=(()=>{const fr=[0,1,2,3].map(f=>fin(cnv(14,12,g=>{const op=[1,3,5,3][f];
+    poly(g,[[0,5+op],[14,5+op],[14,12],[0,12]],[BR,TN,OR]);px(g,K,0,7+op,14,1);px(g,YL,6,8+op,2,2);
+    poly(g,[[0,0],[14,0],[14,4-(op>>1)],[0,4-(op>>1)]],[BR,OR,YL]);px(g,K,1,4-(op>>1),12,Math.max(1,op));px(g,RD,3,4,8,Math.max(1,op-1));
+    for(let i=0;i<4;i++){px(g,WH,2+i*3,4-(op>>1),1,Math.min(2,op));px(g,WH,3+i*3,5+op,1,1)}
+    px(g,YL,3,1,2,2);px(g,YL,9,1,2,2);px(g,K,4,2,1,1);px(g,K,9,2,1,1)})));
+    return{fr,wh:fr.map(whiteOf)}})();
+  return F;
+}
+
 function genLevel(idx){
   const Wd=WORLDS[idx],Pm=PARAM[idx],R=rng(9100+idx*977),rn=(a,b)=>a+Math.floor(R()*(b-a+1)),NZ=B.mkNoise(300+idx);
   const WPm=WP[idx],LW=WPm.lw,ship=!!Wd.ship,cavern=!!Wd.cavern;
@@ -770,6 +1006,7 @@ function genLevel(idx){
       for(let y=Math.min(p.y,vy);y<=Math.max(p.y,vy);y++){const t=G(vx,y);if(t===0||t===1||t===2||t===6||t===10)S(vx,y,7)}L.repairs++}
     if(!bad)break}
   L.dist0=Math.hypot(L.start.x-L.exit.x,L.start.y-L.exit.y)||1;
+  featGen({L,idx,rooms,top,rh,LW,LH,S,G,rect,chest,spawn,deco,pockets,elevAt});
   fixTraps(L);
   /* every ship piece must be reachable with the rocket pack: if not, give it a ledge and a ladder tunnel to the nearest reachable floor */
   if(L.shipPieces.length){let AP=analyzeLevel(L,{pack:true}),fixed=0;
@@ -1161,7 +1398,7 @@ function bakeChunk(L,idx,ci,cj){
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
 window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
-function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
+function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
   return s}
 SURF.state=sv;
 const PIECE_NAMES=['HULL','ENGINE','REACTOR','WINGS','COCKPIT','WEAPON CORE'];SURF.PIECE_NAMES=PIECE_NAMES;
@@ -1232,7 +1469,7 @@ SURF.assets_=idx=>{
     if(idx===0){ell(g,55,30,22,22,[VI,PU,mg,MG,WH]);for(let i=0;i<110;i++){const an=i/110*TAU;if(Math.sin(an)>0||Math.abs(Math.cos(an))>.4)px(g,i%2?YL:OR,55+Math.cos(an)*38,30+Math.sin(an)*9,2,1)}}
     else if(idx===1){ell(g,36,28,16,16,[OR,YL,WH,WH]);ell(g,82,38,8,8,[RD,OR,YL,WH])}
     else{}});
-  a.pieceIcons=mkPieceIcons();
+  a.pieceIcons=mkPieceIcons();a.fx=mkFeatAssets(Wd,idx,a.tiles);a.en.push(a.fx.mimic);a.en.forEach(q=>{q.gd=q.fr.map(i=>tintOf(i,'#ffd24a',.55))});
   a.coin=cnv(7,7,g=>{ell(g,3.5,3.5,3,3,GREEN);px(g,WH,2,2,1,1)});
   a.chest=[cnv(14,10,g=>{poly(g,[[0,3],[14,3],[14,10],[0,10]],[BR,TN,OR]);poly(g,[[0,0],[14,0],[14,4],[0,4]],[BR,OR,YL]);px(g,GREEN[3],6,3,2,3);px(g,K,0,3,14,1)}),
     cnv(14,10,g=>{poly(g,[[0,5],[14,5],[14,10],[0,10]],[BR,TN,OR]);px(g,GREEN[2],2,0,10,5);px(g,GREEN[4],4,1,2,2);px(g,GREEN[3],8,2,2,2)})];
@@ -1257,6 +1494,7 @@ SURF.start=function(idx){
   L.spawns.forEach(sp=>{sp.e=null;sp.t=0});
   L.chests.forEach(c=>c.open=0);
   for(const c of L.checks)c.on=(cp&&Math.abs(c.x-cp.x)<4)?1:0;
+  featStart();
   SURF.on=true;MODE='surface';UI.focus=0;
 };
 function addEnemy(spec,x,y,elite){
@@ -1269,7 +1507,7 @@ function addEnemy(spec,x,y,elite){
 const rnd=(a,b)=>a+Math.random()*(b-a);
 /* ---------------- tiles, collision ---------------- */
 function tile(x,y){const L=SURF.L;if(x<0||x>=L.LW)return 1;if(y<0)return 0;if(y>=L.LH)return 1;return L.g[y*L.LW+x]}
-const solidT=t=>t===1||t===6;
+const solidT=t=>t===1||t===6||t===11||t===13;
 function hitsSolid(x,y,w,h){const L=SURF.L,x0=Math.floor(x/TS),x1=Math.floor((x+w-.01)/TS),y0=Math.floor(y/TS),y1=Math.floor((y+h-.01)/TS);
   for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const t=tile(tx,ty);if(solidT(t))return true}return false}
 /* ---------------- input ---------------- */
@@ -1283,9 +1521,12 @@ function inp(){
 }
 /* ---------------- update ---------------- */
 SURF.key=function(k){
-  if(k==='b'||k==='escape'||k==='t'){SURF.beamUp();return}
+  const rep=typeof INP!=='undefined'&&INP.repeat,pad=typeof INP!=='undefined'&&INP.last==='pad';
+  if(SURF.modal){if(rep)return;if(k==='enter'||k==='e'||k===' ')SURF.kOK=true;else if(k==='b'||k==='escape'||k==='p'||k==='t')SURF.kBack=true;return}
+  if(k==='b'||k==='escape'||k==='t'||k==='p'){if(!rep&&!SURF.cut)openPause();return}
   if(k==='g'){const p=SURF.p;if(p&&p.dead<=0&&SURF.t-(SURF.rt||-9)>3){SURF.rt=SURF.t;const cp=sv().cp[SURF.idx];p.x=cp?cp.x:SURF.L.start.x;p.y=(cp?cp.y-16:SURF.L.start.y);p.vx=p.vy=0;p.ride=null;p.inv=1;SURF.msg=['BACK AT THE LAST BEAM PAD',1.6]}return}
-  if(k==='enter'||k==='e'){const L=SURF.L,p=SURF.p;if(L.exit&&Math.abs(p.x-L.exit.x)<20&&Math.abs(p.y+8-L.exit.y)<24)tryExit()}
+  if(k==='enter'||k==='e'){const L=SURF.L,p=SURF.p;if(L.exit&&Math.abs(p.x-L.exit.x)<20&&Math.abs(p.y+8-L.exit.y)<24){tryExit();return}
+    if(!rep&&SURF.near){SURF.useReq=true;if(pad)SURF.noJump=.2}}
 };
 function tryExit(){
   const L=SURF.L,s=sv();
@@ -1299,7 +1540,7 @@ function tryExit(){
   save();
 }
 SURF.beamUp=function(){
-  if(SURF.cut&&SURF.cut.mode==='out')return;const p=SURF.p;
+  if(SURF.cut&&SURF.cut.mode==='out')return;const p=SURF.p;SURF.modal=null;
   SURF.cut={mode:'out',t:0,hx:p.x+5,hy:Math.max(12,p.y-64),py0:p.y,px0:p.x};try{sfxTone(300,700,.5,'sine',.04,{att:.01})}catch(e){}
 };
 function leave(){
@@ -1318,6 +1559,8 @@ SURF.tick=function(dt){
   if(SURF.endT>0){SURF.endT-=dt;if(SURF.endT<=0){SURF.beamUp()}}
   const I=inp();if(SURF.intro&&SURF.intro.t>.8&&(I.l||I.r||I.jump||I.fire||I.up||I.down||Object.keys(UI.keys).length))SURF.intro=null;
   const beamed=false,locked=!!(SURF.cut&&(SURF.cut.mode==='out'||!SURF.cut.dropped));
+  if(SURF.noJump>0){SURF.noJump-=dt;I.jump=false;I.jumpB=false}
+  if(SURF.modal&&!locked){modalTick(dt,I);return}
   /* lifts */
   for(const q of L.lifts){const dist=Math.abs(q.b-q.a),per=dist/q.sp*2+1.4;let u=((L.tick+q.ph)%per)/per;
     let f=u<.5?u*2:(1-u)*2;f=f<.1?0:f>.9?1:(f-.1)/.8;const ease=f*f*(3-2*f),pos=q.a+(q.b-q.a)*ease;
@@ -1328,7 +1571,7 @@ SURF.tick=function(dt){
   if(locked){/* the ship has the astronaut */}
   else if(p.dead>0){p.dead-=dt;if(p.dead<=0){p.x=p.safe.x;p.y=p.safe.y;p.vx=p.vy=0;p.hp=p.mhp;p.inv=1.5}}
   else{
-    const sp=p.inW?58:82;let ax=(I.r?1:0)-(I.l?1:0);if(beamed)ax=0;
+    const sp=(p.inW?58:82)*(s.perk[1]?1.1:1);let ax=(I.r?1:0)-(I.l?1:0);if(beamed)ax=0;
     /* ladders: grab with up or down, climb with up and down, jump to let go */
     const lcx=Math.floor((p.x+p.w/2)/TS),onL=tile(lcx,Math.floor((p.y+8)/TS))===7,belowL=tile(lcx,Math.floor((p.y+p.h+1)/TS))===7;
     if(!p.lad){if((I.up&&onL)||(I.down&&(onL||(p.on&&belowL)))){p.lad=true;p.vy=0;p.on=false;if(!onL)p.y+=5;p.jb=0;p.jumpHeld=true}}
@@ -1348,7 +1591,7 @@ SURF.tick=function(dt){
     if(p.inW&&!p.lad){   // swimming: slow, floaty, hold jump to rise
       p.vy+=(I.jump?-520:130)*dt;if(p.vy>46)p.vy=46;if(p.vy<-78)p.vy=-78;p.vx*=1-dt*2.4;
       if(Math.random()<dt*7)SURF.fx.push({x:p.x+p.w/2+rnd(-3,3),y:p.y+3,vx:rnd(-6,6),vy:-30,life:.9,c:'#d0ffff',s:1,b:1})}
-    else if(!p.lad){p.vy+=430*dt;if(p.vy>320)p.vy=320}
+    else if(!p.lad){p.vy+=430*dt*gravK();if(p.vy>320)p.vy=320}
     /* wind lifts */
     for(const u of L.ups)if(p.x+p.w>u.x&&p.x<u.x+u.w&&p.y+p.h>u.y&&p.y<u.y+u.h){p.vy-=900*dt;if(p.vy<-95)p.vy=-95}
     p.jb-=dt;p.coy-=dt;
@@ -1367,7 +1610,7 @@ SURF.tick=function(dt){
     p.thrust=false;
     if(p.on||p.lad){p.jarm=false;if(p.fuel==null)p.fuel=1;p.fuel=Math.min(1,p.fuel+dt*1.4)}
     else{if(!I.jump)p.jarm=true;if(p.fuel==null)p.fuel=1;
-      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed&&!p.inW){p.thrust=true;p.vy-=900*dt;if(p.vy<-105)p.vy=-105;p.fuel=Math.max(0,p.fuel-dt*.5);
+      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed&&!p.inW){p.thrust=true;p.vy-=900*dt;if(p.vy<-105)p.vy=-105;p.fuel=Math.max(0,p.fuel-dt*.5/(1+.4*(s.shop.fuel||0)+(s.perk[3]?.4:0)));
         p.jt=(p.jt||0)-dt;if(p.jt<=0){p.jt=.07;try{sfxTone(150,80,.07,'sawtooth',.012,{att:.001})}catch(e){}}
         for(let k=0;k<2;k++)SURF.fx.push({x:p.x+p.w/2-p.face*4+rnd(-1,1),y:p.y+p.h-2,vx:rnd(-14,14)-p.face*10,vy:rnd(70,130),life:rnd(.18,.4),c:[WH,YL,OR,OR,RD][(Math.random()*5)|0],s:k?1:2})}}
     /* move x with step-up */
@@ -1397,37 +1640,38 @@ SURF.tick=function(dt){
     p.sf-=dt;if(p.on&&p.sf<=0&&Math.abs(p.vx)<60){const bx=Math.floor((p.x+p.w/2)/TS),by=Math.floor((p.y+p.h+1)/TS);let ok=true;for(let d=-2;d<=2;d++){const t=tile(bx+d,by);if(t===3||t===4)ok=false}if(tile(bx,by)===6)ok=false;if(ok&&!p.ride){p.safe={x:p.x,y:p.y};p.sf=.5}}
     /* hazards */
     const cxT=Math.floor((p.x+p.w/2)/TS),cyT=Math.floor((p.y+p.h-2)/TS),cyH=Math.floor((p.y+3)/TS);
-    for(const yy of [cyT,cyH]){const t=tile(cxT,yy);if(t===3&&p.inv<=0){hurt(1,true)}else if(t===4){hurt(PARAM[SURF.idx].dmg,true)}}
+    for(const yy of [cyT,cyH]){const t=tile(cxT,yy);if(t===3&&p.inv<=0){hurt(1,true)}else if(t===4){if(L.chase&&L.chase.state===1)chaseFail();else hurt(PARAM[SURF.idx].dmg,true)}}
     if(p.y>L.LH*TS-10)hurt(1,true);
     if(p.inv>0)p.inv-=dt;
     /* gates */
     for(const gt of (L.gates||[])){const on=((L.tick*.6+gt.x)%2)<1;gt.on=on;if(on&&p.x+p.w>gt.x*TS&&p.x<gt.x*TS+8&&p.y+p.h>gt.y*TS&&p.y<(gt.y+gt.h)*TS&&p.inv<=0)hurt(1,false)}
     /* fire */
     p.fire-=dt;
-    if(I.fire&&p.fire<=0&&!beamed){p.fire=.2;const up=I.up&&!I.l&&!I.r?1:0,dir=p.face;
-      SURF.bul.push({x:p.x+p.w/2+dir*8,y:p.y+(up?2:7),vx:up?0:dir*260,vy:up?-260:0,life:.7,d:1});try{sfxLaser()}catch(e){}}
+    if(I.fire&&p.fire<=0&&!beamed){p.fire=s.perk[2]?.15:.2;const up=I.up&&!I.l&&!I.r?1:0,dir=p.face;
+      SURF.bul.push({x:p.x+p.w/2+dir*8,y:p.y+(up?2:7),vx:up?0:dir*260,vy:up?-260:0,life:.7,d:1+(s.shop.dmg||0)*.5});try{sfxLaser()}catch(e){}}
     /* checkpoints and chests and coins */
     for(const sp of (L.shipPieces||[]))if(!s.pieces[sp.id]&&Math.abs(p.x+5-sp.x)<14&&Math.abs(p.y+8-sp.y)<16){s.pieces[sp.id]=1;const n=SURF.piecesFound();
       SURF.banner={t:7,lines:['SHIP PIECE FOUND: '+PIECE_NAMES[sp.id],'('+n+' OF 6)',n>=6?'ALL SIX PIECES FOUND! FINISH ALL FIVE WORLDS TO CLAIM THE SHIP.':'KEEP LOOKING. THE REST ARE HIDDEN IN THE OTHER WORLDS.']};
       try{sfxTone(400,1600,.7,'triangle',.06,{att:.005});setTimeout(()=>{try{sfxTone(800,1800,.4,'sine',.05,{att:.005})}catch(e){}},220)}catch(e){}shakeS=.2;
       for(let i=0;i<40;i++)SURF.fx.push({x:sp.x,y:sp.y,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,CY,MG][i%4],s:2});save()}
     for(const c of L.checks)if(!c.on&&Math.abs(p.x+5-c.x)<16&&Math.abs(p.y+16-c.y)<18){c.on=1;s.cp[SURF.idx]={x:c.x,y:c.y};SURF.msg=['BEAM PAD SAVED',1.6];for(let i=0;i<10;i++)SURF.fx.push({x:c.x,y:c.y-4,vx:rnd(-30,30),vy:rnd(-90,-20),life:.7,c:CY,s:2});p.safe={x:p.x,y:p.y}}
-    for(const c of L.chests)if(!c.open&&Math.abs(p.x+5-(c.x+7))<14&&Math.abs(p.y+8-(c.y+5))<18){c.open=1;try{sfxTone(500,1200,.3,'triangle',.04,{att:.005})}catch(e){}
+    for(const c of L.chests)if(!c.open&&Math.abs(p.x+5-(c.x+7))<14&&Math.abs(p.y+8-(c.y+5))<18){c.open=1;if(c.sec)foundSecret(c.sec);if(c.mimic){c.gone=1;spawnMimic(c.x,c.y);SURF.msg=['IT WAS A CURSED CHEST!',2];shakeS=.2;try{sfxBoom(8,false)}catch(e){}continue}try{sfxTone(500,1200,.3,'triangle',.04,{att:.005})}catch(e){}
       for(let i=0;i<Math.min(12,c.v);i++)L.coins.push({x:c.x+7,y:c.y,v:Math.ceil(c.v/Math.min(12,c.v)),vx:rnd(-50,50),vy:rnd(-130,-60),loose:1})}
     let anyGone=false;
     for(const c of L.coins){
-      if(!c.loose&&(Math.abs(p.x+5-c.x)>24||Math.abs(p.y+8-c.y)>24))continue;
+      if(!c.loose&&(Math.abs(p.x+5-c.x)>(s.perk[4]?38:24)||Math.abs(p.y+8-c.y)>(s.perk[4]?38:24)))continue;
       if(c.loose){c.vy+=300*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;if(hitsSolid(c.x-2,c.y,4,4)){c.vy=-c.vy*.3;c.vx*=.6;c.y-=2}}
-      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(!c.gone&&dx*dx+dy*dy<150){c.gone=1;anyGone=true;s.green+=c.v;SURF.visit+=c.v;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+c.v});try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
+      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(!c.gone&&dx*dx+dy*dy<(s.perk[4]?340:150)){c.gone=1;anyGone=true;s.green+=c.v;SURF.visit+=c.v;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+c.v});try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
     if(anyGone)L.coins=L.coins.filter(c=>!c.gone);
   }
   /* spawners: enemies in view and farm respawns */
   for(const sp of L.spawns){
+    if(sp.killed)continue;
     const dx=Math.abs(sp.x-(p.x+5));
     if(sp.e&&sp.e.hp<=0){sp.e=null;sp.t=PARAM[SURF.idx].resp*(.7+Math.random()*.6)}
     if(!sp.e){sp.t-=dt;
       if(sp.t<=0&&dx<200){const cam=SURF.cam,on=sp.x>cam.x-20&&sp.x<cam.x+VW+20;
-        if(!sp.once||!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h);sp.e=e;e.sp_=sp}}}
+        if(!sp.once||!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h*(sp.elite?1.7:1),!!sp.elite);if(sp.elite){e.hp=e.mhp=e.hp/2.4;e.lair=1}if(sp.shiny){e.shiny=1;e.hp=e.mhp=e.hp*1.6}sp.e=e;e.sp_=sp}}}
   }
   /* the guardian shows up when you get near the end */
   if(!SURF.guard&&Math.abs(p.x-L.exit.x)<300&&Math.abs(p.y-L.exit.y)<200){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;SURF.guard=e;SURF.msg=['THE GUARDIAN',2.5]}
@@ -1435,7 +1679,8 @@ SURF.tick=function(dt){
   for(const e of SURF.en){updateEnemy(e,dt)}
   SURF.en=SURF.en.filter(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<520)return true;if(e.hp<=0)return false;if(e.sp_){e.sp_.e=null;e.sp_.t=0}return false});
   /* bullets */
-  for(const b of SURF.bul){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(hitsSolid(b.x-1,b.y-1,2,2))b.life=0;
+  for(const b of SURF.bul){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;{const btx=Math.floor(b.x/TS),bty=Math.floor(b.y/TS);if(tile(btx,bty)===13){crackHit(btx,bty);b.life=0}}if(L.targets.length&&b.life>0)for(const tg of L.targets)if(!tg.hit&&Math.abs(b.x-tg.x)<6&&Math.abs(b.y-tg.y)<6&&L.ia.some(q=>q.k==='console'&&q.state===1)){tg.hit=1;b.life=0;SURF.msg=[L.targets.filter(q=>!q.hit).length+' TARGETS LEFT',1.2];try{sfxTone(900,1300,.1,'square',.04,{att:.002})}catch(e){}}
+    if(hitsSolid(b.x-1,b.y-1,2,2))b.life=0;
     for(const e of SURF.en)if(e.hp>0&&b.life>0&&Math.abs(b.x-(e.x+e.w/2))<e.w/2+2&&Math.abs(b.y-(e.y+e.h/2))<e.h/2+2){b.life=0;e.hp-=b.d;e.flash=.08;
       if(e.hp<=0)killEnemy(e);for(let i=0;i<3;i++)SURF.fx.push({x:b.x,y:b.y,vx:rnd(-40,40),vy:rnd(-40,40),life:.2,c:CY,s:1})}}
   SURF.bul=SURF.bul.filter(b=>b.life>0);
@@ -1445,6 +1690,7 @@ SURF.tick=function(dt){
   /* particles */
   for(const f of SURF.fx){f.life-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vy+=(f.b?-60:120)*dt}SURF.fx=SURF.fx.filter(f=>f.life>0);
   for(const t of SURF.txt){t.t-=dt;t.y-=18*dt}SURF.txt=SURF.txt.filter(t=>t.t>0);
+  if(!locked)featTick(dt,I);
   /* camera */
   const cam=SURF.cam,tx=clamp(p.x+5-VW/2+p.face*28,0,L.LW*TS-VW),ty=clamp(p.y-VH*.58,0,L.LH*TS-VH);
   cam.x+=(tx-cam.x)*Math.min(1,dt*5);cam.y+=(ty-cam.y)*Math.min(1,dt*4);
@@ -1452,6 +1698,7 @@ SURF.tick=function(dt){
 function hurt(n,respawn){
   const p=SURF.p;if(p.inv>0&&!respawn||p.dead>0)return;
   if(SURF.cut&&SURF.cut.mode==='out')return;
+  if(p.shield>0&&!respawn){p.shield--;p.inv=1;SURF.msg=['THE SHIELD BLOCKED THE HIT',1.2];for(let i=0;i<8;i++)SURF.fx.push({x:p.x+5,y:p.y+8,vx:rnd(-60,60),vy:rnd(-60,40),life:.4,c:CY,s:2});try{sfxTone(700,400,.1,'triangle',.04,{att:.002})}catch(e){}return}
   p.hp-=n;p.inv=1;shakeS=.25;try{sfxBoom(8,false)}catch(e){}
   for(let i=0;i<10;i++)SURF.fx.push({x:p.x+5,y:p.y+8,vx:rnd(-70,70),vy:rnd(-90,10),life:.5,c:RD,s:2});
   if(p.hp<=0){const cp=sv().cp[SURF.idx];p.safe=cp?{x:cp.x,y:cp.y-16}:{x:SURF.L.start.x,y:SURF.L.start.y};p.dead=1.1;SURF.msg=['YOU WERE BEAMED BACK TO THE LAST PAD',1.6];for(let i=0;i<20;i++)SURF.fx.push({x:p.x+5,y:p.y+8,vx:rnd(-90,90),vy:rnd(-120,10),life:.9,c:i%2?WH:CY,s:2})}
@@ -1460,10 +1707,13 @@ function hurt(n,respawn){
 let shakeS=0;
 function killEnemy(e){
   const s=sv(),sp=e.sp;sv();s.kills++;try{sfxBoom(10,e.elite)}catch(e2){}
+  if(e.shiny){s.shiny[SURF.idx+'_'+e.k]=1;foundSecret(SURF.idx+'_shiny','SHINY CREATURE')}
+  if(e.sp_&&e.sp_.lair)e.sp_.killed=1;if(e.hunter)SURF.hunterDead=SURF.t;
+  if(e.guardian&&SURF.idx===4){const f=SURF.L.ia.find(o=>o.final);if(f){f.hide=0;f.x=e.x+e.w/2;f.y=e.y+e.h;SURF.msg=['SOMETHING GLOWS WHERE THE GUARDIAN FELL',4]}}
   if(e.guardian&&SURF.idx===0&&!s.jet){s.jet=1;SURF.p.fuel=1;SURF.banner={t:8,lines:['YOU GOT A ROCKET PACK!','PRESS JUMP AGAIN IN THE AIR','AND HOLD IT TO FLY.','NOW YOU CAN EXPLORE FURTHER.']};shakeS=.3;try{sfxTone(300,1400,.6,'triangle',.05,{att:.005})}catch(e3){}
     for(let i=0;i<40;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,OR,CY][i%4],s:2});save()}
   const key=SURF.idx+'_'+e.k;s.seen[key]=(s.seen[key]||0)+1;
-  const n=Math.max(1,Math.round(sp.gold*(e.elite?4:1)));
+  const n=Math.max(1,Math.round(sp.gold*(e.elite?4:1)*(e.shiny?5:1)*(e.hunter?3:1)));
   for(let i=0;i<Math.min(8,n);i++)SURF.L.coins.push({x:e.x+e.w/2,y:e.y+e.h/2,v:Math.ceil(n/Math.min(8,n)),vx:rnd(-60,60),vy:rnd(-120,-40),loose:1});
   for(let i=0;i<14;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-80,80),vy:rnd(-100,20),life:.5,c:sp.pal[(i%3)+2],s:2});
 }
@@ -1502,6 +1752,323 @@ function updateEnemy(e,dt){
     else{grav();e.t2-=dt;if(e.t2<=0)e.st=0}}
   /* touching the player hurts */
   if(p.dead<=0&&p.inv<=0&&Math.abs(dx)<(e.w+p.w)/2-1&&Math.abs(dy)<(e.h+p.h)/2-2)hurt(PARAM[SURF.idx].dmg+(e.elite?1:0),false);
+}
+
+/* ---------------- features at run time: things to use, read, solve and survive ---------------- */
+const ENDESC={walker:'WALKS BACK AND FORTH. TURNS TO FACE YOU WHEN NEAR.',hopper:'JUMPS AT YOU FROM A DISTANCE.',turret:'STAYS IN ONE SPOT AND SHOOTS AT YOU.',flyer:'FLIES AFTER YOU AND SOMETIMES SHOOTS.',charger:'SLOW, BUT CHARGES FAST WHEN IT SEES YOU.',dropper:'FLOATS ABOVE AND DROPS BOMBS ON YOU.',lobber:'LOBS SHELLS IN AN ARC OVER WALLS.',diver:'HOVERS, THEN DIVES AT YOU.'};
+const PERKS=['SHRINE OF HEARTS: YOUR MAXIMUM HEALTH IS UP BY ONE.','SHRINE OF SWIFTNESS: YOU RUN A LITTLE FASTER.','SHRINE OF LIGHT: YOUR LASER FIRES FASTER.','SHRINE OF FIRE: YOUR ROCKET FUEL LASTS LONGER.','SHRINE OF GREED: YOU PICK UP GREEN GOLD FROM FURTHER AWAY.'];
+const EVT=[
+ [{id:'spore',warn:'WARNING: A SPORE STORM IS COMING.',on:'THE SPORE STORM IS HERE. THE WIND PUSHES YOU.'}],
+ [{id:'sand',warn:'WARNING: A SANDSTORM IS COMING.',on:'THE SANDSTORM IS HERE. THE WIND PUSHES YOU HARD.'}],
+ [{id:'surge',warn:'WARNING: A POWER SURGE IS COMING. WATCH FOR SPARKS.',on:'POWER SURGE. SPARKS STRIKE WHERE THE LIGHT FLASHES.'}],
+ [{id:'meteor',warn:'WARNING: A METEOR SHOWER IS COMING.',on:'METEORS ARE FALLING. WATCH THE RED MARKS.'},{id:'quake',warn:'WARNING: AN EARTHQUAKE IS COMING.',on:'THE GROUND SHAKES. ROCKS FALL FROM ABOVE.'}],
+ [{id:'pulse',warn:'WARNING: THE HIVE IS ABOUT TO PULSE.',on:'THE HIVE PULSES. YOU FLOAT, GRAVITY IS LOW.'}]];
+function wrapT(str,w){const words=str.split(' '),out=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(textW(t,1)>w&&cur){out.push(cur);cur=wd}else cur=t}if(cur)out.push(cur);return out}
+function useLabel(){return(typeof INP!=='undefined'&&INP.last==='pad')?'A':(typeof INP!=='undefined'&&INP.last==='touch')||(typeof isTouch!=='undefined'&&isTouch)?'USE':'E'}
+function foundSecret(id,name){const s=sv();if(!id||s.sec[id])return;s.sec[id]=1;const L=SURF.L,sc=L.secrets.find(q=>q.id===id);SURF.msg=['SECRET FOUND: '+(name||(sc&&sc.name)||''),3];try{sfxTone(500,1500,.5,'triangle',.05,{att:.005})}catch(e){}save()}
+function trk(){const s=sv(),L=SURF.L,idx=SURF.idx;const sec=L.secrets.filter(q=>s.sec[q.id]).length,tot=L.secrets.length;
+  let lr=0;for(let k=0;k<LORE[idx].length;k++)if(s.lore[idx*10+k])lr++;const W=SURF.W;let met=0;for(let k=0;k<W.en.length;k++)if(s.met[idx+'_'+k])met++;
+  return{sec,tot,lr,lt:LORE[idx].length,met,mt:W.en.length,full:sec>=tot&&lr>=LORE[idx].length&&met>=W.en.length}}
+function secretHint(){const L=SURF.L,p=SURF.p,s=sv();let best=null,bd=1e9;
+  for(const q of L.secretPts){if(q.sid&&s.sec[q.sid])continue;const d=Math.hypot(q.x-p.x,(q.y-p.y)*1.5);if(d<bd){bd=d;best=q}}
+  if(!best)return 'I HAVE NOTHING MORE TO TELL YOU. YOU HAVE FOUND ALL THE SECRETS I KNOW.';
+  const dx=best.x-p.x,dy=best.y-p.y,sc=Math.max(1,Math.round(bd/320));
+  const h=Math.abs(dx)>40?(dx>0?'TO THE RIGHT':'TO THE LEFT'):'';const v=Math.abs(dy)>60?(dy>0?'BELOW':'ABOVE'):'';
+  return 'SOMETHING IS HIDDEN '+[v,h].filter(Boolean).join(' AND ')+', ABOUT '+sc+' SCREEN'+(sc>1?'S':'')+' AWAY. LISTEN FOR HOLLOW WALLS AND SHOOT THE ONES THAT GLOW.'}
+function nearestSecret(){const L=SURF.L,p=SURF.p,s=sv();let best=null,bd=1e9;for(const q of L.secretPts){if(q.sid&&s.sec[q.sid])continue;const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q}}return best?{q:best,d:bd}:null}
+/* ---- modals */
+function openModal(m){m.t=0;SURF.modal=m;SURF.pv=null;SURF.mh=[]}
+function openText(title,body,opt){openModal(Object.assign({type:'text',title,lines:wrapT(body,262)},opt||{}))}
+function openTalk(name,pages,done,choices){openModal({type:'talk',name,pages:pages.map(t=>wrapT(t,262)),page:0,done,choices})}
+function openPause(){if(SURF.modal)return;openModal({type:'pause',tab:0,focus:0,btn:0,cur:[0,SURF.idx*5,0,0]})}
+function closeModal(){const m=SURF.modal;SURF.modal=null;SURF.pv=null;SURF.mh=[];SURF.noJump=.25;if(m&&m.onClose)m.onClose()}
+function readLore(ia){const L=SURF.L,s=sv(),idx=SURF.idx,k=ia.slot,e=LORE[idx][k];if(!e)return;const first=!s.lore[idx*10+k];s.lore[idx*10+k]=1;if(first)save();
+  const o={lore:1};if(first&&ia.final)o.onClose=()=>{SURF.banner={t:8,lines:['THE ALIEN MOTHERSHIP WAS THE SUNLARK ALL ALONG.','FIND ALL SIX PIECES AND IT WILL FLY HOME.']};shakeS=.6;try{sfxTone(200,900,.8,'triangle',.06,{att:.01})}catch(e){}for(let i=0;i<40;i++)SURF.fx.push({x:SURF.p.x+5,y:SURF.p.y,vx:rnd(-120,120),vy:rnd(-160,-20),life:1.2,c:[WH,PG,MG,CY][i%4],s:2})};
+  openText(e[0]+(first?'  (NEW)':''),L.loreFill(e[1]),o);}
+/* ---- shop */
+function shopRows(){const s=sv(),p=SURF.p,rows=[];const buy=(cost,fn)=>()=>{if(s.green<cost){SURF.msg=['NOT ENOUGH GREEN GOLD',1.6];return}s.green-=cost;fn();try{sfxTone(700,1400,.15,'square',.03,{att:.002})}catch(e){}save()};
+  rows.push({t:'HEALTH REFILL',c:15,no:'FULL',d:'FILLS YOUR HEALTH BAR.',ok:p.hp<p.mhp,fn:buy(15,()=>{p.hp=p.mhp})});
+  rows.push({t:'ENERGY SHIELD',c:45,no:'ON',d:'BLOCKS THE NEXT 3 HITS THIS VISIT.',ok:!(p.shield>0),fn:buy(45,()=>{p.shield=3})});
+  rows.push({t:'ROCKET FUEL TANK',c:120,no:s.jet?'MAX':'NO PACK',d:s.jet?'MORE FUEL. YOU HAVE '+(s.shop.fuel||0)+' OF 3.':'NEEDS THE ROCKET PACK FIRST.',ok:!!s.jet&&(s.shop.fuel||0)<3,fn:buy(120,()=>{s.shop.fuel=(s.shop.fuel||0)+1})});
+  rows.push({t:'LASER UPGRADE',c:(s.shop.dmg||0)?300:150,no:'MAX',d:'MORE DAMAGE. YOU HAVE '+(s.shop.dmg||0)+' OF 2.',ok:(s.shop.dmg||0)<2,fn:buy((s.shop.dmg||0)?300:150,()=>{s.shop.dmg=(s.shop.dmg||0)+1})});
+  rows.push({t:'GLOW LANTERN',c:70,no:'OWNED',d:'SEE FURTHER IN DARK ROOMS.',ok:!s.shop.lamp,fn:buy(70,()=>{s.shop.lamp=1})});
+  rows.push({t:'LEVEL MAP',c:40,no:'OWNED',d:'SHOWS THE WHOLE LEVEL ON THE MAP PAGE.',ok:!s.map[SURF.idx],fn:buy(40,()=>{s.map[SURF.idx]=1})});
+  return rows}
+function openShop(){const rows=shopRows();openModal({type:'menu',title:'TRADER BOT: GREEN GOLD SHOP',rows,cur:Math.max(0,rows.findIndex(r=>r.ok)),refresh:shopRows})}
+/* ---- people */
+function npcTalk(ia){const s=sv(),L=SURF.L,idx=SURF.idx;
+  if(ia.npc==='trader'){openTalk('TRADER BOT',['BEEP. I BUY NOTHING AND SELL EVERYTHING. PAY IN GREEN GOLD ONLY. SHIP GOLD IS NOT ACCEPTED HERE.'],()=>openShop());return}
+  if(ia.npc==='astro'){const q=s.q[ia.qid]||0,N=40+idx*30,qi=L.questItem;
+    if(q===0&&qi){openTalk('STRANDED ASTRONAUT',['I AM STUCK HERE. MY DATA CRYSTAL FELL INTO THE ROOMS UNDER THE GROUND. IT GLOWS BLUE.','BRING IT BACK AND I WILL PAY YOU '+N+' GREEN GOLD.'],()=>{s.q[ia.qid]=1;SURF.msg=['QUEST: FIND THE DATA CRYSTAL',3];save()});return}
+    if(q===1||q===2){if(q===2||(L.questItem&&L.questItem.got)){openTalk('STRANDED ASTRONAUT',['YOU FOUND MY DATA CRYSTAL! THANK YOU. HERE IS YOUR PAY: '+N+' GREEN GOLD.'],()=>{s.q[ia.qid]=3;s.green+=N;SURF.visit+=N;SURF.msg=['QUEST DONE  +'+N+' GREEN GOLD',3];save()});return}
+      openTalk('STRANDED ASTRONAUT',['HAVE YOU FOUND MY DATA CRYSTAL YET? IT IS IN ONE OF THE ROOMS UNDER THE GROUND. LOOK FOR A BLUE GLOW.']);return}
+    openTalk('STRANDED ASTRONAUT',['THANKS AGAIN FOR THE HELP.',secretHint()]);return}
+  if(ia.npc==='hermit'){const sd=sv();openTalk('THE HERMIT',['I HAVE HEARD YOU WALKING ABOVE ME. SAND CARRIES EVERY SOUND.','THE TEMPLE HOLDS TWO KEYS, ONE RED AND ONE BLUE, IN TWO HIDDEN ROOMS. BOTH ARE NEEDED FOR THE INNER DOOR.',secretHint()]);return}
+  if(ia.npc==='ghost'){openTalk('THE PILOT GHOST',idx===2?['I WAS THE NOMAD CREW. WE ARE ALL STILL HERE. THE LOG WILL TELL YOU THE CODE AND THE ORDER OF THE POWER NODES.',secretHint()]:['I FLEW THE SUNLARK ONCE. THE WALLS HERE REMEMBER SONGS. REPEAT THE SONG OF THE PODS AND THE WALL WILL OPEN.',secretHint()],()=>{const q=nearestSecret();if(q){SURF.guideT=30;SURF.msg=['THE GHOST LIGHTS POINT THE WAY',3]}});return}
+}
+/* ---- doors and tiles */
+function doorOpen(d,msg){if(d.open)return;d.open=1;const L=SURF.L;for(const [x,y] of d.cells)if(L.g[y*L.LW+x]===d.tile)L.g[y*L.LW+x]=0;
+  for(const [x,y] of d.cells)for(let i=0;i<4;i++)SURF.fx.push({x:x*TS+4,y:y*TS+4,vx:rnd(-40,40),vy:rnd(-60,0),life:.6,c:[LL,GM,YL][i%3],s:2});
+  try{sfxBoom(8,false)}catch(e){}if(d.vault&&d.vault.sid)foundSecret(d.vault.sid);if(msg)SURF.msg=[msg,3];if(d.lock==='lever'){const c=d.cells[0];SURF.guideTo={x:c[0]*TS+4,y:c[1]*TS,t:16}}}
+function doorClose(d){const L=SURF.L,p=SURF.p;for(const [x,y] of d.cells){if(p.x+p.w>x*TS&&p.x<x*TS+TS&&p.y+p.h>y*TS&&p.y<y*TS+TS)return false}d.open=0;for(const [x,y] of d.cells)if(L.g[y*L.LW+x]===0)L.g[y*L.LW+x]=d.tile;return true}
+function crackHit(tx,ty){const L=SURF.L,d=L.doorAt.get(ty*L.LW+tx);if(!d||d.lock!=='crack'||d.open)return;const k=ty*L.LW+tx;d.hp[k]=(d.hp[k]||0)+1;
+  for(let i=0;i<3;i++)SURF.fx.push({x:tx*TS+4,y:ty*TS+4,vx:rnd(-30,30),vy:rnd(-40,0),life:.4,c:LL,s:1});try{sfxTone(180,120,.06,'square',.03,{att:.001})}catch(e){}
+  if(d.hp[k]>=3)doorOpen(d,'THE WALL CRUMBLES')}
+/* ---- start of a visit */
+function featStart(){const L=SURF.L,s=sv();SURF.modal=null;SURF.keys={};SURF.ev={next:rnd(35,60),phase:0,t:0,cur:null};SURF.strikes=[];SURF.near=null;SURF.useReq=false;SURF.kOK=SURF.kBack=false;SURF.guideT=0;SURF.hunter=null;SURF.chall=null;
+  SURF.gl=[];for(let i=0;i<(SURF.idx===0?6:3);i++)SURF.gl.push({x:0,y:0,ph:Math.random()*6,a:0});
+  SURF.explW=(L.LW>>3)+1;SURF.expl=new Uint8Array(SURF.explW*((L.LH>>3)+1));
+  const p=SURF.p;p.mhp=6+(s.perk[0]?1:0);p.hp=p.mhp;p.shield=0;SURF.gt=0;SURF.dirtyMap=true;SURF.full100=false;
+  for(const d of L.doors)d.open=0}
+/* ---- every tick: interactions, puzzles, events */
+function featTick(dt,I){const L=SURF.L,p=SURF.p,s=sv(),idx=SURF.idx;
+  if(p.dead>0||p.hidden)return;
+  /* map memory */
+  {const ex=(p.x/TS)>>3,ey=(p.y/TS)>>3,W=SURF.explW;for(let dy=-2;dy<=2;dy++)for(let dx=-3;dx<=3;dx++){const x=ex+dx,y=ey+dy;if(x>=0&&y>=0&&x<W)SURF.expl[y*W+x]=1}}
+  /* bestiary */
+  for(const e of SURF.en){if(e.hp<=0)continue;if(Math.abs(e.x-p.x)<170&&Math.abs(e.y-p.y)<110){const k=idx+'_'+e.k;if(!s.met[k]){s.met[k]=1;SURF.msg=['NEW CREATURE LOGGED: '+e.sp.n,2.4]}}}
+  /* the nearest thing you can use */
+  let best=null,bd=1e9;const px=p.x+5,py=p.y+16;
+  for(const o of L.ia){if(o.hide||o.k==='key'||o.k==='frag'||o.k==='plate')continue;
+    const dx=Math.abs(px-o.x),dy=Math.abs(py-o.y);if(dx<20&&dy<22&&dx+dy<bd){bd=dx+dy;best=o}}
+  if(L.buried&&!L.buried.got&&sv().map3[idx+'_all']){const dx=Math.abs(px-L.buried.x),dy=Math.abs(py-L.buried.y);if(dx<18&&dy<22&&dx+dy<bd){bd=dx+dy;best={k:'dig',x:L.buried.x,y:L.buried.y}}}
+  SURF.near=best;
+  if(SURF.useReq){SURF.useReq=false;if(best&&!SURF.modal)useIA(best)}
+  /* pickups and pressure plates */
+  for(const o of L.ia){if(o.hide)continue;const dx=Math.abs(px-o.x),dy=Math.abs(py-o.y);
+    if(o.k==='key'&&!o.got&&dx<14&&dy<22){o.got=1;SURF.keys[o.col]=1;SURF.msg=['YOU FOUND THE '+o.col.toUpperCase()+' KEY',3];try{sfxTone(600,1500,.3,'triangle',.04,{att:.005})}catch(e){}}
+    if(o.k==='frag'&&!o.got&&!s.map3[idx+'_'+o.n]&&dx<14&&dy<24){o.got=1;s.map3[idx+'_'+o.n]=1;const n=[0,1,2].filter(q=>s.map3[idx+'_'+q]).length;SURF.msg=n>=3?['TREASURE MAP COMPLETE. LOOK FOR THE X.',4]:['TREASURE MAP PART '+n+' OF 3',3];if(n>=3)s.map3[idx+'_all']=1;save();try{sfxTone(500,1300,.3,'triangle',.04,{att:.005})}catch(e){}}
+    if(o.k==='plate'){const on=p.on&&dx<9&&dy<5;const d=L.doors.find(q=>q.id===o.door);o.down=on?1:0;if(on&&d){if(!d.open){doorOpen(d,'PLATE PRESSED. THE DOOR IS OPEN FOR A SHORT TIME.')}d.t=9}}}
+  if(L.questItem&&!L.questItem.got&&(s.q['q'+idx]||0)===1&&Math.abs(px-L.questItem.x)<14&&Math.abs(py-L.questItem.y)<24){L.questItem.got=1;s.q['q'+idx]=2;SURF.msg=['YOU FOUND THE DATA CRYSTAL. TAKE IT BACK.',3.5];try{sfxTone(500,1400,.3,'triangle',.04,{att:.005})}catch(e){}}
+  for(const d of L.doors){
+    if(d.lock==='plate'&&d.open&&d.t>0){d.t-=dt;if(d.t<=0){d.t=0;if(!doorClose(d))d.t=.5}}
+    if((d.lock==='redkey'||d.lock==='bluekey'||d.lock==='both')&&!d.open){const [cx,cy]=d.cells[0];if(Math.abs(px-(cx*TS+4))<18&&Math.abs(py-(cy*TS+8))<26){const ok=d.lock==='both'?(SURF.keys.red&&SURF.keys.blue):d.lock==='redkey'?SURF.keys.red:SURF.keys.blue;
+      if(ok)doorOpen(d,'THE DOOR UNLOCKS');else if(!d.warned||SURF.t-d.warned>4){d.warned=SURF.t;SURF.msg=[d.lock==='both'?'THIS DOOR NEEDS THE RED KEY AND THE BLUE KEY':'THIS DOOR NEEDS THE '+d.col.toUpperCase()+' KEY',2.5]}}}}
+  /* collapsing bridge runs */
+  /* the target challenge */
+  for(const o of L.ia)if(o.k==='console'&&o.state===1){o.t-=dt;const left=L.targets.filter(q=>!q.hit).length;
+    if(!left){o.state=2;SURF.msg=['ALL TARGETS HIT. A CHEST APPEARS.',3];const cx=Math.floor(o.x/TS);rtChest(cx+3,Math.round(o.y/TS),30+idx*10).sec=o.sid;for(let q=0;q<10;q++)L.coins.push({x:o.x+q*5,y:o.y-24,v:2,vx:rnd(-30,30),vy:rnd(-110,-50),loose:1});foundSecret(o.sid)}
+    else if(o.t<=0){o.state=0;for(const t of L.targets)t.hit=0;SURF.msg=['TIME IS UP. TRY AGAIN.',2.5]}}
+  /* the forge chase */
+  if(L.chase){const ch=L.chase;
+    if(ch.state===1){ch.t-=dt;if(ch.t<=0){ch.t=.8;if(ch.row>ch.top+1){ch.row--;for(let x=ch.xl;x<=ch.xr;x++){const k=ch.row*L.LW+x;if(L.g[k]===0){L.g[k]=4;ch.set.push(k)}}}else{ch.state=2;ch.t=5}}p.safe={x:ch.ent.x,y:ch.ent.y}}
+    else if(ch.state===2){ch.t-=dt;if(ch.t<=0){ch.state=3;ch.t=.12}}
+    else if(ch.state===3){ch.t-=dt;if(ch.t<=0){ch.t=.12;for(let q=0;q<500&&ch.set.length;q++){const k=ch.set.pop();if(L.g[k]===4)L.g[k]=0}if(!ch.set.length){ch.state=0;for(const o of L.ia)if(o.forge)o.on=0}}}}
+  /* eggs that hatch */
+  for(const e of L.eggs){if(e.st===2)continue;const dx=Math.abs(px-e.x),dy=Math.abs(py-e.y);
+    if(e.st===0&&dx<26&&dy<26){e.st=1;e.t=.8;try{sfxTone(200,160,.2,'sawtooth',.03,{att:.01})}catch(er){}}
+    else if(e.st===1){e.t-=dt;if(e.t<=0){e.st=2;if(e.real){(()=>{const q=addEnemy([0,3][rn_(0,1)],e.x-8,e.y-20,false);q.egg=1;return q})();SURF.msg=['THE EGG HATCHES',1.6]}else{for(let q=0;q<8;q++)L.coins.push({x:e.x,y:e.y-8,v:2,vx:rnd(-50,50),vy:rnd(-120,-50),loose:1})}
+      for(let q=0;q<10;q++)SURF.fx.push({x:e.x,y:e.y-6,vx:rnd(-60,60),vy:rnd(-80,0),life:.6,c:[PG,MG,WH][q%3],s:2})}}}
+  /* the hunter that follows you in the magma caves */
+  if(idx===3&&SURF.t>85){const h=SURF.hunter;if(!h||(h.hp<=0&&SURF.t-(SURF.hunterDead||0)>60)){const sp=SURF.W.en.findIndex(q=>q.ai==='flyer');if(sp>=0){const e=addEnemy(sp,p.x+(Math.random()<.5?-1:1)*230,p.y-60,false,{hunter:1,keep:1});e.hp*=3;e.mhp=e.hp;e.sp=Object.assign({},e.sp,{spd:e.sp.spd*1.5});SURF.hunter=e;SURF.msg=['A HUNTER IS FOLLOWING YOU',3.5]}}
+    else if(h.hp>0){const dx=h.x-p.x;if(Math.abs(dx)>330){h.x=p.x+Math.sign(dx)*250;h.y0=p.y-40}}}
+  for(const e of SURF.en)if(e.shiny&&e.hp>0&&Math.random()<dt*10)SURF.fx.push({x:e.x+rnd(0,e.w),y:e.y+rnd(0,e.h),vx:rnd(-8,8),vy:rnd(-30,-5),life:.6,c:Math.random()<.5?YL:WH,s:1});
+  /* guide lights toward the nearest secret */
+  {let q=nearestSecret(),strong=idx===0||SURF.guideT>0;if(SURF.guideT>0)SURF.guideT-=dt;
+   if(SURF.guideTo&&SURF.guideTo.t>0){SURF.guideTo.t-=dt;const gx=SURF.guideTo.x-p.x,gy=SURF.guideTo.y-p.y;q={q:SURF.guideTo,d:Math.hypot(gx,gy)};strong=true}
+   for(const g of SURF.gl){let tx=p.x+5+Math.sin(L.tick*.7+g.ph)*34,ty=p.y-14+Math.cos(L.tick*.9+g.ph)*18;
+     if(q&&strong&&q.d<(SURF.guideTo&&SURF.guideTo.t>0?3000:900)&&q.d>40){const ux=(q.q.x-p.x)/q.d,uy=(q.q.y-p.y)/q.d;tx+=ux*(46+g.ph*5);ty+=uy*(40+g.ph*4)}
+     g.x+=(tx-g.x)*Math.min(1,dt*1.8);g.y+=(ty-g.y)*Math.min(1,dt*1.8)}}
+  /* weather and events */
+  eventTick(dt);
+  /* the tracker's 100 percent reward */
+  if(!s.full[idx]&&((SURF.gt=(SURF.gt||0)+dt)>2)){SURF.gt=0;const t=trk();if(t.full){s.full[idx]=1;const R=FULLR(idx);s.green+=R;SURF.visit+=R;SURF.banner={t:6,lines:['LEVEL 100 PERCENT COMPLETE','ALL SECRETS, LORE AND CREATURES FOUND','+'+R+' GREEN GOLD']};try{sfxTone(400,1800,.8,'triangle',.06,{att:.005})}catch(e){}save()}}
+}
+const rn_=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const FULLR=i=>100*(i+1);
+function chaseFail(){const L=SURF.L,ch=L.chase;for(let q=0;q<6000&&ch.set.length;q++){const k=ch.set.pop();if(L.g[k]===4)L.g[k]=0}ch.state=0;for(const o of L.ia)if(o.forge)o.on=0;SURF.msg=null;SURF.banner={t:4,lines:['THE LAVA REACHED YOU.','THE FORGE COOLS. PULL THE LEVER TO TRY AGAIN.']};hurt(1,true)}
+function rtChest(tx,ty,v){const c={x:tx*TS,y:ty*TS-10,open:0,v};SURF.L.chests.push(c);return c}
+function gravK(){const e=SURF.ev;return e&&e.phase===2&&e.cur&&e.cur.id==='pulse'?.45:1}
+function spawnMimic(x,y){const sp={n:'CURSED CHEST',ai:'hopper',spd:46,w:14,h:12,hp:5,gold:8,pal:[BR,TN,OR,YL,WH]},e={sp,A:SURF.A.en[SURF.W.en.length],x,y:y-2,vx:0,vy:0,w:14,h:11,hp:5*(1+SURF.idx*.35),face:-1,t:0,cd:.3,st:0,on:false,elite:false,y0:y,flash:0,home:x,spec:SURF.W.en.length,k:SURF.W.en.length,sc:1,mimic:1};e.mhp=e.hp;SURF.en.push(e);return e}
+function useIA(o){const L=SURF.L,s=sv(),idx=SURF.idx,p=SURF.p;
+  if(o.k==='lore')readLore(o);
+  else if(o.k==='npc')npcTalk(o);
+  else if(o.k==='lever'){if(o.forge){const ch=L.chase;if(ch&&ch.state===0){ch.state=1;ch.t=4;ch.row=ch.yb;o.on=1;SURF.msg=['THE FORGE WAKES. LAVA IS RISING. CLIMB!',3.5];shakeS=.4;try{sfxBoom(12,true)}catch(e){}}return}
+    const d=L.doors.find(q=>q.id===o.door);if(d&&!o.on){o.on=1;doorOpen(d,'A DOOR OPENED SOMEWHERE')}}
+  else if(o.k==='portal'){if(SURF.t-(SURF.portalT||-9)<1)return;const to=L.ia.find(q=>q.id===o.to);if(to){SURF.portalT=SURF.t;p.x=to.x-5;p.y=to.y-16;p.vx=p.vy=0;p.inv=.5;if(o.sid)foundSecret(o.sid);for(let i=0;i<20;i++)SURF.fx.push({x:to.x,y:to.y-8,vx:rnd(-60,60),vy:rnd(-80,0),life:.7,c:[MG,CY,WH][i%3],s:2});try{sfxTone(300,1200,.4,'sine',.05,{att:.01})}catch(e){}}}
+  else if(o.k==='shrine'){if(s.perk[o.perk]){openText('SHRINE','THE SHRINE IS QUIET. ITS GIFT IS ALREADY YOURS.');return}s.perk[o.perk]=1;if(o.perk===0){p.mhp=7;p.hp=p.mhp}foundSecret(o.sid);openText('SHRINE',PERKS[o.perk]);save();for(let i=0;i<30;i++)SURF.fx.push({x:o.x,y:o.y-10,vx:rnd(-80,80),vy:rnd(-100,-10),life:1,c:[YL,WH,CY][i%3],s:2})}
+  else if(o.k==='panel'){const d=L.doors.find(q=>q.id===o.door);if(d&&d.open){openText('CODE PANEL','THE DOOR IS ALREADY OPEN.');return}openModal({type:'code',digits:[0,0,0],cur:0,door:d,code:o.code})}
+  else if(o.k==='pod'){const d=L.doors.find(q=>q.id===o.door),sq=d.seq;if(d.open||sq.play>0)return;podPress(d,o)}
+  else if(o.k==='echo'){const d=L.doors.find(q=>q.id===o.door),sq=d.seq;if(d.open||sq.play>0)return;sq.step=0;sq.play=.01;sq.pi=0;sq.pt=.4;SURF.msg=['LISTEN TO THE SONG',2]}
+  else if(o.k==='console'){if(o.state===0){o.state=1;o.t=24;for(const t of L.targets)t.hit=0;SURF.msg=['SHOOT ALL 6 TARGETS IN 24 SECONDS',3]}else if(o.state===1)SURF.msg=['SHOOT THE TARGETS!',1.5]}
+  else if(o.k==='dig'){const b=L.buried;if(b&&!b.got){b.got=1;rtChest(Math.floor(b.x/TS),Math.round(b.y/TS),90+idx*25).sec=b.sid;SURF.msg=['YOU DUG UP A CHEST',3];for(let i=0;i<14;i++)SURF.fx.push({x:b.x,y:b.y-4,vx:rnd(-50,50),vy:rnd(-90,-20),life:.6,c:[TN,BR,YL][i%3],s:2});foundSecret(b.sid)}}
+}
+function podPress(d,o){const sq=d.seq;const exp=sq.order[sq.step];try{sfxTone(260+o.col*140,260+o.col*140,.3,'triangle',.05,{att:.005})}catch(e){}o.lit=.5;
+  if(o.col===exp){o.on=1;sq.step++;if(sq.step>=sq.order.length){doorOpen(d,sq.mode==='echo'?'THE HIVE WALL OPENS':'THE VAULT OPENS');sq.done=1}}
+  else{sq.step=0;for(const id of sq.pods){const q=SURF.L.ia.find(z=>z.id===id);if(q)q.on=0}SURF.msg=[sq.mode==='echo'?'WRONG NOTE. A SPARK HITS YOU. LISTEN AGAIN.':'WRONG ORDER. A SPARK HITS YOU. THE NODES RESET.',2.5];for(let i=0;i<8;i++)SURF.fx.push({x:o.x,y:o.y-8,vx:rnd(-60,60),vy:rnd(-80,-10),life:.4,c:YL,s:2});hurt(1,false);try{sfxTone(120,60,.3,'sawtooth',.05,{att:.005})}catch(e){}}}
+/* ---- weather and strikes */
+function eventTick(dt){const L=SURF.L,p=SURF.p,ev=SURF.ev,idx=SURF.idx;const pool=EVT[idx];
+  if(ev.phase===0){ev.next-=dt;if(ev.next<=0){ev.cur=pool[Math.floor(Math.random()*pool.length)];ev.phase=1;ev.t=5;SURF.banner={t:5,lines:[ev.cur.warn]}}}
+  else if(ev.phase===1){ev.t-=dt;if(ev.t<=0){ev.phase=2;ev.t=rnd(14,20);SURF.msg=[ev.cur.on,4];ev.strike=0;if(ev.cur.id==='quake'||ev.cur.id==='meteor')shakeS=.3}}
+  else{ev.t-=dt;const id=ev.cur.id,exposed=L.sky(Math.floor((p.x+5)/TS),Math.floor(p.y/TS)-7);
+    if(id==='spore'||id==='sand'){if(exposed){const w=(id==='sand'?30:14)*(ev.dir||(ev.dir=Math.random()<.5?-1:1)),nx=p.x+w*dt;if(!hitsSolid(nx,p.y,p.w,p.h))p.x=nx}}
+    if(id==='quake'){shakeS=Math.max(shakeS,.1)}
+    if(id==='meteor'||id==='quake'||id==='surge'){ev.strike=(ev.strike||0)-dt;if(ev.strike<=0){ev.strike=id==='surge'?rnd(1.6,2.6):rnd(.7,1.3);const x=p.x+rnd(-130,130);let y=Math.floor((p.y-60)/TS);const cx=Math.floor(x/TS);let found=-1;for(let q=y;q<y+60;q++){const t=tile(cx,q);if(t===1||t===2||t===6){found=q;break}}
+      if((id==='meteor'&&!exposed&&Math.random()<.7)||found<0){}else SURF.strikes.push({x,y:found*TS,t:0,id,dur:id==='surge'?1.1:1.4})}}
+    if(ev.t<=0){ev.phase=0;ev.next=rnd(60,100);ev.cur=null}}
+  for(const st of SURF.strikes){st.t+=dt;if(!st.done&&st.t>=st.dur){st.done=1;shakeS=Math.max(shakeS,.12);for(let q=0;q<14;q++)SURF.fx.push({x:st.x,y:st.y-3,vx:rnd(-70,70),vy:rnd(-110,-10),life:.5,c:st.id==='surge'?[CY,WH][q%2]:[OR,YL,RD][q%3],s:2});try{sfxBoom(8,false)}catch(e){}
+    if(Math.abs((p.x+5)-st.x)<11&&Math.abs((p.y+8)-st.y)<28)hurt(1,false)}}
+  SURF.strikes=SURF.strikes.filter(st=>st.t<st.dur+.4);
+  /* the echo song and beams */
+  for(const d of L.doors)if(d.seq&&d.seq.play>0){const sq=d.seq;sq.pt-=dt;if(sq.pt<=0){const pod=L.ia.find(q=>q.id===sq.pods[sq.order[sq.pi]]);if(pod){pod.lit=.6;try{sfxTone(260+pod.col*140,260+pod.col*140,.4,'triangle',.05,{att:.005})}catch(e){}}sq.pi++;sq.pt=.75;if(sq.pi>=sq.order.length){sq.play=0;SURF.msg=['NOW SING IT BACK',2]}}}
+  for(const o of L.ia)if(o.lit>0)o.lit-=dt}
+/* ---- the modal windows */
+function modalTick(dt,I){const m=SURF.modal;m.t+=dt;const cur={l:I.l,r:I.r,u:I.up,d:I.down,ok:I.jumpB,back:!!(UI.keys.x||UI.keys.z||UI.keys.j||(PAD.prev&&(PAD.prev.B||PAD.prev.X)))};
+  if(!SURF.pv){SURF.pv=Object.assign({},cur);SURF.kOK=SURF.kBack=false;return}
+  const E={};for(const k in cur){E[k]=cur[k]&&!SURF.pv[k];SURF.pv[k]=cur[k]}
+  if(SURF.kOK){E.ok=true;SURF.kOK=false}if(SURF.kBack){E.back=true;SURF.kBack=false}
+  if(m.t<.15)return;
+  const s=sv();
+  if(m.type==='text'){if(E.ok||E.back){if(m.back){SURF.modal=m.back;SURF.pv=null;SURF.mh=[]}else closeModal()}}
+  else if(m.type==='talk'){if(E.ok||E.back||E.u||E.d){if(m.page<m.pages.length-1)m.page++;else{const f=m.done;closeModal();if(f)f()}}}
+  else if(m.type==='menu'){const n=m.rows.length;if(E.d)m.cur=(m.cur+1)%n;if(E.u)m.cur=(m.cur+n-1)%n;if(E.back){closeModal();return}
+    if(E.ok){const r=m.rows[m.cur];if(r.ok){r.fn();m.rows=m.refresh()}else SURF.msg=[r.d,1.5]}}
+  else if(m.type==='code'){if(E.l)m.cur=(m.cur+2)%3;if(E.r)m.cur=(m.cur+1)%3;if(E.u)m.digits[m.cur]=(m.digits[m.cur]+1)%5;if(E.d)m.digits[m.cur]=(m.digits[m.cur]+4)%5;if(E.back){closeModal();return}
+    if(E.ok)codeTry(m)}
+  else if(m.type==='pause'){pauseKeys(m,E)}}
+function codeTry(m){const L=SURF.L;const okc=m.digits[0]+1===m.code[0]&&m.digits[1]+1===m.code[1]&&m.digits[2]+1===m.code[2];if(okc){closeModal();doorOpen(m.door,'THE CODE IS RIGHT. THE VAULT OPENS')}else{SURF.msg=['WRONG CODE',1.6];try{sfxTone(120,60,.3,'sawtooth',.05,{att:.005})}catch(e){}}}
+function pauseKeys(m,E){const NT=4;
+  if(E.back){closeModal();return}
+  if(m.focus===0){if(E.l)m.tab=(m.tab+NT-1)%NT;if(E.r)m.tab=(m.tab+1)%NT;if(E.d){if(m.tab===1||m.tab===2)m.focus=2;else m.focus=1}}
+  else if(m.focus===2){const n=m.tab===1?25:SURF.W.en.length;if(E.d){if(m.cur[m.tab]<n-1)m.cur[m.tab]++;else m.focus=1}if(E.u){if(m.cur[m.tab]>0)m.cur[m.tab]--;else m.focus=0}if(E.ok&&m.tab===1){const q=m.cur[1],i=Math.floor(q/5),k=q%5;if(sv().lore[i*10+k]){const e=LORE[i][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill(e[1]),262),back:m})}}}
+  else{if(E.u)m.focus=m.tab===1||m.tab===2?2:0;if(E.l||E.r)m.btn=1-m.btn;if(E.ok){if(m.btn===0)closeModal();else{closeModal();SURF.beamUp()}}}}
+/* ---- drawing the modals */
+function panelBox(x,y,w,h,title){ctx.globalAlpha=.94;ctx.fillStyle='#05031a';ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;ctx.fillStyle=YL;ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillStyle='#352879';ctx.fillRect(x,y+1,w,9);if(title)textC2(title,x+w/2,y+2,YL)}
+function mhit(x,y,w,h,fn){SURF.mh.push({x,y,w,h,fn})}
+function btnBox(x,y,w,h,label,focus,fn){ctx.fillStyle=focus?'#8a7ae0':'#2a2150';ctx.fillRect(x,y,w,h);ctx.fillStyle=focus?WH:'#6c5eb5';ctx.fillRect(x,y,w,1);textC2(label,x+w/2,y+h/2-3,focus?WH:'#bbbbdd');if(fn)mhit(x,y,w,h,fn)}
+function drawModal(){const m=SURF.modal;if(!m)return;SURF.mh=[];const s=sv(),A=SURF.A;
+  if(m.type==='text'){const h=m.lines.length*9+34,y0=Math.max(14,Math.round((VH-h)/2)-6);panelBox(18,y0,VW-36,h,m.title);m.lines.forEach((ln,i)=>text(ln,26,y0+14+i*9,i>-1?WH:WH,1));
+    btnBox(VW/2-26,y0+h-14,52,11,'OK  ('+useLabel()+')',true,()=>{if(m.back){SURF.modal=m.back;m.back.t=0}else closeModal()});mhit(0,0,VW,VH,()=>{if(m.back){SURF.modal=m.back}else closeModal()})}
+  else if(m.type==='talk'){const ln=m.pages[m.page],h=ln.length*9+36,y0=VH-h-12;panelBox(10,y0,VW-20,h,m.name);ln.forEach((t,i)=>text(t,18,y0+14+i*9,WH,1));
+    textR(m.page<m.pages.length-1?'NEXT':'OK',VW-16,y0+h-10,YL,1);mhit(0,0,VW,VH,()=>{if(m.page<m.pages.length-1)m.page++;else{const f=m.done;closeModal();if(f)f()}})}
+  else if(m.type==='menu'){const n=m.rows.length,h=n*14+44,y0=Math.max(10,Math.round((VH-h)/2));panelBox(20,y0,VW-40,h,m.title);textR('GREEN GOLD '+s.green,VW-26,y0+12,GREEN[3],1);
+    m.rows.forEach((r,i)=>{const y=y0+22+i*14,foc=i===m.cur;ctx.fillStyle=foc?'#3a2f7a':'#12102a';ctx.fillRect(26,y,VW-52,12);text(r.t,30,y+2,r.ok?(foc?WH:'#ccccee'):'#6c6c8c',1);textR(r.ok?r.c+'':r.no,VW-30,y+2,r.ok?(s.green>=r.c?GREEN[3]:RD):'#8888aa',1);mhit(26,y,VW-52,12,()=>{m.cur=i;if(r.ok){r.fn();m.rows=m.refresh()}else SURF.msg=[r.d,1.5]})});
+    text(m.rows[m.cur].d,26,y0+h-20,'#9ad2e0',1);btnBox(VW-60,y0+h-12,34,10,'CLOSE',false,()=>closeModal());mhit(0,0,VW,y0,()=>closeModal())}
+  else if(m.type==='code'){const h=70,y0=60;panelBox(80,y0,VW-160,h,'CODE PANEL');text('UP AND DOWN: CHANGE. LEFT AND RIGHT: MOVE.',86,y0+13,'#9ad2e0',1);
+    for(let i=0;i<3;i++){const x=VW/2-36+i*26,foc=i===m.cur;ctx.fillStyle=foc?'#6c5eb5':'#2a2150';ctx.fillRect(x,y0+26,22,24);textC2(String(m.digits[i]+1),x+11,y0+34,WH);mhit(x,y0+26,22,12,()=>{m.cur=i;m.digits[i]=(m.digits[i]+1)%5});mhit(x,y0+38,22,12,()=>{m.cur=i;m.digits[i]=(m.digits[i]+4)%5})}
+    btnBox(VW/2-30,y0+h-14,28,10,'ENTER',true,()=>codeTry(m));btnBox(VW/2+4,y0+h-14,28,10,'CLOSE',false,()=>closeModal())}
+  else if(m.type==='pause')drawPause(m)}
+function drawPause(m){const s=sv(),L=SURF.L,idx=SURF.idx,Wd=SURF.W,A=SURF.A;panelBox(8,6,VW-16,VH-12,'PAUSED:  '+Wd.n);
+  const tabs=['PROGRESS','LORE','CREATURES','MAP'];tabs.forEach((t,i)=>{const x=14+i*76,foc=m.tab===i;ctx.fillStyle=foc?(m.focus===0?'#6c5eb5':'#4a3f8a'):'#1c1840';ctx.fillRect(x,18,72,11);textC2(t,x+36,20,foc?WH:'#8888aa');mhit(x,18,72,11,()=>{m.tab=i;m.focus=0})});
+  const T=trk(),y0=34;
+  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
+    rows.forEach((r,i)=>{text(r[0],20,y0+i*11,'#bbbbdd',1);textR(r[1],VW-20,y0+i*11,i<3&&(i===0?T.sec>=T.tot:i===1?T.lr>=T.lt:T.met>=T.mt)?GREEN[3]:WH,1)});
+    const yy=y0+rows.length*11+4;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
+    text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: B',20,yy+38,'#8888aa',1);text('A SECRET IS A HIDDEN VAULT, PUZZLE OR TREASURE.',20,yy+48,'#8888aa',1)}
+  else if(m.tab===1){const cur=m.cur[1],top0=Math.max(0,Math.min(cur-4,25-9));for(let i=0;i<9;i++){const q=top0+i;if(q>=25)break;const w=Math.floor(q/5),k=q%5,rd=s.lore[w*10+k],foc=m.focus===2&&q===cur;const y=y0+i*11;ctx.fillStyle=foc?'#3a2f7a':q===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,10);text('W'+(w+1)+'  '+(rd?LORE[w][k][0]:'???'),18,y+1,rd?WH:'#5a5a7a',1);if(rd)textR(LORE[w][k][1].slice(0,30)+'...',VW-18,y+1,'#8888aa',1);mhit(14,y,VW-28,10,()=>{m.cur[1]=q;m.focus=2;if(rd){const e=LORE[w][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill?SURF.L.loreFill(e[1]):e[1],262),back:m})}})}
+    text('PRESS '+useLabel()+' ON A LINE TO READ IT AGAIN.',18,y0+9*11+3,'#8888aa',1)}
+  else if(m.tab===2){const n=Wd.en.length,cur=m.cur[2];for(let i=0;i<n;i++){const e=Wd.en[i],met=s.met[idx+'_'+i],kills=s.seen[idx+'_'+i]||0,foc=m.focus===2&&i===cur,y=y0+i*20;ctx.fillStyle=foc?'#3a2f7a':i===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,19);
+      if(met){const fr=A.en[i].fr[0],sc=Math.min(1,16/Math.max(fr.width,fr.height));ctx.drawImage(fr,22,y+9-fr.height*sc/2,fr.width*sc,fr.height*sc)}else text('?',26,y+6,'#5a5a7a',1);
+      text(met?e.n:'???',44,y+2,met?WH:'#5a5a7a',1);text(met?wrapT(ENDESC[e.ai]||'',200)[0]||'':'NOT MET YET',44,y+10,'#9ad2e0',1);textR(met?'DEFEATED '+kills+(s.shiny[idx+'_'+i]?'  GOLD':''):'',VW-18,y+2,kills?GREEN[3]:'#8888aa',1);mhit(14,y,VW-28,19,()=>{m.cur[2]=i;m.focus=2})}
+    let oth=0;for(const k in s.met)if(!k.startsWith(idx+'_'))oth++;text('CREATURES LOGGED ON OTHER WORLDS: '+oth,18,y0+n*20+4,'#8888aa',1)}
+  else{drawMapPage(y0)}
+  const by=VH-22;btnBox(VW/2-62,by,56,11,'CONTINUE',m.focus===1&&m.btn===0,()=>closeModal());btnBox(VW/2+6,by,56,11,'BEAM UP',m.focus===1&&m.btn===1,()=>{closeModal();SURF.beamUp()});
+  if(m.focus!==1)text('DOWN: BUTTONS',16,by+2,'#6c6c8c',1)}
+function drawMapPage(y0){const L=SURF.L,s=sv(),p=SURF.p,idx=SURF.idx;const cs=5,W=Math.ceil(L.LW/cs),H=Math.ceil(L.LH/cs);
+  if(!L.mapCv||SURF.dirtyMap){const cv=L.mapCv=L.mapCv||document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d'),id=g.createImageData(W,H),full=!!s.map[idx];
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const tx=x*cs+2,ty=y*cs+2,seen=full||SURF.expl[(ty>>3)*SURF.explW+(tx>>3)];const t=L.g[ty*L.LW+tx];let r=0,gg=0,b=0,a=0;
+      if(seen||full){a=255;if(L.out&&L.out[ty*L.LW+tx]){r=10;gg=10;b=30}else if(t===1){r=90;gg=80;b=110}else if(t===0||t===10){r=20;gg=18;b=40;if(t===10){r=30;gg=80;b=160}}else if(t===7){r=200;gg=200;b=120}else if(t===2){r=160;gg=140;b=60}else if(t===4){r=230;gg=110;b=30}else{r=70;gg=60;b=90}}
+      const i=(y*W+x)*4;id.data[i]=r;id.data[i+1]=gg;id.data[i+2]=b;id.data[i+3]=a}g.putImageData(id,0,0);SURF.dirtyMap=false;SURF.mapT=0}
+  SURF.mapT=(SURF.mapT||0)+1;if(SURF.mapT>90){SURF.dirtyMap=true}
+  const sc=Math.min((VW-24)/W,(VH-70)/H),dw=W*sc,dh=H*sc,ox=Math.round((VW-dw)/2),oy=y0+2;ctx.fillStyle='#000';ctx.fillRect(ox-1,oy-1,dw+2,dh+2);ctx.imageSmoothingEnabled=false;ctx.drawImage(L.mapCv,ox,oy,dw,dh);
+  const dot=(x,y,c,sz)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(ox+x/TS/cs*sc)-(sz>>1),Math.round(oy+y/TS/cs*sc)-(sz>>1),sz,sz)};
+  const seenAt=(x,y)=>!!s.map[idx]||SURF.expl[((y/TS)>>3)*SURF.explW+((x/TS)>>3)];
+  for(const c of L.checks)if(seenAt(c.x,c.y))dot(c.x,c.y,'#55ffff',2);
+  for(const c of L.chests)if(!c.open&&seenAt(c.x,c.y))dot(c.x,c.y,GREEN[2],2);
+  dot(L.exit.x,L.exit.y,'#55ff55',3);
+  for(const q of L.secretPts)if(q.sid&&s.sec[q.sid])dot(q.x,q.y,'#ffee33',3);
+  if(s.map3[idx+'_all']&&L.buried&&!L.buried.got){dot(L.buried.x,L.buried.y,Math.floor(SURF.t*3)%2?'#ffff55':'#ff5555',4)}
+  dot(p.x,p.y,Math.floor(SURF.t*4)%2?'#ffffff':'#ff3030',3);
+  text(s.map[idx]?'MAP: FULL (BOUGHT)':'MAP: WHAT YOU HAVE SEEN. A LEVEL MAP IS SOLD BY THE TRADER BOT.',14,oy+dh+4,'#8888aa',1);text('WHITE: YOU  GREEN: BEACON  CYAN: BEAM PADS',14,oy+dh+14,'#bbbbdd',1);text('LIME: CHESTS  YELLOW: SECRETS FOUND',14,oy+dh+23,'#bbbbdd',1)}
+/* ---- world drawing: things you can use */
+function featWorld(){const L=SURF.L,A=SURF.A,F=A.fx,cam=SURF.cam,p=SURF.p,s=sv(),idx=SURF.idx,t=L.tick;
+  const vis=(x,y,m)=>x>cam.x-m&&x<cam.x+VW+m&&y>cam.y-m&&y<cam.y+VH+m;
+  /* tiles of doors */
+  /* the glow of cracked walls and doors that hide something */
+  for(const d of L.doors){if(d.open)continue;const [cx,cy]=d.cells[0];if(!vis(cx*TS,cy*TS,40))continue;const dd=Math.hypot(p.x-cx*TS,p.y-cy*TS);
+    if(d.lock!=='crack'){const lc={lever:'#55eeee',plate:'#ff9966',code:'#ffee55',seq:'#ff77ff',redkey:'#ff5544',bluekey:'#55aaff',both:'#ffffff'}[d.lock]||WH,pu=.5+.5*Math.sin(t*4);for(const [x,y] of d.cells){ctx.fillStyle=lc;ctx.globalAlpha=.55+.45*pu;ctx.fillRect(x*TS-cam.x+3|0,y*TS-cam.y+3|0,2,2)}const [x0,y0]=d.cells[0],[x1,y1]=d.cells[d.cells.length-1];ctx.globalAlpha=.1+.12*pu;ctx.fillStyle=lc;ctx.fillRect(x0*TS-cam.x-3|0,y0*TS-cam.y-1|0,14,(y1-y0+1)*TS+2);ctx.globalAlpha=1}
+    if(d.lock==='crack'&&dd<150){const a=.12+.1*Math.sin(t*3+cx)+Math.max(0,(150-dd)/150)*.25;ctx.globalAlpha=a;ctx.fillStyle='#ffddaa';for(const [x,y] of d.cells)ctx.fillRect(x*TS-cam.x-1|0,y*TS-cam.y-1|0,10,10);ctx.globalAlpha=1}
+    if(d.lock==='crack')for(const [x,y] of d.cells){const h=d.hp[y*L.LW+x]||0;if(h){ctx.globalAlpha=.3*h;ctx.fillStyle=K;ctx.fillRect(x*TS-cam.x|0,y*TS-cam.y|0,8,8);ctx.globalAlpha=1}}}
+  /* the rooms behind special doors glow faintly */
+  for(const d of L.doors){const v=d.vault;if(!v||!vis(v.xl*TS,v.yt*TS,60))continue;const pu=.5+.5*Math.sin(t*2+v.xl);ctx.globalAlpha=.07+.05*pu;ctx.fillStyle=['#ffee88','#44ffdd','#ffee88','#88ccff','#ffee88'][idx];ctx.fillRect(Math.round(v.xl*TS-cam.x),Math.round(v.yt*TS-cam.y),(v.xr-v.xl+1)*TS,(v.yb-v.yt)*TS);ctx.globalAlpha=1}
+  /* beams between lit pods (light puzzle) */
+  for(const d of L.doors){if(!d.seq||d.seq.mode!=='log')continue;const sq=d.seq;const pods=sq.pods.map(id=>L.ia.find(q=>q.id===id));if(!vis(pods[0].x,pods[0].y,60))continue;
+    for(let i=0;i<sq.step-1;i++){const a=pods.find(q=>q.col===sq.order[i]),b=pods.find(q=>q.col===sq.order[i+1]);if(!a||!b)continue;ctx.globalAlpha=.7+.3*Math.sin(t*12);ctx.strokeStyle=COLH[sq.order[i]];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x-cam.x,a.y-12-cam.y);ctx.lineTo(b.x-cam.x,b.y-12-cam.y);ctx.stroke();ctx.globalAlpha=1}
+    if(sq.done){ctx.globalAlpha=.8;ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pods[0].x-cam.x,pods[0].y-12-cam.y);for(let i=1;i<pods.length;i++)ctx.lineTo(pods[i].x-cam.x,pods[i].y-12-cam.y);ctx.stroke();ctx.globalAlpha=1}}
+  /* a small bobbing marker over things you can use */
+  for(const o of L.ia){if(o.hide||!vis(o.x,o.y,40))continue;if(['lever','panel','console','pod','echo','shrine','portal','plate'].includes(o.k)&&Math.abs(o.x-p.x)<110){const X=Math.round(o.x-cam.x),Y=Math.round(o.y-cam.y)-26+Math.round(Math.sin(t*4+o.x)*1.5);ctx.fillStyle=YL;ctx.fillRect(X-1,Y,3,1);ctx.fillRect(X,Y+1,1,2);ctx.fillRect(X-2,Y-1,5,1)}}
+  /* a soft coloured halo behind the things you use */
+  for(const o of L.ia){if(o.hide||!vis(o.x,o.y,40))continue;const hc={lever:'#ffcc44',plate:'#55eeee',panel:'#ffee55',console:'#ff9966',key:o.col==='red'?'#ff5544':'#55aaff',shrine:'#ffffaa',portal:'#ff77ff',echo:'#ff77ff'}[o.k];if(!hc||(o.k==='key'&&o.got))continue;const X=Math.round(o.x-cam.x),Y=Math.round(o.y-cam.y)-6;ctx.globalAlpha=.16+.1*Math.sin(t*3+o.x);ctx.fillStyle=hc;ctx.beginPath();ctx.arc(X,Y,11,0,TAU);ctx.fill();ctx.globalAlpha=1}
+  /* interactable objects */
+  for(const o of L.ia){if(o.hide)continue;if(!vis(o.x,o.y,40))continue;const X=Math.round(o.x-cam.x),Y=Math.round(o.y-cam.y),bob=Math.round(Math.sin(t*2+o.x)*1);
+    if(o.k==='lore'){const rd=s.lore[idx*10+o.slot];const im=F.lore;ctx.drawImage(im,X-im.width/2|0,Y-im.height+1);if(!rd){const pu=.5+.5*Math.sin(t*3+o.x);ctx.globalAlpha=.07+.05*pu;ctx.fillStyle=F.glow;ctx.fillRect(X-1,Y-im.height-30,3,30);ctx.globalAlpha=.16+.14*pu;ctx.fillStyle=F.glow;ctx.beginPath();ctx.arc(X,Y-im.height/2,11+pu*2,0,TAU);ctx.fill();ctx.globalAlpha=.8;ctx.fillRect(X-1,Y-im.height-4,3,2);ctx.globalAlpha=1}}
+    else if(o.k==='npc'){const im=F.npc[o.npc];const fl=px_=>0;const face=(p.x+5)<o.x?-1:1;ctx.save();if(o.npc==='ghost'){ctx.globalAlpha=.55+.2*Math.sin(t*2)}if(face<0){ctx.translate(X+im.width/2,0);ctx.scale(-1,1);ctx.drawImage(im,0,Y-im.height+(o.npc==='ghost'?bob*3-6:0))}else ctx.drawImage(im,X-im.width/2|0,Y-im.height+(o.npc==='ghost'?bob*3-6:0));ctx.restore()}
+    else if(o.k==='lever'){ctx.drawImage(F.lever[o.on?1:0],X-6,Y-12)}
+    else if(o.k==='plate'){ctx.drawImage(F.plate[o.down?1:0],X-8,Y-(o.down?2:4))}
+    else if(o.k==='key'&&!o.got){ctx.drawImage(F.key[o.col==='red'?0:1],X-5,Y-10+bob);ctx.globalAlpha=.3+.2*Math.sin(t*4);ctx.fillStyle=o.col==='red'?'#ff8888':'#88ccff';ctx.beginPath();ctx.arc(X,Y-6+bob,8,0,TAU);ctx.fill();ctx.globalAlpha=1}
+    else if(o.k==='frag'&&!o.got&&!s.map3[idx+'_'+o.n]){ctx.drawImage(F.frag,X-5,Y-10+bob);ctx.globalAlpha=.25+.2*Math.sin(t*4);ctx.fillStyle=YL;ctx.beginPath();ctx.arc(X,Y-5+bob,7,0,TAU);ctx.fill();ctx.globalAlpha=1}
+    else if(o.k==='portal'){const r=9+Math.sin(t*3)*1.5;ctx.globalAlpha=.35;ctx.fillStyle=MG;ctx.beginPath();ctx.ellipse(X,Y-12,r+3,r+8,0,0,TAU);ctx.fill();ctx.globalAlpha=.9;ctx.strokeStyle=CY;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(X,Y-12,r,r+6,0,0,TAU);ctx.stroke();ctx.strokeStyle=WH;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(X,Y-12,r-3,r+3,t*2,0,TAU*.7);ctx.stroke();ctx.globalAlpha=1}
+    else if(o.k==='shrine'){ctx.drawImage(F.shrine,X-7,Y-16);const pu=.5+.5*Math.sin(t*3);ctx.globalAlpha=.25+.2*pu;ctx.fillStyle=YL;ctx.beginPath();ctx.arc(X,Y-14,9+pu*3,0,TAU);ctx.fill();ctx.globalAlpha=1}
+    else if(o.k==='panel'){ctx.drawImage(F.panel,X-6,Y-14)}
+    else if(o.k==='pod'){const lit=o.lit>0||o.on;const col=COLH[o.col];ctx.fillStyle=K;ctx.fillRect(X-8,Y-4,16,4);ctx.fillStyle=D;ctx.fillRect(X-7,Y-4,14,2);ctx.fillStyle=lit?col:'#2a2a3a';ctx.beginPath();ctx.arc(X,Y-10,8,Math.PI,0);ctx.fill();ctx.fillRect(X-8,Y-10,16,6);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.strokeRect(X-8.5,Y-9.5,17,5);ctx.fillStyle=lit?WH:col;ctx.fillRect(X-2,Y-12,4,3);if(lit){ctx.globalAlpha=.4;ctx.fillStyle=col;ctx.beginPath();ctx.arc(X,Y-10,17,0,TAU);ctx.fill();ctx.globalAlpha=1}
+      const d=L.doors.find(q=>q.id===o.door);if(d&&d.seq.mode==='log'){ctx.fillStyle=col;ctx.fillRect(X-1,Y-18,3,3)}}
+    else if(o.k==='echo'){ctx.fillStyle=K;ctx.fillRect(X-6,Y-4,12,4);ctx.fillStyle=MG;ctx.beginPath();ctx.arc(X,Y-9,6,0,TAU);ctx.fill();ctx.fillStyle=WH;ctx.fillRect(X-1,Y-10,3,3);ctx.globalAlpha=.3+.2*Math.sin(t*5);ctx.fillStyle=MG;ctx.beginPath();ctx.arc(X,Y-9,11,0,TAU);ctx.fill();ctx.globalAlpha=1}
+    else if(o.k==='console'){ctx.drawImage(F.panel,X-6,Y-14);if(o.state===1){textC2(Math.ceil(o.t)+'',X,Y-26,o.t<6?RD:YL)}}}
+  if(L.questItem&&!L.questItem.got&&(s.q['q'+idx]||0)===1){const q=L.questItem,X=Math.round(q.x-cam.x),Y=Math.round(q.y-cam.y);if(vis(q.x,q.y,30)){ctx.globalAlpha=.4+.25*Math.sin(t*4);ctx.fillStyle=CY;ctx.beginPath();ctx.arc(X,Y-6,9,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.drawImage(F.crystal,X-4,Y-11)}}
+  if(L.buried&&!L.buried.got&&s.map3[idx+'_all']){const b=L.buried,X=Math.round(b.x-cam.x),Y=Math.round(b.y-cam.y);if(vis(b.x,b.y,30)){ctx.fillStyle=Math.floor(t*3)%2?'#ffff55':'#ff5555';ctx.fillRect(X-4,Y-1,3,1);ctx.fillRect(X+1,Y-1,3,1);ctx.fillRect(X-3,Y-2,1,1);ctx.fillRect(X+3,Y-2,1,1);ctx.fillRect(X-1,Y-3,3,1);ctx.fillRect(X-3,Y,1,1);ctx.fillRect(X+3,Y,1,1);ctx.globalAlpha=.3;ctx.fillStyle=YL;ctx.beginPath();ctx.arc(X,Y-3,10,0,TAU);ctx.fill();ctx.globalAlpha=1}}
+  for(const tg of L.targets){if(!vis(tg.x,tg.y,20))continue;const con=L.ia.find(q=>q.k==='console'),act=con&&con.state===1,X=Math.round(tg.x-cam.x),Y=Math.round(tg.y-cam.y);ctx.fillStyle=K;ctx.beginPath();ctx.arc(X,Y,6,0,TAU);ctx.fill();ctx.fillStyle=tg.hit?'#445544':act?(Math.floor(t*6)%2?RD:WH):'#666677';ctx.beginPath();ctx.arc(X,Y,5,0,TAU);ctx.fill();ctx.fillStyle=tg.hit?'#223322':act?RD:'#444455';ctx.beginPath();ctx.arc(X,Y,2.5,0,TAU);ctx.fill()}
+  for(const e of L.eggs){if(e.st===2||!vis(e.x,e.y,20))continue;const im=A.deco.egg;if(!im)continue;if(!e.real&&e.st===0&&((t*3+e.x)%4)<.35){ctx.fillStyle=YL;const ex=Math.round(e.x-cam.x),ey=Math.round(e.y-cam.y)-8;ctx.fillRect(ex,ey-4,1,3);ctx.fillRect(ex-1,ey-3,3,1)}
+    const wob=e.st===1?Math.round(Math.sin(t*50)*2):0;ctx.drawImage(im,Math.round(e.x-cam.x-im.width/2)+wob,Math.round(e.y-cam.y-im.height))}
+  /* the forge chamber glows */
+  if(L.chase&&vis(L.chase.xl*TS,L.chase.yb*TS,300)&&L.chase.state===1){ctx.globalAlpha=.1+.05*Math.sin(t*8);ctx.fillStyle='#ff6622';ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}
+  /* runs of collapsing planks look a little cracked */
+  for(const r of L.runs){if(!vis(r.x0*TS,r.y*TS,60))continue;for(let x=r.x0;x<r.x1;x++){if(L.g[r.y*L.LW+x]===6&&((x*7)%3===0)){ctx.fillStyle='#00000066';ctx.fillRect(x*TS-cam.x+2|0,r.y*TS-cam.y+1|0,3,2)}}}
+  /* guide lights and fireflies */
+  const strong=idx===0||SURF.guideT>0;for(const g of SURF.gl){const X=g.x-cam.x,Y=g.y-cam.y,pu=.5+.5*Math.sin(t*3+g.ph);ctx.globalAlpha=(strong?.25:.12)+.18*pu;ctx.fillStyle=idx===4?'#ff77ff':idx===3?'#ffaa44':idx===2?'#88ffff':idx===1?'#ffe08a':'#ccff77';ctx.beginPath();ctx.arc(X,Y,strong?6:4,0,TAU);ctx.fill();ctx.globalAlpha=.9;ctx.fillStyle=WH;ctx.fillRect(X|0,Y|0,1,1);ctx.globalAlpha=1}
+  /* mimic tell and shield */
+  for(const c of L.chests){if(!c.mimic||c.open)continue;const dd=Math.hypot(p.x-c.x,p.y-c.y);if(dd<64){const X=Math.round(c.x-cam.x),Y=Math.round(c.y-cam.y);ctx.fillStyle=WH;for(let i=0;i<4;i++)ctx.fillRect(X+2+i*3,Y+3,1,2)}}
+}
+function featStrikes(){const L=SURF.L,cam=SURF.cam,t=L.tick;for(const st of SURF.strikes){const X=Math.round(st.x-cam.x),Y=Math.round(st.y-cam.y),u=st.t/st.dur;if(u<1){const bl=Math.floor(t*10)%2;ctx.fillStyle=bl?RD:YL;ctx.fillRect(X-5,Y-1,11,2);ctx.fillRect(X-1,Y-3,3,6);
+      if(st.id==='surge'){ctx.globalAlpha=.3;ctx.fillStyle=CY;ctx.fillRect(X-1,Y-120,3,120*u);ctx.globalAlpha=1}else{const fy=Y-140*(1-u);ctx.fillStyle=st.id==='meteor'?OR:BR;ctx.fillRect(X-3,fy-4,6,6);ctx.fillStyle=YL;ctx.fillRect(X-1,fy-6,2,3)}}
+    else if(st.t<st.dur+.3){ctx.globalAlpha=.7;ctx.fillStyle=st.id==='surge'?WH:OR;ctx.beginPath();ctx.arc(X,Y-4,12-(st.t-st.dur)*20,0,TAU);ctx.fill();ctx.globalAlpha=1}}}
+/* ---- screen overlays: weather, darkness, the pulse */
+function featOverlay(){const L=SURF.L,p=SURF.p,cam=SURF.cam,s=sv(),idx=SURF.idx,ev=SURF.ev,t=L.tick;
+  if(ev&&ev.phase===2&&ev.cur){const id=ev.cur.id,al=Math.min(1,ev.t*.5,(20-(ev.t>20?20:ev.t))*.4+.3);
+    if(id==='sand'||id==='spore'){const dir=ev.dir||1,sd=id==='sand',k=Math.min(1,ev.t*.5,(ev.t0||20)>0?1:1);ctx.globalAlpha=(sd?.3:.16)*Math.min(1,ev.t*.4);ctx.fillStyle=sd?'#7a4a22':'#2c7a4a';ctx.fillRect(0,0,VW,VH);
+      for(let i=0;i<(sd?110:70);i++){const x=mod(i*53.7+dir*t*(sd?230:44)*(1+i%3*.4),VW+40)-20,y=mod(i*31.1+Math.sin(t+i)*(sd?3:8)+(sd?0:t*-10),VH);
+        if(sd){ctx.globalAlpha=.55;ctx.fillStyle=i%3?'#e8c080':'#a87038';ctx.fillRect(x|0,y|0,6+i%4*3,1)}else{ctx.globalAlpha=.45+.4*Math.sin(t*3+i);ctx.fillStyle=i%2?'#ccff88':'#ffffaa';ctx.fillRect(x|0,y|0,2,1+(i%2))}}
+      ctx.globalAlpha=1}
+    else if(id==='surge'){if(Math.floor(t*7)%5===0||Math.sin(t*23)>.93){ctx.globalAlpha=.4;ctx.fillStyle='#000';ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}}
+    else if(id==='pulse'){const pu=.5+.5*Math.sin(t*2.4);ctx.globalAlpha=.08+.12*pu;ctx.fillStyle='#ff44cc';ctx.fillRect(0,0,VW,VH);ctx.strokeStyle='#ffccff';ctx.lineWidth=2;for(let r=0;r<3;r++){const u=mod(t*.5+r/3,1);ctx.globalAlpha=.35*(1-u);ctx.beginPath();ctx.arc(VW/2,VH/2,20+u*230,0,TAU);ctx.stroke()}ctx.globalAlpha=1}
+    else if(id==='quake'){ctx.globalAlpha=.08;ctx.fillStyle='#442200';ctx.fillRect(0,0,VW,VH);ctx.globalAlpha=1}}
+  /* dark rooms */
+  let inDark=false;const px=(p.x+5)/TS,py=(p.y+8)/TS;for(const d of L.dark)if(px>=d.x0&&px<=d.x1&&py>=d.y0&&py<=d.y1){inDark=true;break}
+  SURF.darkA=(SURF.darkA||0)+((inDark?1:0)-(SURF.darkA||0))*.12;
+  if(SURF.darkA>.02){if(!SURF.dkCv){SURF.dkCv=document.createElement('canvas');SURF.dkCv.width=VW;SURF.dkCv.height=VH}const g=SURF.dkCv.getContext('2d');g.globalCompositeOperation='source-over';g.clearRect(0,0,VW,VH);g.fillStyle='rgba(0,0,6,.76)';g.fillRect(0,0,VW,VH);g.globalCompositeOperation='destination-out';
+    const hole=(x,y,r,a)=>{const gr=g.createRadialGradient(x,y,2,x,y,r);gr.addColorStop(0,'rgba(0,0,0,'+a+')');gr.addColorStop(.6,'rgba(0,0,0,'+a*.6+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill()};
+    hole(p.x+5-cam.x,p.y+8-cam.y,(s.shop.lamp?100:62)+Math.sin(t*5)*1.5,1);for(const l of L.lights){const sx=l.x-cam.x,sy=l.y-cam.y;if(sx>-40&&sx<VW+40&&sy>-40&&sy<VH+40)hole(sx,sy,22+Math.sin(t*2+l.ph)*3,.85)}
+    for(const o of L.ia){if(o.hide)continue;const sx=o.x-cam.x,sy=o.y-cam.y-6;if(sx>-30&&sx<VW+30&&sy>-30&&sy<VH+30)hole(sx,sy,16,.7)}
+    for(const c of L.chests){const sx=c.x-cam.x+7,sy=c.y-cam.y+4;if(sx>-30&&sx<VW+30&&sy>-30&&sy<VH+30&&!c.open)hole(sx,sy,18,.8)}
+    g.globalCompositeOperation='source-over';ctx.globalAlpha=SURF.darkA;ctx.drawImage(SURF.dkCv,0,0);ctx.globalAlpha=1;
+    for(const l of L.lights){const sx=l.x-cam.x,sy=l.y-cam.y;if(sx>-10&&sx<VW+10&&sy>-10&&sy<VH+10){ctx.globalAlpha=SURF.darkA*(.6+.4*Math.sin(t*3+l.ph));ctx.fillStyle='#ffffcc';ctx.fillRect(sx-1|0,sy|0,3,1);ctx.fillRect(sx|0,sy-1|0,1,3);ctx.globalAlpha=1}}
+    for(const c of L.chests){if(c.open)continue;const sx=c.x-cam.x+7,sy=c.y-cam.y-4;if(sx>-10&&sx<VW+10&&sy>-10&&sy<VH+10){ctx.globalAlpha=SURF.darkA*(.5+.5*Math.sin(t*5));ctx.fillStyle=GREEN[3];ctx.fillRect(sx-1|0,sy-3|0,3,1);ctx.fillRect(sx|0,sy-4|0,1,3);ctx.globalAlpha=1}}}
+  /* the shield bubble */
+  if(p.shield>0&&!p.hidden&&p.dead<=0){const X=p.x+5-cam.x,Y=p.y+8-cam.y;ctx.globalAlpha=.3+.1*Math.sin(t*8);ctx.strokeStyle=CY;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X,Y,12,0,TAU);ctx.stroke();ctx.globalAlpha=1}
+  /* a giant shadow that sometimes crosses the sky */
+  {const gs=SURF.giant;if(gs){gs.t+=1/60;const u=gs.t/gs.dur;if(u>=1)SURF.giant=null;else{const X=VW+80-u*(VW+260),Y=18+gs.y;ctx.globalAlpha=.28;ctx.fillStyle=idx===4?'#240030':idx===3?'#200800':'#0a0a20';ctx.beginPath();ctx.ellipse(X,Y,70,14,0,0,TAU);ctx.fill();ctx.beginPath();ctx.ellipse(X+62,Y-2,22,8,0,0,TAU);ctx.fill();for(let i=0;i<6;i++){ctx.fillRect(X-60+i*20,Y+8,3,16+((i*5)%9))}ctx.fillStyle=idx===4?'#ff77ff':'#ffee77';ctx.globalAlpha=.8;ctx.fillRect(X+70,Y-4,2,2);ctx.globalAlpha=1;if(!gs.roar&&u>.45){gs.roar=1;shakeS=.5;SURF.msg=['SOMETHING HUGE ROARS FAR AWAY',3];try{sfxBoom(14,true)}catch(e){}}}}
+   else if(Math.random()<.00012&&ev&&ev.phase===0&&L.sky(Math.floor(p.x/TS),Math.floor(p.y/TS)-8))SURF.giant={t:0,dur:11,y:Math.random()*40,roar:0}}
+}
+/* ---- the prompt and small indicators */
+function featHud(){const L=SURF.L,p=SURF.p,cam=SURF.cam,s=sv();
+  if(SURF.modal){drawModal();return}
+  if(L.chase&&L.chase.state===1){const ch=L.chase,u=clamp((ch.yb-ch.row)/Math.max(1,ch.yb-ch.top),0,1);ctx.fillStyle='#000000cc';ctx.fillRect(VW/2-50,17,100,11);textC2('LAVA RISING',VW/2,18,OR);ctx.fillStyle=K;ctx.fillRect(VW/2-46,25,92,2);ctx.fillStyle=RD;ctx.fillRect(VW/2-46,25,Math.round(92*u),2)}
+  const n=SURF.near;if(n){const X=Math.round(n.x-cam.x),Y=Math.round(n.y-cam.y)-28;const lbl={lore:'READ',npc:(n.npc==='trader'?'SHOP':'TALK'),lever:'PULL LEVER',portal:'ENTER',shrine:'PRAY',panel:'TYPE CODE',pod:'TOUCH',echo:'LISTEN',console:n.state===1?'GO':'START',dig:'DIG'}[n.k]||'USE';
+    const t=useLabel()+': '+lbl;const w=textW(t,1)+8,bx=clamp(X-w/2|0,2,VW-w-2),by=clamp(Y,16,VH-14);ctx.fillStyle='#000000cc';ctx.fillRect(bx,by-2,w,11);ctx.fillStyle=YL;ctx.fillRect(bx,by-2,w,1);textC2(t,bx+w/2,by,WH);SURF.promptRect={x:bx-4,y:by-6,w:w+8,h:19}}else SURF.promptRect=null;
+  const tb=SURF.touchBtns;
+  /* keys held */
+  let kx=VW-10;if(SURF.keys.red){ctx.fillStyle='#ff5544';ctx.fillRect(kx,42,6,6);kx-=9}if(SURF.keys.blue){ctx.fillStyle='#55aaff';ctx.fillRect(kx,42,6,6)}
+  const T=trk();{const st='SECRETS '+T.sec+'/'+T.tot,w=textW(st,1)+6;ctx.fillStyle='#000000aa';ctx.fillRect(VW-w-2,32,w,10);textR(st,VW-5,34,T.sec>=T.tot?GREEN[3]:'#bbbbdd',1)}
+  if(p.shield>0)text('SHIELD '+p.shield,6,VH-18,CY,1);
 }
 
 /* ---------------- drawing ---------------- */
@@ -1556,7 +2123,7 @@ SURF.draw=function(){
       ctx.globalAlpha=1;continue}
     let im;
     if(t===2){const l=L.g[ty*L.LW+tx-1]===2,r=L.g[ty*L.LW+tx+1]===2;im=T.platV[l?(r?2:3):(r?1:0)]}else if(t===7)im=T.ladder[(ty>0&&L.g[(ty-1)*L.LW+tx]===7)?0:1];
-    else if(t===3)im=T.spikeA?T.spikeA[tf]:T.spike;else if(t===4){im=T.lava[Math.floor(L.tick*4)%4];if(ty>0&&L.g[(ty-1)*L.LW+tx]!==4){ctx.globalAlpha=.25+.07*Math.sin(L.tick*3+tx);ctx.fillStyle=OR;ctx.fillRect(X,Y-5,8,5);ctx.globalAlpha=.12;ctx.fillRect(X-2,Y-11,12,6);ctx.globalAlpha=1}}else if(t===5)im=T.spring;
+    else if(t===3)im=T.spikeA?T.spikeA[tf]:T.spike;else if(t===4){im=T.lava[Math.floor(L.tick*4)%4];if(ty>0&&L.g[(ty-1)*L.LW+tx]!==4){ctx.globalAlpha=.25+.07*Math.sin(L.tick*3+tx);ctx.fillStyle=OR;ctx.fillRect(X,Y-5,8,5);ctx.globalAlpha=.12;ctx.fillRect(X-2,Y-11,12,6);ctx.globalAlpha=1}}else if(t===5)im=T.spring;else if(t===11)im=A.fx.door;else if(t===13)im=A.fx.crack;
     else if(t===6){const c=L.crum[ty*L.LW+tx];im=T.crumble;if(c&&c.state==='shake')ctx.globalAlpha=.6+.4*Math.sin(L.tick*60)}
     if(im){ctx.drawImage(im,X,Y);ctx.globalAlpha=1}
     if(t===6){const gl=L.g[ty*L.LW+tx-1],gr=L.g[ty*L.LW+tx+1],gu=ty>0?L.g[(ty-1)*L.LW+tx]:1,gd=ty<L.LH-1?L.g[(ty+1)*L.LW+tx]:1;ctx.fillStyle=K;if(gl===0)ctx.fillRect(X,Y,1,8);if(gr===0)ctx.fillRect(X+7,Y,1,8);if(gu===0)ctx.fillRect(X,Y-1,8,1);if(gd===0)ctx.fillRect(X,Y+7,8,1)}
@@ -1601,7 +2168,7 @@ SURF.draw=function(){
   {const e=L.exit,X=Math.floor(e.x-cam.x),Y=Math.floor(e.y-cam.y);ctx.drawImage(A.beacon,X,Y-28);const open=!(SURF.guard&&SURF.guard.hp>0);ctx.fillStyle=open?GREEN[3]:RD;ctx.fillRect(X+8,Y-24+((L.tick*8|0)%2),2,2);
     if(open&&!SURF.done&&Math.abs(p.x-e.x)<24){textC2('PRESS ENTER OR TAP THE BEACON',X+9,Y-38,YL)}}
   /* chests */
-  for(const c of L.chests){if(c.x<cam.x-16||c.x>cam.x+VW+16||c.y<cam.y-12||c.y>cam.y+VH+12)continue;const im=A.chest[c.open?1:0];ctx.drawImage(im,Math.floor(c.x-cam.x),Math.floor(c.y-cam.y))}
+  for(const c of L.chests){if(c.gone||c.x<cam.x-16||c.x>cam.x+VW+16||c.y<cam.y-12||c.y>cam.y+VH+12)continue;const im=A.chest[c.open?1:0];ctx.drawImage(im,Math.floor(c.x-cam.x),Math.floor(c.y-cam.y))}
   /* ship pieces glow where they lie */
   for(const sp of (L.shipPieces||[])){if(sv().pieces[sp.id])continue;const X=Math.floor(sp.x-cam.x),Y=Math.floor(sp.y-cam.y);if(X<-30||X>VW+30||Y<-30||Y>VH+30)continue;const ic=A.pieceIcons[sp.id],pu=.5+.5*Math.sin(L.tick*3.2),bob=Math.round(Math.sin(L.tick*2.4)*1.5);
     ctx.globalAlpha=.1+.07*pu;ctx.fillStyle='#ffffcc';ctx.fillRect(X-2,Y-60,4,60);ctx.globalAlpha=.08+.06*pu;ctx.fillRect(X-5,Y-60,10,60);
@@ -1610,12 +2177,14 @@ SURF.draw=function(){
     if(((L.tick*5)|0)%6===0){ctx.fillStyle=WH;ctx.fillRect(X+6,Y-8,1,3);ctx.fillRect(X+5,Y-7,3,1)}}
   /* coins */
   for(const c of L.coins){if(c.x<cam.x-8||c.x>cam.x+VW+8||c.y<cam.y-8||c.y>cam.y+VH+8)continue;const X=Math.floor(c.x-cam.x-3),Y=Math.floor(c.y-cam.y-3+Math.sin(L.tick*4+c.x)*1),w=(Math.floor(L.tick*6+c.x)%4)===0?5:7;ctx.drawImage(A.coin,X,Y)}
+  featWorld();
   /* enemies */
-  for(const e of SURF.en){if(e.hp<=0)continue;const fr=A.en[e.k],f=Math.floor(e.t*7)%4,im=(e.flash>0?fr.wh:fr.fr)[f];
+  for(const e of SURF.en){if(e.hp<=0)continue;const fr=A.en[e.k],f=Math.floor(e.t*7)%4,im=(e.flash>0?fr.wh:(e.shiny&&fr.gd?fr.gd:fr.fr))[f];
     const w=Math.round(im.width*e.sc),h=Math.round(im.height*e.sc),X=Math.floor(e.x+e.w/2-w/2-cam.x),Y=Math.floor(e.y+e.h-h+1-cam.y);
     if(e.x-cam.x>-40&&e.x-cam.x<VW+40){
       ctx.save();ctx.globalAlpha=.4;{const wi=fr.wh[f];if(e.face>0){ctx.translate(X+w,Y);ctx.scale(-1,1);for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(wi,ox,oy,w,h);ctx.scale(-1,1);ctx.translate(-(X+w),-Y)}else for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(wi,X+ox,Y+oy,w,h)}ctx.restore();
       ctx.save();if(e.face>0){ctx.translate(X+w,Y);ctx.scale(-1,1);ctx.drawImage(im,0,0,w,h)}else ctx.drawImage(im,X,Y,w,h);ctx.restore();
+      if(e.shiny&&((L.tick*6)|0)%3===0){ctx.fillStyle=WH;ctx.fillRect(X+((e.t*37)|0)%Math.max(2,w),Y+((e.t*23)|0)%Math.max(2,h),1,1)}
       if(e.elite||e.hp<e.mhp){const bw=Math.max(14,e.w);ctx.fillStyle=K;ctx.fillRect(X+w/2-bw/2-1,Y-5,bw+2,4);ctx.fillStyle=e.elite?RD:LG;ctx.fillRect(X+w/2-bw/2,Y-4,Math.max(0,bw*e.hp/e.mhp),2)}
       if(e.st===1&&e.sp.ai==='charger'&&((e.t*16)|0)%2===0){ctx.fillStyle=WH;ctx.fillRect(X+w/2-1,Y-9,3,3)}}}
   /* player */
@@ -1629,6 +2198,7 @@ SURF.draw=function(){
   for(const b of SURF.eb){const X=Math.floor(b.x-cam.x),Y=Math.floor(b.y-cam.y);ctx.fillStyle=K;ctx.fillRect(X-2,Y-2,5,5);ctx.fillStyle=b.lob?OR:RD;ctx.fillRect(X-1,Y-1,3,3);ctx.fillStyle=YL;ctx.fillRect(X,Y,1,1)}
   for(const f of SURF.fx){ctx.fillStyle=f.c;ctx.fillRect((f.x-cam.x)|0,(f.y-cam.y)|0,f.s,f.s)}
   for(const t of SURF.txt)text(t.s,(t.x-cam.x)|0,(t.y-cam.y)|0,GREEN[3],1);
+  featStrikes();
   /* the ship that brings the astronaut and takes the astronaut home */
   if(SURF.cut){const c=SURF.cut,E=u=>u*u*(3-2*u);let sx,sy,flip=true,beam=false;
     if(c.mode==='in'){if(c.t<1.1){const u=E(c.t/1.1);sx=c.hx+(1-u)*260;sy=c.hy-(1-u)*30}else{const u=E(clamp((c.t-1.5)/1.1,0,1));sx=c.hx+u*280;sy=c.hy-u*40;flip=false;beam=c.t<1.5}}
@@ -1639,6 +2209,7 @@ SURF.draw=function(){
   /* the old beam column is gone */
   if(false){const b=SURF.beam,k=b.mode==='down'?b.t:1-b.t/.8,X=Math.floor(p.x+5-cam.x),Y=Math.floor(p.y+16-cam.y);ctx.globalAlpha=clamp(b.mode==='down'?b.t:b.t/.8,0,1)*.8;ctx.fillStyle=CY;ctx.fillRect(X-9,Y-200,18,206);ctx.fillStyle=WH;ctx.fillRect(X-3,Y-200,6,206);ctx.globalAlpha=1}
   ctx.restore();
+  featOverlay();
   hud();
 };
 function hud(){
@@ -1651,13 +2222,14 @@ function hud(){
   ctx.fillStyle='#000000aa';ctx.fillRect(4,VH-8,90,5);ctx.fillStyle=GREEN[1];ctx.fillRect(5,VH-7,Math.round(88*clamp(1-Math.hypot(p.x-SURF.L.exit.x,p.y-SURF.L.exit.y)/(SURF.L.dist0||1),0,1)),3);
   {const A=SURF.A,ids=SURF.pieceIds(SURF.idx),n=SURF.piecesFound(),y=p.fuel!=null&&s.jet?27:17;ctx.fillStyle='#000000aa';ctx.fillRect(4,y-1,40+ids.length*15,13);text('SHIP '+n+'/6',6,y+1,n>=6?GREEN[3]:'#bbbbbb',1);
     ids.forEach((id,k)=>ctx.drawImage(s.pieces[id]?A.pieceIcons[id].on:A.pieceIcons[id].off,40+k*15,y))}
-  if(SURF.msg&&SURF.msg[1]>0)textC(SURF.msg[0],40,YL,1);
+  if(SURF.msg&&SURF.msg[1]>0){const mw=textW(SURF.msg[0],1)+10;ctx.fillStyle='#000000bb';ctx.fillRect(Math.round((VW-mw)/2),37,mw,11);textC(SURF.msg[0],40,YL,1)}
   if(SURF.intro&&!SURF.cut){const it=SURF.intro,A=SURF.A,ids=SURF.pieceIds(SURF.idx),f=ids.filter(k=>s.pieces[k]).length,n=SURF.piecesFound();
     const wrap=(t,w)=>{const o=[];let cur='';for(const wd of t.split(' ')){if((cur+' '+wd).trim().length>w){o.push(cur);cur=wd}else cur=(cur+' '+wd).trim()}if(cur)o.push(cur);return o};
     const hidden=ids.length===1?'ONE PIECE IS HIDDEN IN THIS LEVEL.':'TWO PIECES ARE HIDDEN IN THIS LEVEL.';
     const status=ids.length===1?(f?'THE PIECE FROM THIS LEVEL IS ALREADY FOUND.':'IT IS NOT FOUND YET.'):(f===2?'BOTH ARE ALREADY FOUND.':f===1?'ONE OF THEM IS FOUND. ONE IS STILL WAITING.':'NEITHER IS FOUND YET. THE SECOND IS THE HARDEST HIDING PLACE OF ALL.');
     let lines=[];if(it.first&&SURF.idx===0)lines=lines.concat(wrap('SIX PIECES OF A LUXURY SPACESHIP ARE HIDDEN IN THE SURFACE WORLDS. FIND ALL SIX TO WIN THE SHIP.',58),['']);
     lines=lines.concat(wrap('SHIP PIECES FOUND: '+n+' OF 6. '+hidden+' '+status,58));
+    lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS E TO USE THINGS. PRESS B FOR THE MENU AND MAP.',58));
     const h=lines.length*9+50,y0=Math.max(18,Math.round((VH-h)/2)-8),al=Math.min(1,it.t*3,(9-it.t)*2);
     ctx.globalAlpha=.9*al;ctx.fillStyle='#05031a';ctx.fillRect(16,y0,VW-32,h);ctx.globalAlpha=al;ctx.fillStyle=YL;ctx.fillRect(16,y0,VW-32,1);ctx.fillRect(16,y0+h-1,VW-32,1);ctx.fillStyle='#352879';ctx.fillRect(16,y0+1,VW-32,9);
     textC('THE SHIP PIECE HUNT',y0+3,YL,1);
@@ -1667,26 +2239,28 @@ function hud(){
     textC('PRESS ANY KEY OR TAP TO CLOSE',y0+h-9,'#8888aa',1);ctx.globalAlpha=1}
   if(SURF.banner){const b=SURF.banner,a=Math.min(1,b.t*2),h=b.lines.length*11+12,y0=54;ctx.globalAlpha=.85*a;ctx.fillStyle=K;ctx.fillRect(20,y0,VW-40,h);ctx.globalAlpha=a;ctx.fillStyle=YL;ctx.fillRect(20,y0,VW-40,1);ctx.fillRect(20,y0+h-1,VW-40,1);b.lines.forEach((ln,i)=>textC(ln,y0+7+i*11,i?WH:YL,1));ctx.globalAlpha=1}
   if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
-    if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
-    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('BEAM UP: B   STUCK: G   LADDERS: W/S   S+SPACE: DROP DOWN',VH-27,YL,1);textC('GAMEPAD: A JUMP   X, B OR RB FIRE   START BEAM UP',VH-17,'#9ad2e0',1)}}
-  else if(!(typeof isTouch!=='undefined'&&isTouch)){textC('FIRE: X, R OR MOUSE   BEAM UP: B',VH-9,'#6c6c6c',1)}
+    if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('MENU AND BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
+    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP AND USE   X, B OR RB FIRE   START MENU',VH-17,'#9ad2e0',1)}}
+  else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<10){textC('FIRE: X, R OR MOUSE   USE: E   MENU: B',VH-9,'#6c6c6c',1)}
   if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78,9);text('ROCKET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
   const btn=(id,x,y,w,h,label)=>{tb.push({id,x,y,w,h});ctx.fillStyle=SURF.touch[id]?'#ffffff88':'#00000066';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffffff55';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);textC2(label,x+w/2,y+h/2-2,WH)};
   if(typeof isTouch!=='undefined'&&isTouch){btn('l',4,152,36,40,'<');btn('r',44,152,36,40,'>');btn('j',282,152,34,40,'JUMP');btn('f',244,152,34,40,'FIRE');btn('u',244,126,34,22,'UP');btn('d',282,126,34,22,'DOWN')}
-  btn('b',VW-52,16,48,14,'BEAM UP');
+  btn('b',VW-52,16,48,14,'MENU');if(typeof isTouch!=='undefined'&&isTouch&&SURF.near&&!SURF.modal)btn('e',204,152,36,40,'USE');
+  featHud();
 }
 /* touch input: pointers can hold several buttons at once */
 function ptIn(e){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*VW,y=(e.clientY-r.top)/r.height*VH;return[x,y]}
 function setTouch(e,down){
   if(MODE!=='surface')return false;
   if(down&&SURF.intro&&SURF.intro.t>.6){SURF.intro=null;return true}
+  if(SURF.modal&&down){SURF.mouseFire=false;const [mx,my]=ptIn(e);for(const h of (SURF.mh||[]))if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){h.fn();break}return true}
   const [x,y]=ptIn(e);let hit=null;
   for(const b of (SURF.touchBtns||[]))if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){hit=b.id;break}
   SURF.tp=SURF.tp||{};
-  if(down){if(hit){SURF.tp[e.pointerId]=hit;SURF.touch[hit]=1;if(hit==='b')SURF.beamUp()}
-    else{/* a tap on the beacon completes the level */const L=SURF.L,p=SURF.p;if(L&&L.exit&&Math.abs(p.x-L.exit.x)<26)tryExit()}}
+  if(down){if(hit){SURF.tp[e.pointerId]=hit;SURF.touch[hit]=1;if(hit==='b'){delete SURF.touch.b;delete SURF.tp[e.pointerId];if(!SURF.cut)openPause()}else if(hit==='e'){SURF.useReq=true;delete SURF.touch.e;delete SURF.tp[e.pointerId]}}
+    else{/* a tap on the beacon completes the level */const L=SURF.L,p=SURF.p;if(L&&L.exit&&Math.abs(p.x-L.exit.x)<26)tryExit();const pr=SURF.promptRect;if(pr&&x>=pr.x&&x<=pr.x+pr.w&&y>=pr.y&&y<=pr.y+pr.h)SURF.useReq=true}}
   else{const id=SURF.tp[e.pointerId];if(id){delete SURF.touch[id];delete SURF.tp[e.pointerId]}}
   return true;
 }
