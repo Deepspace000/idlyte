@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.06</title>
+<title>Idlyte v2.08</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -180,7 +180,12 @@ const SHIP_ROWS=[
  9:{scheme:'gold',acc:'orange',rows:[".........................................", "........w.w.w............................", "........5.5.5..kkkkkkkkk.................", "........k.k.k.kdd3dd3dd3k................", ".......kkkkkkk44444444444kkk.............", ".............kMgggMgggMggdMdk............", ".......5555kkgggkgggkgggkgggdkk..........", ".......kdddddgllklllklllkggggddk.........", ".......kkkkkkl55k555k555k555555dkk.......", ".............klLkLLLkLLLkllllllgggk......", ".......5555kkLLLkLLLkLLLkLLLllllgggkk....", ".......kgggggLMLkLM4k4M4k4MIIIMIIIIIgk...", ".......klllllLwwkwwwkwwwkLLIIIIIIIIIlgk..", "...EC..kLLLLLw3333333333333333MMMMMMLLlk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwwk."]},
  10:{scheme:'ice',acc:'magenta',rows:[".........................................", ".....................M...................", "................kkkkkkkkkk...............", ".........lk...kkddddkddddkkk.............", ".........lk..k3k3333k3333k33kkk..........", ".........lkkkdgkggggkggggkggddkkk........", "..........kdkkkkkkkkkkkkkkkkkkkddk.......", "..........kk...................kOdk......", ".........kggkkkkkkkkkkkkkkkkkkkgggdk.....", "........kgllggggggggggggggggggglllggk....", "........kgllggOggOggOggOggOggOglOllggk...", ".......kllLLlllllllllllllllllllLLLlllgk..", ".......kLLLLLL444444444444444IIIIIIIIIk..", "...EC..kLwwwwwwwwwwwwwwwwwwwwMMMMMMMMMLk.", ".AEECCDkwwwwwwwwwwwwwwwwwwwwwOOOOOOOOOwk."]},
  11:{scheme:'lava',acc:'orange',rows:[".........................................", ".........................................", ".........................................", ".........................................", ".........kkkkkkk.........................", ".......kkdddddddkkk......................", ".......kdd555555552kkkkkk................", "...EC..kkkkkkkkkgggddddddkkkk............", ".AEECCDkddllllllggMggMggMddMdkkk.........", ".......kkkkkkkkklllllllllgggggggk........", ".......kkkkkkkkkkl333333333333333kk......", ".................kLL3L3L3l3l3l3l3ggk.....", ".................kLLLLLLLLLLLLLLLllgkk...", "...EC..kkkkkkkkkkwwwwwwwwwwMMMMMMMMMllk..", ".AEECCDkwwwwwwwwwwwwwwwwwwwOOOOOOOOOwwk.."]},
- 12:{scheme:'shadow',acc:'white',rows:[".........................................", ".D.......................................", ".Dw......................................", ".kdww....................................", ".kgddww..................................", ".kgdgddw.................................", ".kgdggddww...............................", ".kldlgdgddww.............................", ".kldlldggdddw............................", ".kLdlldlldgggwwkk........................", ".kLdLLdll3ll3gg3gkkkkk...................", ".kLLLLLLLL333333333333kkkkkk.............", ".kkkkkkkkLMLLLMLLlMlllMgggMgkkkkkkk......", "...EC....kwwwLLLLLLLLLLLLLLLllMMMMMkkkk..", ".AEECCD..kwwwwwwwwwwwwwwwwwwwwOOOOOOOOk.."]}};/*ENDSHIPDEF*/
+ 12:{scheme:'shadow',acc:'white',rows:[".........................................", ".D.......................................", ".Dw......................................", ".kdww....................................", ".kgddww..................................", ".kgdgddw.................................", ".kgdggddww...............................", ".kldlgdgddww.............................", ".kldlldggdddw............................", ".kLdlldlldgggwwkk........................", ".kLdLLdll3ll3gg3gkkkkk...................", ".kLLLLLLLL333333333333kkkkkk.............", ".kkkkkkkkLMLLLMLLlMlllMgggMgkkkkkkk......", "...EC....kwwwLLLLLLLLLLLLLLLllMMMMMkkkk..", ".AEECCD..kwwwwwwwwwwwwwwwwwwwwOOOOOOOOk.."]},
+ 13:{scheme:'green',acc:'lime',rows:[".........................................", ".........................................", ".........................................", ".........................................", ".........kk..............................", ".........kdkk............................", ".........kkddkk..........................", "...........kkddkk........................", ".............kkddkk......................", "...............kkggkk....................", ".................kgggkk..................", "............kkkkkllllggkkkkkkk...........", ".........kkkgggggLLLLllgggggggkkkkkkk....", "...EC....kllLL33333333333333MMMMMMMMlkk..", ".AEECCD..kwwwwwwwwwwwwwwwwwwOOOOOOOOwwk.."]},
+ 14:{scheme:'gold',acc:'orange',rows:[".........................................", ".........................................", ".........................................", "..............................kk.........", "............................kkdk.........", "......................k...kkddkk.........", "....................kkk.kkddkk...........", "...................kddgkddkk.............", "..................kdgggdkk...............", ".................kggllkk.................", "...............kkggllk...................", "............kkkgglllLLkkkkkkkkkkkk.......", "........kkkkgggl444444444444444gggkkkkk..", "...EC...klllLLLLLLwwwwLLLLMMMMMMMMMllllk.", ".AEECCD.kwwwwwwwwwwwwwwwwwOOOOOOOOOwwwwk."]},
+ 15:{scheme:'blue',acc:'cyan',rows:[".........................................", ".........................................", ".........................................", ".........................................", "....k....................................", "....kk....k..............................", "....kdkk..kk.............................", ".....kddk..kk............................", "......kkdk..kkk..........................", "........kgk..kkk.........................", ".........kgkk..kk........................", "..........kggk..kk.......................", "........kkLllgkklgkkkkkkkkkkkkkkkkk......", "...EkkkkllLL555555555555MMMMMMMMMMMkkkk..", ".AEEkwwwwwwwwwwwwwwwwwwwOOOOOOOOOOOwwwk.."]},
+ 16:{scheme:'purple',acc:'magenta',rows:[".........................................", ".........................................", ".........................................", ".........................................", ".........................................", ".........................................", "............kkkkkkkkkkkkkkkkkkkkkkk......", "............kdddddddddddddddddddddk......", "............kkkkkggkkkkkkkkggkkkkkk......", ".................kk........kk............", ".............kkkkllkkk...................", "..........kkkggggLLgggkkkkkkkkk..........", "..........kggl3333333333333IIIIkkkkkkk...", "...EC.....kLLLLLLwwLLLLLLLLMMMMMMMMMllk..", ".AEECCD...kwwwwwwwwwwwwwwwwOOOOOOOOOwwk.."]},
+ 17:{scheme:'shadow',acc:'cyan',rows:[".........................................", ".........................................", "........kk......k........................", "........kdkk....kkk......................", "........kgddkkk.kddk.....................", "........kkggdddkgggdkk...................", "..........kkgggdggggddkk.................", "............kkkglllgggddk................", "...............kklllggggdkk..............", ".................kkkllllgggk.............", "....................kllllgggkk...........", "................kkkkLLLLllllggkkkk.......", "..........kkkkkkggggLLLLLLLLllggggkkk....", "...EC.....klll4444444444444444MMMMMMMkk..", ".AEECCD...kwwwwwwwwwwwwwwwwwwwOOOOOOOOk.."]}};/*ENDSHIPDEF*/
 const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHIP_HW=SHIP_W>>1;
 /* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
 let SHIPSC=1;   /* how much bigger than the standard ship the one being flown is (corvettes and bigger) */
@@ -229,14 +234,15 @@ const PATTERNS={
  racing:(i,j)=>Math.abs(j-8)<=1||(i>14&&Math.abs(j-8)<=3)};
 const DECO_DEFAULT={color:'chrome',pattern:'none',accent:'lime',canopy:'cyan'};
 const PAINTS=[{},{B:'#9a6759',c:'#ff7777',b:'#68372b'},{B:'#588d43',c:'#9ad284',b:'#2c5a2c'},{B:'#b8c76f',c:'#ffffff',b:'#9a6759'},{B:'#cc99ff',c:'#ffffff',b:'#6f3d86'},{B:'#70a4b2',c:'#ffffaa',b:'#352879'},{B:'#ff9966',c:'#ffffaa',b:'#9a3a3a'},{B:'#ff7777',c:'#ffffff',b:'#9a3a3a'},
- {B:'#2a8a9a',c:'#ffffff',b:'#0b2f3a'},{B:'#e0b040',c:'#ffffff',b:'#7a5410'},{B:'#e8e8ff',c:'#ffd0ff',b:'#6c5eb5'},{B:'#ff5a1a',c:'#ffffaa',b:'#68121b'},{B:'#2a2438',c:'#cc99ff',b:'#9a3a3a'}];
+ {B:'#2a8a9a',c:'#ffffff',b:'#0b2f3a'},{B:'#e0b040',c:'#ffffff',b:'#7a5410'},{B:'#e8e8ff',c:'#ffd0ff',b:'#6c5eb5'},{B:'#ff5a1a',c:'#ffffaa',b:'#68121b'},{B:'#2a2438',c:'#cc99ff',b:'#9a3a3a'},
+ {B:'#588d43',c:'#ccff99',b:'#2c5a2c'},{B:'#b8c76f',c:'#ffffaa',b:'#6f4f25'},{B:'#70a4b2',c:'#ffffff',b:'#352879'},{B:'#cc99ff',c:'#ffffff',b:'#6f3d86'},{B:'#2a2438',c:'#70a4b2',b:'#352879'}];
 const SK=['w','L','l','g','d'];
 function snapHexG(h){const n=snap64(parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16));return '#'+n.map(v=>v.toString(16).padStart(2,'0')).join('')}
 function buildShipSet(paint,deco,ix){
   const DEF=SHIP_DEF[ix||0];
   const cano=Object.assign({B:'#6c5eb5',c:'#70a4b2',b:'#352879'},paint,(deco&&deco.canopy&&deco.canopy!=='cyan')?CANOPY[deco.canopy]:{});
   const HULLR=SCHEMES[(deco&&deco.color&&deco.color!=='chrome'?deco.color:null)||(DEF&&DEF.scheme)||'chrome']||SCHEMES.chrome,ACCR=ACCENTS[(deco&&deco.accent&&(deco.accent!==DECO_DEFAULT.accent||!DEF)?deco.accent:null)||(DEF&&DEF.acc)||DECO_DEFAULT.accent]||ACCENTS.lime,PAT=deco?(PATTERNS[deco.pattern||'none']||PATTERNS.none):null;
-  const top=(DEF?DEF.rows:SHIP_ROWS).map(r=>r.padEnd(SHIP_W,'.').slice(0,SHIP_W)),N=SHIP_N,rows=[...top,...top.slice(0,N).reverse()];
+  const top=((DEF&&DEF.rows)||SHIP_ROWS).map(r=>r.padEnd(SHIP_W,'.').slice(0,SHIP_W)),N=SHIP_N,rows=[...top,...top.slice(0,N).reverse()];
   const base=fromRows(rows,(ch,i,j)=>{
     const m=SHIP_CHAR[ch];if(!m)return null;
     if(m[0]==='k')return '#000000';
@@ -503,7 +509,12 @@ const SHIPS=[
  {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:2.6,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
  {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:2.75,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
  {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:2.9,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
- {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.05,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'}];
+ {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.05,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'},
+ {n:'SPARROW',price:1500,hp:0,sp:1.04,fr:1.04,dm:1.04,opt:0,mag:10,d:'SWEPT WINGS. +4% SPEED AND GUNS, WIDER COIN PICKUP'},
+ {n:'KESTREL',price:3500,hp:1,sp:1.06,fr:1.06,dm:1.06,opt:0,shd:3,d:'FORWARD WINGS. +1 HULL, +6% SPEED, 3 SECOND START SHIELD'},
+ {n:'MERLIN',price:7000,hp:1,sp:1.1,fr:1.1,dm:1.1,opt:0,gold:.1,d:'A NEEDLE WITH TAIL FINS. +1 HULL, +10% SPEED, 10% MORE GOLD'},
+ {n:'HARRIER',price:12000,hp:2,sp:1.05,fr:1.06,dm:1.12,opt:0,dmp:.3,d:'A WIDE DELTA. +2 HULL, +12% DAMAGE, LONGER SAFE TIME'},
+ {n:'NIGHTHAWK',price:20000,hp:2,sp:1.12,fr:1.15,dm:1.12,opt:0,sk:.04,mag:8,d:'A DARK STEALTH WING. +12% SPEED, +15% FIRE RATE, BETTER DODGING'}];
 const MISSIONS=[
  {n:'STANDARD',diff:0,gold:1,price:0},
  {n:'HARD CONTRACT',diff:1,gold:1.6,price:3000},
@@ -633,9 +644,9 @@ function baseStats(){
   const u=SAVE.up||{},cr=SAVE.crew||{},sh=SHIPS[SAVE.ship]||SHIPS[0],ms=MISSIONS[SAVE.mission]||MISSIONS[0],pl=PLANETS[SAVE.planet||0]||PLANETS[0];
   const nav=cr.nav||0,wp=cr.weap||0,tc=cr.tech||0;
   return {hp:Math.max(1,3+(u.hull||0)+(u.cell||0)+sh.hp+(sh.yard?3*(u.capital||0):0)+((SAVE.lab&&SAVE.lab.nano)||0)),speed:(44+(u.engine||0)*8)*sh.sp*(1+.08*nav),fire:(1.4+(u.guns||0)*.4)*sh.fr*(1+.1*wp)*(sh.yard?1+.12*(u.barrage||0):1),dmg:(1+(u.dmg||0)*.5)*sh.dm*(1+.1*wp)*(sh.yard?1+.6*(u.cannon||0):1),
-    magnet:(22+(u.magnet||0)*8)*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*ms.gold*pl.gold*(1+.25*((SAVE.level||1)-1)),lootBonus:(u.cargo||0)*.08+ms.diff*.01+pl.loot+(u.salv?.1:0),
-    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3+(sh.yard?5*(u.bulwark||0):0),shieldDur:9+tc*3,shieldHits:2+(window.WX?WX.shieldHits():0),damper:1.6+(u.damper||0)*.4+tc*.2,opts:Math.min(3,(u.opt||0)+sh.opt),
-    repair:u.repair||0,missile:u.missile||0,skill:Math.min(.97,.75+.06*nav)};
+    magnet:(22+(u.magnet||0)*8+(sh.mag||0))*(u.salv?1.6:1),coinMul:(1+(u.coin||0)*.25)*(1+(sh.gold||0))*ms.gold*pl.gold*(1+.25*((SAVE.level||1)-1)),lootBonus:(u.cargo||0)*.08+ms.diff*.01+pl.loot+(u.salv?.1:0),
+    startGun:1+(u.startgun||0),startShield:(u.shield||0)*4+tc*3+(sh.shd||0)+(sh.yard?5*(u.bulwark||0):0),shieldDur:9+tc*3,shieldHits:2+(window.WX?WX.shieldHits():0),damper:1.6+(u.damper||0)*.4+tc*.2+(sh.dmp||0),opts:Math.min(3,(u.opt||0)+sh.opt),
+    repair:u.repair||0,missile:u.missile||0,skill:Math.min(.97,.75+.06*nav+(sh.sk||0))};
 }
 
 /* ===== game state ===== */
@@ -1324,7 +1335,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.06';
+const VERSION='2.08';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2107,7 +2118,7 @@ function screenDef(id){
     if(yard)info.push({t:'AT THE BACK OF THE YARD: THE LUXURY SHIPS. THEY COST A FORTUNE.',c:'#b8c76f'});
     const yardOk=(()=>{const sy=SHOPS.find(q=>q.id==='shipyard');return !!(sy&&sy.open()&&SAVE.built&&SAVE.built.shipyard)})();
     if(!yard)info.push({t:yardOk?'THE LUXURY SHIPS ARE AT THE END OF THE LIST.':'THE LUXURY SHIPS ARE AT THE END. BUY THEM WITH A SHIPYARD.',c:'#b8c76f'});
-    SHIPS.forEach((s,i)=>{const lux=s.price>=2e7;if(yard?!s.yard:(s.yard&&!lux))return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i,locked=!yard&&lux&&!own&&!yardOk;
+    (yard?SHIPS.map((_,k)=>k):SHIPS.map((_,k)=>k).sort((a,b)=>SHIPS[a].price-SHIPS[b].price)).forEach(i=>{const s=SHIPS[i],lux=s.price>=2e7;if(yard?!s.yard:(s.yard&&!lux))return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i,locked=!yard&&lux&&!own&&!yardOk;
       rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:locked?'NEEDS THE SHIPYARD. '+s.d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:locked?false:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
         fn:()=>{if(locked){toast('BUILD THE SHIPYARD FIRST');return}if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
   }else if(id==='missions'){
@@ -3129,16 +3140,17 @@ function extraScreen(id,rows,info){
     L('SHIP POWER '+shipPower()+'   DESTINATION '+PLANETS[SAVE.planet||0].n,Y_);
     L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(shipPower()+1),'#70a4b2');
 
-    if(SHIPS.some((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i))){L('');L('SHIPS FOR SALE','#fff')}
-    const BLURB={8:['A BIG BLUE WARSHIP WITH 30 EXTRA HULL.','IT SOAKS UP HITS AND FIRES MUCH HARDER.'],9:['A GOLD FLAGSHIP FOR PEOPLE WHO LIKE TO WIN.','FOUR TIMES THE DAMAGE OF THE DRIFTER.'],10:['A WHITE LUXURY SHIP WITH 50 EXTRA HULL.','FIVE TIMES THE DAMAGE. LOOKS EXPENSIVE.'],11:['TWIN ENGINES AND A RED HOT HULL.','65 EXTRA HULL AND 6.5 TIMES THE DAMAGE.'],12:['THE BEST SHIP THERE IS. NOTHING IS BIGGER.','90 EXTRA HULL AND NINE TIMES THE DAMAGE.']};
-    SHIPS.forEach((q,ad)=>{if(q.price<2e7||SAVE.ships.includes(ad))return;   // adverts for the luxury ships
+    if(SHIPS.some((q,i)=>(q.price>=2e7||i>=13)&&!SAVE.ships.includes(i))){L('');L('SHIPS FOR SALE','#fff')}
+    const BLURB={8:['A BIG BLUE WARSHIP WITH 30 EXTRA HULL.','IT SOAKS UP HITS AND FIRES MUCH HARDER.'],9:['A GOLD FLAGSHIP FOR PEOPLE WHO LIKE TO WIN.','FOUR TIMES THE DAMAGE OF THE DRIFTER.'],10:['A WHITE LUXURY SHIP WITH 50 EXTRA HULL.','FIVE TIMES THE DAMAGE. LOOKS EXPENSIVE.'],11:['TWIN ENGINES AND A RED HOT HULL.','65 EXTRA HULL AND 6.5 TIMES THE DAMAGE.'],12:['THE BEST SHIP THERE IS. NOTHING IS BIGGER.','90 EXTRA HULL AND NINE TIMES THE DAMAGE.'],
+      13:['A SMALL FAST BIRD WITH SWEPT WINGS.','A LITTLE BETTER THAN THE DRIFTER, AND IT PICKS UP COINS FROM FURTHER AWAY.'],14:['A HAWK WITH FORWARD WINGS.','ONE EXTRA HULL AND A 3 SECOND SHIELD AT THE START OF EVERY MISSION.'],15:['A THIN NEEDLE WITH TAIL FINS.','FAST AND SHARP, AND IT EARNS 10% MORE GOLD.'],16:['A WIDE DELTA WITH HEAVIER GUNS.','TWO EXTRA HULL, 12% MORE DAMAGE AND A LONGER SAFE TIME AFTER A HIT.'],17:['A DARK STEALTH WING FOR PILOTS WHO DODGE.','THE FASTEST OF THE SMALL SHIPS, WITH THE BEST FIRE RATE.']};
+    [13,14,15,16,17,8,9,10,11,12].forEach(ad=>{const q=SHIPS[ad];if(!q||SAVE.ships.includes(ad))return;   // adverts: the small birds first, then the luxury ships
       const gain=Math.round(powerIf(SAVE,'ship',ad)-shipPowerRaw()),can=SAVE.coins>=q.price,bl=BLURB[ad]||[q.d,''];
       const add=(k,t,c)=>info.push({t,c:c||'#bbbbbb',ship:ad,part:k});
       add(0,q.n+'   '+shortGold(q.price)+' GOLD'+(can?'   YOU CAN AFFORD IT':''),can?G_:'#ffffaa');
       add(1,bl[0],'#ffffff');add(2,bl[1],'#ffffff');
       add(3,'HULL +'+q.hp+'   DAMAGE X'+q.dm+'   FIRE RATE X'+q.fr+'   POWER +'+gain,'#70a4b2');
       if(can)L('');else info.push({t:'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.',c:'#8f84d6',ind:1})});
-    if(SHIPS.some((q,i)=>q.price>=2e7&&!SAVE.ships.includes(i)))L('  BUY THEM AT THE SHIP SHOP. THEY NEED THE SHIPYARD.','#6c6c6c');
+    if(SHIPS.some((q,i)=>(q.price>=2e7||i>=13)&&!SAVE.ships.includes(i)))L('  BUY THEM AT THE SHIP SHOP. THE LUXURY ONES NEED THE SHIPYARD.','#6c6c6c');
     return 'SHIP STATS';
   }
   if(id==='personnel'){
