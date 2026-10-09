@@ -397,6 +397,7 @@ init(){
   function spoutSpr(f){const w=30,h=74;
     return paint(w,h,(i,j)=>{const q=j/(h-1),cx=15+Math.sin(j*.11+f*TAU/6)*3*(1-q*.6)+Math.sin(j*.05)*1.5;
       let hw=2.4+Math.pow(1-q,3)*6;if(q>.84)hw+=(q-.84)/.16*9;
+      hw*=Math.max(.12,Math.min(Math.pow(Math.min(1,q/.1),.7),Math.pow(Math.min(1,(1-q)/.07),.7)));   // taper at both ends, no flat cut
       const dx=i+.5-cx;if(Math.abs(dx)>hw)return null;
       if(q>.84){if(hash(i,j,f)<(q-.84)*3)return null;return hash(i,j+3,f)<.45?'#ffffff':'#9ad2e0'}
       const sw=Math.sin(j*.55-dx*1.1+f*TAU/3),side=dx/hw;
