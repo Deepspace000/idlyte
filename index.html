@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.54</title>
+<title>Idlyte v2.55</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -594,7 +594,7 @@ function setPlanet(i){SAVE.planet=i;SAVE.level=maxLevel(i)}
 function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=speedLocked(sp);b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
 const PLANETS=[
  {n:'OPEN SPACE',pow:0,diff:0,gold:1,loot:0,d:'EMPTY SPACE. EASY ENEMIES.',every:0},
- {n:'ASTEROID BELT',pow:20,flat:40,diff:1.8,gold:1.5,loot:.04,d:'LOTS OF DRIFTING ROCKS.',every:7,waves:[['rock',6,.45],['ring',3,.6]]},
+ {n:'ASTEROID BELT',pow:20,flat:[40,45,50],diff:1.8,gold:1.5,loot:.04,d:'LOTS OF DRIFTING ROCKS.',every:7,waves:[['rock',6,.45],['ring',3,.6]]},
  {n:'ICE MOON',pow:50,diff:2,gold:1.7,loot:.06,d:'RING ENEMIES IN LARGE GROUPS.',every:9,waves:[['ring',6,.45],['ringR',3,.6]]},
  {n:'LAVA WORLD',pow:90,diff:3,gold:2.2,loot:.08,d:'FAST DARTS FROM EVERY SIDE.',every:7,waves:[['dart',6,.4],['cross',2,1]]},
  {n:'GAS GIANT',pow:140,diff:4,gold:3,loot:.1,d:'CROSSES AND CARRIER PODS.',every:8,waves:[['cross',4,.8],['pod',1,0]]},
@@ -761,7 +761,7 @@ function buildScript(pl,level){
 function sysBase(i){const p=PLANETS[i];return i>=2?p.pow*1.625:p.pow}   // from the Ice Moon on: +30%, then +25% more (x1.625). Open Space and the Asteroid Belt stay as listed
 function sysPower(i,lvl){
   lvl=lvl||SAVE.level||1;const p=PLANETS[i],lm=Math.pow(1.1,lvl-1),b=sysBase(i)*lm;if(i===0)return 0;
-  if(p.flat)return p.flat;   // a fixed power level that never changes with your ship or the level (the Asteroid Belt reward stage)   // each level of a system is 10% stronger than the one before
+  if(p.flat)return p.flat[Math.min(p.flat.length,lvl)-1];   // fixed power for each level that never changes with your ship (the Asteroid Belt reward stage)   // each level of a system is 10% stronger than the one before
   const me=shipPower();return me>b*1.2?Math.round(me/1.1*lm):Math.round(b);
 }
 function sysScale(i,lvl){const p=PLANETS[i];if(i===0||!p.pow)return 1;return Math.max(1,Math.min(p.big?8:3,sysPower(i,lvl)/p.pow))}   // the bigger ship stages keep climbing with your power, up to eight times their listed power
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.54';
+const VERSION='2.55';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
