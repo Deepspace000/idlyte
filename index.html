@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.66</title>
+<title>Idlyte v2.68</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.66';
+const VERSION='2.68';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4243,7 +4243,7 @@ function padPoll(dt){
     if(!PAD.prev[k]){PAD.rep[k]=.45;INP.last='pad';INP.repeat=false;handleKey(key)}
     else if(repeat){PAD.rep[k]-=dt;if(PAD.rep[k]<=0){PAD.rep[k]=.16;handleKey(key)}}
   };
-  const menu=MODE==='loot'||(MODE==='hub'&&HUB.screen);
+  const menu=MODE==='loot'||MODE==='title'||MODE==='slots'||MODE==='tset'||(MODE==='hub'&&HUB.screen)||(MODE==='game'&&G&&G.menuOpen);   // the title, slot and settings screens and the mission menu take the d-pad and stick too
   if(menu){press('L','arrowleft',1);press('R','arrowright',1);press('U','arrowup',1);press('D','arrowdown',1)}
   if(MODE==='surface'){press('A','enter',0);press('Y','g',0);press('S','b',0)}   // in the sub game: B, X and the shoulder buttons fire, Y is stuck, Start beams up
   else{press('A','enter',0);press('B','escape',0);press('Y','h',0);press('X','m',0);press('S','i',0)}
@@ -4813,7 +4813,7 @@ function frame(now){
   ARP.padForce=lostPage;
   if(MODE!=='game'){if(lostPage)musMode('arp');else musMode('hub');SHIPSC=1}
   const dt=Math.min(.1,Math.max(0,(now-last)/1000))||0;last=now;
-  UI.list=[];UI.mouseOnly=null;padPoll(dt);
+  padPoll(dt);UI.list=[];UI.mouseOnly=null;   // read the controller while last frame's menu list still exists, as the keyboard does
   if(MODE==='title'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawTitle(now)}
   else if(MODE==='tset'){drawTSettings()}else if(MODE==='slots'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}drawSlots()}else if(MODE==='game'){
     acc+=dt*SPEED;let n=0;while(acc>=1/60&&n<600){update(1/60);acc-=1/60;n++}
