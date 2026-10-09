@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.23</title>
+<title>Idlyte v2.24</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -621,7 +621,7 @@ function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
 function surfReq(k){
   const sf=SURF.state(),tr=roomById('transporter'),built=!!(tr&&tr.built),sys=systemsDone()>=4,prev=k===0||!!sf.done[k-1],done=!!sf.done[k];
-  const need=!built?'THE SURFACE TRANSPORTER ROOM (TOP DECK)':!sys?'4 SYSTEMS CLEARED. YOU HAVE '+systemsDone():!prev?'CLEAR '+SURF.WORLDS[k-1].n+' FIRST':'NOTHING MORE. USE THE TRANSPORTER';
+  const need=!built?'THE SURFACE TRANSPORTER. BUY IT IN THE BUILD MENU':!sys?'4 SYSTEMS CLEARED. YOU HAVE '+systemsDone():!prev?'CLEAR '+SURF.WORLDS[k-1].n+' FIRST':'NOTHING MORE. USE THE TRANSPORTER';
   return {built,done,ok:built&&sys&&prev,need,msg:'LOCKED. NEEDS '+need}}
 function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
   if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY SHIP FROM THE LUXURY SHIP SHOP';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
@@ -1339,7 +1339,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.23';
+const VERSION='2.24';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1472,8 +1472,8 @@ const EXTRAS=[
 /* the spaces an extra still needs: names of the rooms that are not built yet */
 function extraMissing(x){return (x.need||[]).map(roomById).filter(r=>r&&!r.built).map(r=>r.n)}
 const BOOK_PRICE=[60,200,600,1500,4000];
-const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:3000,missions:12000,design:30000,shares:75000,crew:180000,ships:150000,luxury:400000,shipyard:1000000};
-const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3000,missions:7800,design:19500,shares:48800,crew:122000,ships:150000,luxury:400000,shipyard:1000000};
+const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:3000,missions:12000,design:30000,shares:75000,crew:180000,ships:150000,luxury:400000,transporter:500000,shipyard:1000000};
+const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3000,missions:7800,design:19500,shares:48800,crew:122000,ships:150000,luxury:400000,transporter:300000,shipyard:1000000};
 const STUDIO_PRICE=4000;   /* the music studio is bought once, fairly early, from the settings menu */
 const SHOPS=[
  {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
@@ -1485,6 +1485,7 @@ const SHOPS=[
  {id:'crew',n:'CREW',c:'#6f3d86',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.crew+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.crew},
  {id:'missions',n:'MISSIONS',c:'#b8c76f',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.missions+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.missions},
  {id:'ships',n:'SMALL SHIPS',c:'#959595',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.ships+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.ships},
+ {id:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2',need:'CLEAR 4 SYSTEMS AND EARN '+UNLOCK_GOLD.transporter+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=4&&SAVE.earned>=UNLOCK_GOLD.transporter},
  {id:'luxury',n:'LUXURY SHIPS',c:'#ffffaa',need:'CLEAR 4 SYSTEMS AND EARN '+UNLOCK_GOLD.luxury+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=4&&SAVE.earned>=UNLOCK_GOLD.luxury},
  {id:'shipyard',n:'SHIPYARD',c:'#cc99ff',need:'CLEAR 5 SYSTEMS AND EARN '+UNLOCK_GOLD.shipyard+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=5&&SAVE.earned>=UNLOCK_GOLD.shipyard}];
 SHOPS.forEach((s,i)=>s.x=520+i*180);
@@ -1695,7 +1696,7 @@ const ROOMS=[
  {id:'atrium',d:6,x0:36,x1:228,t:'atrium',n:'ATRIUM',c:'#588d43'},
  {id:'mall',d:6,x0:312,x1:564,t:'mall',n:'GRAND MALL',c:'#cc99ff'},
  {id:'shipyard',d:6,x0:232,x1:288,t:'shop',shop:'shipyard'},
- {id:'transporter',d:7,x0:36,x1:228,t:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2'},
+ {id:'transporter',d:7,x0:36,x1:228,t:'transporter',shop:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2'},
  {id:'luxury',d:7,x0:232,x1:288,t:'shop',shop:'luxury'},
  {id:'zoo',d:7,x0:312,x1:440,t:'zoo',n:'ALIEN ZOO',c:'#9ad284'},
  {id:'bridge',d:7,x0:444,x1:564,t:'bridge',n:'COMMAND BRIDGE',c:'#cc99ff'}];
@@ -2759,7 +2760,7 @@ const THINGS=[];
 (function(){
   const add=(id,dx,label,fn)=>{const r=roomById(id);THINGS.push({get d(){return r.d},get x(){return r.x0+(typeof dx==='function'?dx(r):dx)},room:r,label,fn})};
   const scr=s=>()=>{HUB.screen=s;UI.focus=0};
-  for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>r.sh.open()?'ENTER '+r.n+' SHOP':'CLOSED: '+r.sh.need,()=>{if(r.sh.open()){HUB.screen=r.shop;UI.focus=0}else toast('CLOSED. '+r.sh.need)});
+  for(const r of ROOMS)if(r.shop)add(r.id,r.w/2,()=>r.sh.open()?(r.t==='shop'?'ENTER '+r.n+' SHOP':'USE THE '+r.n):'CLOSED: '+r.sh.need,()=>{if(r.sh.open()){HUB.screen=r.shop;UI.focus=0}else toast('CLOSED. '+r.sh.need)});
   add('hangar',44,()=>'BOARD YOUR SHIP',scr('hangar'));
   add('hangar',129,()=>'USE THE STAR MAP',scr('starmap'));
   add('engine',52,()=>'USE THE ENGINE CONSOLE',scr('engine'));
@@ -2784,7 +2785,6 @@ const THINGS=[];
   add('atrium',r=>r.w>>1,()=>'WALK AMONG THE TREES',()=>toast('THE ATRIUM TREES RUSTLE IN THE AIR VENTS.'));
   add('mall',r=>r.w>>1,()=>'SHOP FOR COSTUMES',scr('mall'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
-  add('transporter',r=>r.w>>1,()=>'USE THE SURFACE TRANSPORTER',scr('transporter'));
   add('zoo',r=>r.w>>1,()=>'VISIT THE ALIEN ZOO',scr('zoo'));
   add('bridge',34,()=>'LOOK AT THE STAR MAP',scr('starmap'));
   add('bridge',86,()=>'LOOK AT THE TROPHIES',scr('trophy'));
