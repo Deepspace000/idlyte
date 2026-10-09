@@ -1992,17 +1992,26 @@ SURF.tick=function(dt){
   else{
     const sp=(p.inW?58:82)*(s.perk[1]?1.1:1);let ax=(I.r?1:0)-(I.l?1:0);if(beamed)ax=0;
     /* ladders: grab with up or down, climb with up and down, jump to let go */
-    const lcx=Math.floor((p.x+p.w/2)/TS),onL=tile(lcx,Math.floor((p.y+8)/TS))===7,belowL=tile(lcx,Math.floor((p.y+p.h+1)/TS))===7;
-    if(!p.lad){if((I.up&&onL)||(I.down&&(onL||(p.on&&belowL)))){p.lad=true;p.vy=0;p.on=false;if(!onL)p.y+=5;p.jb=0;p.jumpHeld=true}}
+    /* a ladder counts if any part of the body is over it, so it is easy to grab; once on it you stay on it */
+    const cands=[Math.floor((p.x+p.w/2)/TS),Math.floor((p.x+1)/TS),Math.floor((p.x+p.w-1)/TS)];
+    if(p.lad&&p.lcol!=null)cands.unshift(p.lcol);
+    let lcx=cands[0],onL=false,belowL=false;
+    for(const c of cands){if(tile(c,Math.floor((p.y+8)/TS))===7){lcx=c;onL=true;break}}
+    if(!onL)for(const c of cands){if(tile(c,Math.floor((p.y+p.h+1)/TS))===7){lcx=c;belowL=true;break}}
+    if(p.lgr>0)p.lgr-=dt;
+    if(!p.lad){if(!(p.lgr>0)&&((I.up&&onL)||(I.down&&(onL||(p.on&&belowL))))){p.lad=true;p.lcol=lcx;p.vx=0;p.vy=0;p.on=false;if(!onL)p.y+=5;p.jb=0;p.jumpHeld=true;p.lsd=0;p.lg=.12;p.x=clamp(p.x+(((lcx*TS+4-p.w/2)-p.x)*.6),2,L.LW*TS-p.w-2)}}
     else if(!onL&&!(I.down&&belowL)){
       const rt=Math.floor((p.y+p.h-1)/TS);
       if(I.up&&tile(lcx,rt)===7&&tile(lcx,rt-1)!==7){p.y=rt*TS-p.h;p.vy=0;p.on=true;p.lad=false;p.coy=.09}   // climbed out onto the top rung
-      else p.lad=false}
+      else if((p.lg-=dt)<=0)p.lad=false}
+    else p.lg=.12;
     if(p.lad){
-      p.vx=ax*38;if(ax)p.face=ax;
-      p.vy=I.up?-64:I.down?64:0;p.lcl=(p.lcl||0)+(p.vy?dt*8:0);
-      if(!ax)p.x+=((lcx*TS+4-p.w/2)-p.x)*Math.min(1,dt*14);
-      if(I.jumpB&&!p.lj){p.lad=false;p.vy=-175;p.jb=0;p.jumpHeld=true;p.vx=ax*80;try{sfxTone(260,520,.1,'square',.02,{att:.002})}catch(e){}}
+      p.lcol=lcx;p.vx=0;if(ax)p.face=ax;
+      p.vy=I.up?-70:I.down?70:0;p.lcl=(p.lcl||0)+(p.vy?dt*8:0);
+      p.x+=((lcx*TS+4-p.w/2)-p.x)*Math.min(1,dt*22);   // always pulled to the middle of the ladder
+      p.lsd=ax?(p.lsd||0)+dt:0;   // sideways has to be held for a moment to step off, so a bump does not drop you
+      if(p.lsd>.4){p.lad=false;p.lgr=.3;p.vx=ax*70;p.vy=0}
+      if(I.jumpB&&!p.lj){p.lad=false;p.lgr=.25;p.vy=-175;p.jb=0;p.jumpHeld=true;p.vx=ax*80;try{sfxTone(260,520,.1,'square',.02,{att:.002})}catch(e){}}
       p.lj=I.jumpB;
     }else{p.vx+=((ax*sp)-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;p.lj=I.jumpB}
     if(p.ride){p.x+=p.ride.dx;p.y+=p.ride.dy;if(Math.abs(p.vx)<1){const off=p.x-p.ride.x;p.x+=Math.round(off)-off}}   // standing still on a lift: stay a whole pixel from its edge, so the sprite does not flicker against it
@@ -2168,6 +2177,19 @@ function bossFire(e,k){const p=SURF.p,idx=SURF.idx,cx=e.x+e.w/2,cy=e.y+e.h*.4;tr
   else if(k==='brood'){const n=SURF.en.filter(q=>q.brood&&q.hp>0).length;if(n<3){for(let q=0;q<2;q++){const s=addEnemy(q?3:0,cx+(q?40:-40),e.y,false);s.brood=1}}}}
 function ebul(x,y,vx,vy,o){SURF.eb.push(Object.assign({x,y,vx,vy,life:2.4},o||{}))}
 function aimBullets(e,n,sp,sd){const p=SURF.p,ox=e.x+e.w/2,oy=e.y+e.h*.4,a0=Math.atan2(p.y+8-oy,p.x+5-ox);for(let i=0;i<n;i++){const a=a0+(n>1?(i/(n-1)-.5)*(sd||.4):0);ebul(ox,oy,Math.cos(a)*sp,Math.sin(a)*sp)}try{sfxEnemyLaser()}catch(e2){}}
+/* flying creatures stay in their own area and patrol it; they only drift towards you when you come close, and never leave their leash */
+function flyPatrol(e,dt,spd,dx,dy,sight){
+  const R=e.pr||(e.pr=rnd(55,95));if(!e.dir)e.dir=Math.random()<.5?-1:1;if(e.y00==null)e.y00=e.y0;
+  if(hitsSolid(e.x,e.y,e.w,e.h)){e.y0-=45*dt;e.x+=(e.home>e.x?1:-1)*18*dt;return}   // never stay stuck inside rock
+  const aggro=Math.abs(dx)<(sight||110)&&Math.abs(dy)<70,leash=R+(aggro?45:0);
+  let vx=e.dir*spd*.8;if(aggro&&Math.abs(dx)>14){vx=Math.sign(dx)*spd*.7;e.dir=dx>0?1:-1}
+  const nx=e.x+vx*dt;
+  if(hitsSolid(nx,e.y,e.w,e.h)){e.dir=-e.dir}
+  else if(nx>e.home+leash&&vx>0){e.dir=-1}else if(nx<e.home-leash&&vx<0){e.dir=1}else e.x=nx;
+  e.face=vx>0?1:-1;
+  const want=aggro?clamp(p_y_(dy,e),e.y00-24,e.y00+24):e.y00,ny0=e.y0+(want-e.y0)*Math.min(1,dt*.8);if(!hitsSolid(e.x,e.y+(ny0-e.y0),e.w,e.h))e.y0=ny0;
+}
+function p_y_(dy,e){return e.y0+dy*.4}
 function updateEnemy(e,dt){
   if(e.guardian)dt*=.75;   // the guardian moves, charges and fires a quarter slower
   const sp=e.sp,p=SURF.p,L=SURF.L;e.t+=dt;if(e.flash>0)e.flash-=dt;if(e.hp<=0)return;
@@ -2185,10 +2207,10 @@ function updateEnemy(e,dt){
   const ai=sp.ai,spd=sp.spd*(1+SURF.idx*.07);
   if(ai==='walker'){grav();if(e.on){e.vx=e.face*spd;if(!moveX(e.vx)||edgeAhead()){e.face*=-1}}if(Math.abs(dx)<60&&e.on&&Math.abs(dy)<24){e.face=dx>0?1:-1}}
   else if(ai==='hopper'){grav();e.cd-=dt;if(e.on){e.vx*=.8;if(e.cd<=0&&Math.abs(dx)<150){e.vy=-170;e.vx=(dx>0?1:-1)*spd;e.face=dx>0?1:-1;e.cd=rnd(.9,1.6)}}if(Math.abs(e.vx)>1)moveX(e.vx)}
-  else if(ai==='flyer'){e.y=e.y0+Math.sin(e.t*2.2)*14;const tx=Math.sign(dx)*Math.min(spd,Math.abs(dx)*.6);e.x+=tx*dt*.7;e.face=dx>0?1:-1;
+  else if(ai==='flyer'){flyPatrol(e,dt,spd,dx,dy,120);e.y=e.y0+Math.sin(e.t*2.2)*14;
     if(sp.shoot){e.cd-=dt;if(e.cd<=0&&Math.abs(dx)<150){e.cd=sp.shoot.cd;aimBullets(e,1,sp.shoot.sp)}}
-    e.y0+=((p.y-16)-e.y0)*dt*.4}
-  else if(ai==='diver'){if(e.st===0){e.y=e.y0+Math.sin(e.t*2)*6;e.x+=Math.sign(dx)*30*dt;e.face=dx>0?1:-1;if(Math.abs(dx)<50&&dy>10){e.st=1;e.t2=0}}
+  }
+  else if(ai==='diver'){if(e.st===0){e.y=e.y0+Math.sin(e.t*2)*6;flyPatrol(e,dt,34,dx,dy,70);if(Math.abs(dx)<50&&dy>10){e.st=1;e.t2=0}}
     else if(e.st===1){e.t2+=dt;e.y+=170*dt;e.x+=Math.sign(dx)*60*dt;if(e.t2>.5||hitsSolid(e.x,e.y,e.w,e.h)){e.st=2}}
     else{e.y-=70*dt;if(e.y<=e.y0){e.y=e.y0;e.st=0}}}
   else if(ai==='turret'){grav();e.face=dx>0?1:-1;e.cd-=dt;if(Math.abs(dx)<sp.range&&Math.abs(dy)<80&&e.cd<=0){e.cd=sp.cd;aimBullets(e,sp.bul.n,sp.bul.sp,sp.bul.sd)}}
