@@ -120,6 +120,28 @@ const KIT={
       for(let k=0;k<th;k++)px(g,rampAt(o.pal,1-k/th*.9-(i%5===0?.15:0),x,y+k),x,y-th/2+k)}
     ell(g,5,cy,4,Math.max(3,h*.22),o.pal);px(g,o.eye||WH,3,cy-1,2,1);px(g,o.eye||WH,3,cy+1,2,1);
     for(let i=0;i<3;i++)px(g,o.spark||CY,w*.4+i*5,cy-h*.3+((f+i)&1)*h*.5,1,1);
+    if(o.tent){for(let t=0;t<3;t++){const yy=cy+(t-1)*2;let xx=w-8;g.fillStyle=o.pal[3];for(let i=0;i<8;i++){xx++;g.fillRect(xx,(yy+Math.sin(i*.7-f*1.57+t)*2)|0,1,1)}}
+      for(let a=0;a<8;a++)px(g,o.eye||WH,5+Math.cos(a/8*TAU)*5,cy+Math.sin(a/8*TAU)*h*.32)}
+  },
+  /* a four pointed crystal star */
+  crystal(g,f,w,h,o){const cx=w/2,cy=h/2,a0=f*.18;
+    for(let i=0;i<4;i++){const a=a0+i*PI/2,ex=cx+Math.cos(a)*(w/2-2),ey=cy+Math.sin(a)*(h/2-2),nx=-Math.sin(a)*w*.13,ny=Math.cos(a)*w*.13;poly(g,[[ex,ey],[cx+nx,cy+ny],[cx-nx,cy-ny]],o.pal)}
+    for(let i=0;i<4;i++){const a=a0+PI/4+i*PI/2,ex=cx+Math.cos(a)*(w/2-6),ey=cy+Math.sin(a)*(h/2-6),nx=-Math.sin(a)*w*.08,ny=Math.cos(a)*w*.08;poly(g,[[ex,ey],[cx+nx,cy+ny],[cx-nx,cy-ny]],o.pal,true)}
+    ell(g,cx,cy,w*.16,w*.16,o.core||[K,VI,LV,WH]);px(g,WH,cx-1,cy-1,2,2);
+  },
+  /* a piston press: a block with a rod that hammers in and out */
+  piston(g,f,w,h,o){const cy=h/2,ext=[0,3,6,3][f];
+    poly(g,[[w*.2,cy-h*.34],[w-4,cy-h*.34],[w-4,cy+h*.34],[w*.2,cy+h*.34]],o.pal);
+    thick(g,o.pal[3],w*.2,cy,2+(6-ext),cy,5);poly(g,[[1,cy-7],[2+(6-ext),cy-7],[2+(6-ext),cy+7],[1,cy+7]],o.pal);
+    for(let i=0;i<4;i++)px(g,o.lamp||YL,w*.3+i*(w*.14),cy-h*.34+2,2,1);
+    for(let i=0;i<3;i++)px(g,o.pal[0],w*.35+i*(w*.14),cy+2,1,h*.28);
+    px(g,o.eye||RD,w*.24,cy-2,2,2);
+  },
+  /* a welding drone: a hex body with two arms that spit sparks */
+  drone(g,f,w,h,o){const cx=w*.6,cy=h/2,s=(f&1)?1:-1;
+    thick(g,o.pal[2],cx-4,cy-5,3,cy-h*.38+s,2);thick(g,o.pal[2],cx-4,cy+5,3,cy+h*.38-s,2);px(g,o.spark||YL,2,cy-h*.38+s-1,2,2);px(g,o.spark||YL,2,cy+h*.38-s,2,2);
+    poly(g,[[cx-w*.3,cy],[cx-w*.15,cy-h*.34],[cx+w*.15,cy-h*.34],[cx+w*.3,cy],[cx+w*.15,cy+h*.34],[cx-w*.15,cy+h*.34]],o.pal);
+    ell(g,cx-3,cy,4,4,o.eye||[K,rd,OR,YL]);for(let i=0;i<3;i++)px(g,o.pal[4],cx+4,cy-3+i*3,3,1);
   },
   /* a large eye */
   eye(g,f,w,h,o){const cx=w/2,cy=h/2,r=Math.min(w,h)/2-2;
@@ -143,7 +165,8 @@ const KIT={
     for(let i=0;i<4;i++){const a=i*PI/2+f*.5;px(g,K,cx+Math.cos(a)*r*.75,cy+Math.sin(a)*r*.75,1,1)}
   }
 };
-function frames(w,h,kit,o){const a=[0,1,2,3].map(f=>fin(cnv(w,h,g=>KIT[kit](g,f,w,h,o))));return{frames:a,white:a.map(whiteOf)}}
+function frames(w,h,kit,o){const a=[0,1,2,3].map(f=>fin(cnv(w,h,g=>{KIT[kit](g,f,w,h,o);
+  if(o.holes){const q=rng(o.holes*31+w);for(let i=0;i<o.holes;i++){const x=2+q()*(w-6),y=2+q()*(h-6),k=1+((q()*2)|0);g.clearRect(x,y,k+1,k);if(o.rimc)px(g,o.rimc,x-1,y,1,1)}}})));return{frames:a,white:a.map(whiteOf)}}
 
 /* ---------- enemy bullets ---------- */
 function mkBullet(kind,c1,c2,c3){
@@ -258,7 +281,7 @@ function scene(cfg){
   const step=t=>{if(lt===null||t<lt||t-lt>.5){lt=t;mul=surge(t);return}const dt=t-lt;lt=t;mul=surge(t);ax+=dt*mul;ay+=dt*mul*heading(t)};
   const layers=(cfg.layers||[]).map(l=>{
     if(l.t==='clouds'){const c=clouds(256,100,l.seed||5,l.ramp,l.fx||.02,l.fy||.045,l.thr||.5);return Object.assign({},l,{img:cnv(256,200,g=>{g.drawImage(c,0,0);g.save();g.translate(0,200);g.scale(1,-1);g.drawImage(c,0,0);g.restore()})})}
-    if(l.t==='objs'){const r2=rng((l.seed||11)+3),a=[];for(let i=0;i<l.n;i++)a.push({s:l.list[i%l.list.length],x:r2()*(W+160),y:r2()*(H+120),ph:r2()*6});return Object.assign({},l,{a})}
+    if(l.t==='objs'){const r2=rng((l.seed||11)+3),a=[];for(let i=0;i<l.n;i++)a.push({s:l.list[i%l.list.length],x:l.pos?l.pos[i][0]+80:r2()*(W+160),y:l.pos?l.pos[i][1]+60:r2()*(H+120),ph:r2()*6});return Object.assign({},l,{a})}
     if(l.t==='streak'){const r2=rng((l.seed||13)+9),a=[];for(let i=0;i<l.n;i++)a.push({x:r2()*(W+60),y:r2()*(H+60),k:.6+r2()*.8,c:l.cols[i%l.cols.length]});return Object.assign({},l,{a})}
     return l});
   const draw=(z,t)=>{

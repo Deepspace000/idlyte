@@ -17,7 +17,7 @@ const chunk=(r,seed,ramp)=>{const q=rng(seed);return cnv(r*2+2,r*2+2,g=>{const p
 const bubble=(r,ramp)=>cnv(r*2+2,r*2+2,g=>{ell(g,r+1,r+1,r,r,ramp);px(g,WH,r-1,r-1,2,1)});
 
 /* =============== 10 TITAN GRAVEYARD =============== */
-const RUST=['#1c1008',BR,TN,'#d8a878',YL],TEAL=[K,'#1b3036','#3c6a78',cy,CY],DEAD=['#07050e','#1c1008','#2a1a14',BR,TN];
+const RUST=['#1c1008',BR,TN,'#d8a878',YL],WRECK=['#0a0604','#2a1a14',BR,TN,'#d8a878'],TEAL=[K,'#1b3036','#3c6a78',cy,CY],DEAD=['#07050e','#1c1008','#2a1a14',BR,TN];
 function titanBoss(g,w,h){
   const cy0=h/2;
   poly(g,[[2,cy0+8],[10,cy0-22],[w*.62,cy0-30],[w-4,cy0-12],[w-4,cy0+14],[w*.55,cy0+34],[10,cy0+24]],RUST);               // main hull
@@ -42,11 +42,11 @@ const TITAN={
   pal:RUST,
   bullets:{orb:['orb',cy,CY],shard:['shard',BR,OR,YL],big:['big',rd,OR,YL],dot:['dot',cy]},
   en:{
-    ring:{kit:'orb',w:26,h:26,o:{pal:RUST,eye:TEAL,claws:1,plate:1},hp:1.5,pts:160,vx:-44,mv:'sine',mvp:{a:36,f:3},at:'aim',atp:{n:1,sp:78,s:'orb',cd:2.4}},
-    ringR:{kit:'crab',w:34,h:26,o:{pal:RUST,eye:RD,cannon:1},hp:3,pts:260,vx:-34,mv:'sine',mvp:{a:18,f:1.5},at:'aim',atp:{n:3,sd:.55,sp:72,s:'shard',cd:2.8}},
-    dart:{kit:'wedge',w:30,h:15,o:{pal:RUST,flame:OR,guns:1,stripe:TEAL[3]},hp:1.8,pts:180,vx:-140,mv:'dive',mvp:{track:1.1,sp:55},at:false},
-    cross:{kit:'cross',w:30,h:30,o:{pal:RUST,eye:CY,core:[K,'#1b3036',cy,CY]},hp:4.5,pts:340,vx:-30,mv:'bounce',mvp:{vy:22},at:'spiral',atp:{n:4,sp:54,s:'orb',cd:2.6}},
-    pod:{kit:'hauler',w:42,h:26,o:{pal:RUST,cargo:1,win:TEAL},hp:8,pts:520,vx:-22,mv:'drift',mvp:{a:8},at:'aim',atp:{n:5,sd:1,sp:66,s:'shard',cd:3.2}}
+    ring:{kit:'orb',w:26,h:26,o:{pal:WRECK,eye:TEAL,claws:1,plate:1,holes:4,rimc:CY},hp:1.5,pts:160,vx:-44,mv:'sine',mvp:{a:36,f:3},at:'aim',atp:{n:1,sp:78,s:'orb',cd:2.4}},
+    ringR:{kit:'crab',w:34,h:26,o:{pal:WRECK,eye:CY,cannon:1,holes:5,rimc:CY},hp:3,pts:260,vx:-34,mv:'sine',mvp:{a:18,f:1.5},at:'aim',atp:{n:3,sd:.55,sp:72,s:'shard',cd:2.8}},
+    dart:{kit:'wedge',w:30,h:15,o:{pal:WRECK,flame:CY,guns:1,stripe:CY,holes:3,rimc:CY},hp:1.8,pts:180,vx:-140,mv:'dive',mvp:{track:1.1,sp:55},at:false},
+    cross:{kit:'cross',w:30,h:30,o:{pal:WRECK,eye:CY,core:[K,'#1b3036',cy,CY],holes:4,rimc:CY},hp:4.5,pts:340,vx:-30,mv:'bounce',mvp:{vy:22},at:'spiral',atp:{n:4,sp:54,s:'orb',cd:2.6}},
+    pod:{kit:'hauler',w:42,h:26,o:{pal:WRECK,cargo:1,win:TEAL,holes:7,rimc:CY,flame:CY},hp:8,pts:520,vx:-22,mv:'drift',mvp:{a:8},at:'aim',atp:{n:5,sd:1,sp:66,s:'shard',cd:3.2}}
   },
   mini:{w:86,h:62,hp:1.8,x:232,bob:44,debris:[RUST[2],RUST[3],CY],build:wardenBody,core:{x:-14,y:0,w:26,h:26},muz:[[-.45,-.3],[-.45,.3]],
     phases:[[{a:'fan',n:5,sd:.9,sp:74,cd:1.6,s:'orb',m:0},{a:'ring',n:12,sp:50,cd:3.8,s:'shard',m:1}],
@@ -60,6 +60,8 @@ const TITAN={
   scene:K_=>({seed:10,sky:['#07050e','#0e0a1c','#1c1008','#2a1a14'],skyFn:(x,y)=>y/200*.5+.08+Math.sin(x*.02)*.03,stars:[VI,BL,CY,WH],dir:[1,.55],
     layers:[
       {z:'bg',t:'clouds',ramp:['#07050e','#1c1008','#3a1c10','#68372b'],seed:3,vx:6,alpha:.5,thr:.52},
+      {z:'bg',t:'objs',n:2,vx:4,seed:20,list:[darken(hulk(300,110,7,DEAD,CY),.55),darken(hulk(250,90,8,DEAD,OR),.55)]},
+      {z:'bg',t:'objs',n:9,vx:12,seed:19,list:[bubble(2,[rd,OR,YL]),bubble(3,[BR,OR,YL]),bubble(2,[rd,OR,YL])]},
       {z:'bg',t:'objs',n:5,vx:9,seed:21,list:[hulk(150,62,1,DEAD,CY),hulk(110,46,2,DEAD,OR),hulk(190,70,3,DEAD,CY)],lights:CY},
       {z:'mid',t:'objs',n:7,vx:24,seed:22,list:[chunk(7,1,RUST),chunk(11,2,RUST),chunk(5,3,RUST)]},
       {z:'fg',t:'objs',n:3,vx:75,seed:23,list:[darken(chunk(16,4,DEAD),.2),darken(chunk(12,5,DEAD),.2)]},
@@ -79,7 +81,8 @@ function leviBoss(g,w,h){
   for(let i=0;i<22;i++){px(g,i%3?CY:WH,w*.2+((i*53)%(w*.65)),cy0-30+((i*29)%46),1,1)}                                                                  // lights along the body
   poly(g,[[3,cy0+4],[w*.3,cy0+8],[w*.28,cy0+12],[3,cy0+10]],[K,'#0a0630',VI]);                                                                         // jaw line
   ell(g,22,cy0-8,7,7,[K,VI,CY,WH]);px(g,K,19,cy0-9,3,4);                                                                                              // eye
-  ell(g,w*.55,cy0,12,13,[K,mg,MG,WH]);                                                                                                                 // the heart
+  ell(g,w*.55,cy0,12,13,[K,OR,YL,WH]);for(let i=0;i<4;i++)px(g,K,w*.55-8,cy0-6+i*4,16,1);                                                                  // the heart, warm so it stands out
+  for(let i=0;i<5;i++)px(g,i%2?PEARL[2]:GLOW[1],8+i*3,cy0+14+i*2,w*.4-i*4,1);                                                                         // hard dither bands on the belly
 }
 function sirenBody(g,w,h){
   const cy0=h/2;ell(g,w*.55,cy0,w*.38,h*.4,GLOW);
@@ -94,7 +97,7 @@ const NEBULA={
   en:{
     ring:{kit:'jelly',w:34,h:24,o:{pal:GLOW,tn:5,tc:LV,eye:[K,VI,CY,WH]},hp:1.4,pts:170,vx:-40,mv:'sine',mvp:{a:30,f:2.4},at:'aim',atp:{n:1,sp:70,s:'orb',cd:2.4}},
     ringR:{kit:'manta',w:38,h:28,o:{pal:CYAN,fins:1,eye:WH},hp:3,pts:270,vx:-44,mv:'sine',mvp:{a:22,f:1.8},at:'aim',atp:{n:5,sd:.9,sp:74,s:'shard',cd:3}},
-    dart:{kit:'eel',w:40,h:14,o:{pal:CYAN,spark:WH},hp:1.7,pts:190,vx:-120,mv:'zig',mvp:{p:.45,a:70},at:false},
+    dart:{kit:'eel',w:42,h:18,o:{pal:[K,VI,cy,CY,WH],spark:YL,eye:YL},hp:1.7,pts:190,vx:-120,mv:'zig',mvp:{p:.45,a:70},at:false},
     cross:{kit:'orb',w:30,h:30,o:{pal:PEARL,eye:[K,mg,MG,WH],spikes:10,sl:5,sc:MG,tip:WH,ring:1,rc:CY},hp:4.5,pts:350,vx:-30,mv:'bounce',mvp:{vy:20},at:'ring',atp:{n:10,sp:50,s:'bub',cd:3}},
     pod:{kit:'beast',w:46,h:30,o:{pal:GLOW,eye:WH},hp:8,pts:540,vx:-22,mv:'drift',mvp:{a:10},at:'aim',atp:{n:7,sd:1.4,sp:64,s:'bub',cd:3.4}}
   },
