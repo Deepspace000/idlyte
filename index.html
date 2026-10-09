@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.00</title>
+<title>Idlyte v2.02</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1324,7 +1324,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.00';
+const VERSION='2.02';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2369,7 +2369,7 @@ function drawChanceMeter(){
 function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 
 /* ===== star map: the system laid out with a planet for every stage ===== */
-const SMAP={pl:{},t:0};
+const SMAP={pl:{},t:0};const clamp01=v=>v<0?0:v>1?1:v;
 const SMPAL=[null,null,null,null,null,null,
   ['#000000','#102840','#1c5a8a','#70a4b2','#ffffff'],
   ['#000000','#68372b','#b8884a','#e8d080','#ffffcc'],
@@ -2382,31 +2382,36 @@ function smapPlanet(i,R){
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*(5+i%3*2)+Math.sin(nx*3+i)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.2?(lit>.2?.5:-.3):0))*0.999},cols);
 }
 SMPAL[10]=['#000000','#1c1008','#68372b','#9a6759','#d8a878'];SMPAL[11]=['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff'];SMPAL[12]=['#000000','#68372b','#ff9966','#ffffaa','#ffffff'];SMPAL[13]=['#000000','#05021a','#352879','#cc99ff','#ffffff'];SMPAL[14]=['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa'];
-function smapPos(i){if(i>=10)return {x:44+(i-10)*56,y:92};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
+function smapPos(i){if(i>=10)return {x:44+(i-10)*56,y:208};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
 function drawStarMap(){
   SMAP.t+=1/60;const t=SMAP.t,pw=shipPower();
   ctx.fillStyle=pat('#000000');ctx.fillRect(0,14,W,H-14);
   box(14,18,292,172,'#04020f','#6c5eb5');
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
-  const pg=SMAP.page|0,lo=pg?10:0,hi=pg?15:10;
-  text('STAR MAP',20,22,'#ffffff',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);if(false)text('ESC CLOSES',104,22,'#8f84d6',1);
-  if(pg){textC2('WE NEED A BIGGER SHIP',160,40,'#ffffaa');textC2('LUXURY BIG SHIPS ONLY',160,48,'#9a8fe0')}
+  /* one long map: ten systems, then the bigger ship stages below them. It scrolls (wheel, arrows, drag) and follows the chosen planet */
+  const NPL=PLANETS.length,MAXSY=Math.max(0,smapPos(NPL-1).y+46-154);HUB.infoMax=Math.ceil(MAXSY/8);
+  if(performance.now()-(SMAP.lastDraw||0)>400){HUB.iscroll=Math.round(clamp01((smapPos(SAVE.planet||0).y-84)/Math.max(1,MAXSY))*HUB.infoMax);SMAP.lastFoc=-2;UI.focus=SAVE.planet||0}
+  SMAP.lastDraw=performance.now();HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));const sy=Math.min(MAXSY,HUB.iscroll*8);
+  text('STAR MAP',20,22,'#ffffff',1);text(NPL+' SYSTEMS  '+NPL*3+' LEVELS',100,22,'#8f84d6',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);
+  ctx.save();ctx.beginPath();ctx.rect(15,33,290,122);ctx.clip();ctx.translate(0,-sy);
   // stars
-  for(let i=0;i<70;i++){const sx=16+((i*53+7)%288),sy=34+((i*97+11)%140),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy,1,1)}
+  for(let i=0;i<150;i++){const sx=16+((i*53+7)%288),sy0=34+((i*97+11)%230),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy0,1,1)}
+  {const bo=bigTierOpen(),by=160;ctx.fillStyle=bo?'#6c5eb5':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('WE NEED A BIGGER SHIP',160,by,bo?'#ffffaa':'#6c6c6c');textC2('LUXURY BIG SHIPS ONLY',160,by+8,bo?'#9a8fe0':'#444444')}
   // route between the planets
   const P=PLANETS.map((p,i)=>smapPos(i));
-  for(let i=lo;i<hi-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=14;
+  for(let i=0;i<NPL-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=i===9?26:14;
     for(let k=1;k<steps;k++){let u=k/steps,x,y;
       if(i===4){x=a.x+Math.sin(u*3.1416)*18;y=a.y+(b.y-a.y)*u}
+      else if(i===9){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}
       else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}
       if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
   let foc=-1;const cur=SAVE.planet||0;
   PLANETS.forEach((pl,i)=>{
-    if(i<lo||i>=hi)return;
     const ps=P[i],ok=planetOpen(i),prevDone=prevOk(i),R=9+Math.min(5,Math.floor(i*.6)),i0=UI.list.length;
     const hit=UI.list.length;
     const f0=UI.focus===hit;if(f0)foc=i;
-    UI.list.push({x:ps.x-26,y:ps.y-R-4,w:52,h:R*2+54,fn:()=>{if(ok){setPlanet(i);toast('DESTINATION SET: '+pl.n+' LEVEL '+SAVE.level);save()}else toast(lockMsg(i))}});
+    {const hy=ps.y-R-4-sy,hh=R*2+54,y0=Math.max(33,hy),y1=Math.min(154,hy+hh);UI.list.push({x:ps.x-26,y:y0,w:y1>y0?52:0,h:Math.max(0,y1-y0),fn:()=>{if(ok){setPlanet(i);toast('DESTINATION SET: '+pl.n+' LEVEL '+SAVE.level);save()}else toast(lockMsg(i))}})}
+    if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
     // the planet
     ctx.save();
     if(i===0){ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.earth,ps.x-R-1,ps.y-R-1,R*2+2,R*2+2)}
@@ -2427,6 +2432,8 @@ function drawStarMap(){
     // the ship hovering above the chosen destination
     if(i===cur){const by=Math.round(Math.sin(t*3)*2);itemIcon(ctx,'ship',ps.x,ps.y-R-9+by,{ix:SAVE.ship||0})}
   });
+  ctx.restore();
+  if(HUB.infoMax>0){text(sy>0?'^':' ',296,38,'#70a4b2',1);text(sy<MAXSY?'v':' ',296,142,'#70a4b2',1)}
   // detail panel
   const fi=foc>=0?foc:cur,pl=PLANETS[fi],ok=planetOpen(fi),prevDone=prevOk(fi);
   ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
@@ -2434,7 +2441,6 @@ function drawStarMap(){
   textR(ok?(fi===cur?'DESTINATION':'ENTER TO GO'):(prevDone?'NEEDS POWER '+pl.pow:'LOCKED'),298,160,ok?'#9ad284':'#ff9966',1);
   text(fitText(pl.d,270),22,169,'#70a4b2',1);
   text('LEVELS CLEARED '+(SAVE.prog[fi]||0)+' OF 3   '+(ok||prevDone?'POWER '+pl.pow+' (YOU HAVE '+pw+')':'CLEAR '+PLANETS[fi-1].n+' FIRST'),22,178,ok?'#b8c76f':'#959595',1);
-  {const bi=UI.list.length;UI.list.push({x:100,y:19,w:84,h:13,fn:()=>{SMAP.page=pg?0:1;UI.focus=0}});ctx.fillStyle=UI.focus===bi?'#6c5eb5':'#2c5a2c';ctx.fillRect(100,21,84,9);textC2(pg?'< BACK':(bigTierOpen()?'BIGGER SHIPS >':'BIGGER SHIPS ?'),142,23,'#ffffff')}
   UI.list.push({x:288,y:19,w:16,h:13,fn:()=>{HUB.screen=null}});
   ctx.fillStyle=UI.focus===UI.list.length-1?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1);
   UI.nrows=UI.list.length-1;
