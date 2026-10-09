@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.45</title>
+<title>Idlyte v2.46</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -506,13 +506,13 @@ function save(force){if(!CURSLOT)return;if(document.hidden&&!force)return;
 /* ===== catalogue: ships, missions, salvage, upgrades ===== */
 const SHIPS=[
  {n:'DRIFTER',price:0,hp:0,sp:1,fr:1,dm:1,opt:0,d:'THE STANDARD SHIP'},
- {n:'WASP',price:12500,hp:-1,sp:1.25,fr:1.2,dm:1,opt:0,d:'FAST AND FRAGILE. -1 HULL'},
- {n:'BULWARK',price:20000,hp:3,sp:.85,fr:1,dm:1.2,opt:0,d:'SLOW AND TOUGH. +3 HULL'},
- {n:'ECLIPSE',price:60000,hp:1,sp:1.15,fr:1.15,dm:1.15,opt:1,d:'BEST ALL ROUND. 1 FREE DRONE'},
- {n:'CORVETTE',price:250000,hp:4,sp:.95,fr:1.2,dm:1.3,opt:1,sc:1.4,yard:1,d:'SMALL WARSHIP. +4 HULL, 1 DRONE, BIGGER'},
- {n:'FRIGATE',price:750000,hp:8,sp:.85,fr:1.3,dm:1.6,opt:2,sc:1.8,yard:1,d:'ESCORT SHIP. +8 HULL, 2 DRONES, MUCH BIGGER'},
- {n:'CRUISER',price:2000000,hp:14,sp:.75,fr:1.4,dm:2,opt:3,sc:2.2,yard:1,d:'HEAVY SHIP. +14 HULL, 3 DRONES, HUGE'},
- {n:'DREADNOUGHT',price:6000000,hp:22,sp:.65,fr:1.5,dm:2.6,opt:3,sc:2.6,yard:1,d:'THE BIGGEST. +22 HULL, 3 DRONES, FILLS THE SKY'},
+ {n:'WASP',price:60000,hp:-1,sp:1.25,fr:1.2,dm:1,opt:0,d:'FAST AND FRAGILE. -1 HULL'},
+ {n:'BULWARK',price:100000,hp:3,sp:.85,fr:1,dm:1.2,opt:0,d:'SLOW AND TOUGH. +3 HULL'},
+ {n:'ECLIPSE',price:200000,hp:1,sp:1.15,fr:1.15,dm:1.15,opt:1,d:'BEST ALL ROUND. 1 FREE DRONE'},
+ {n:'CORVETTE',price:600000,hp:4,sp:.95,fr:1.2,dm:1.3,opt:1,sc:1.4,yard:1,d:'SMALL WARSHIP. +4 HULL, 1 DRONE, BIGGER'},
+ {n:'FRIGATE',price:1800000,hp:8,sp:.85,fr:1.3,dm:1.6,opt:2,sc:1.8,yard:1,d:'ESCORT SHIP. +8 HULL, 2 DRONES, MUCH BIGGER'},
+ {n:'CRUISER',price:4500000,hp:14,sp:.75,fr:1.4,dm:2,opt:3,sc:2.2,yard:1,d:'HEAVY SHIP. +14 HULL, 3 DRONES, HUGE'},
+ {n:'DREADNOUGHT',price:10000000,hp:22,sp:.65,fr:1.5,dm:2.6,opt:3,sc:2.6,yard:1,d:'THE BIGGEST. +22 HULL, 3 DRONES, FILLS THE SKY'},
  {n:'LEVIATHAN',price:25000000,hp:30,sp:.7,fr:1.6,dm:3.2,opt:3,sc:2.5,yard:1,d:'DEEP SEA GIANT. +30 HULL, HEAVY GUNS'},
  {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:2.6,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
  {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:2.75,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
@@ -537,8 +537,8 @@ const ITEMS=[
  {id:'crys',n:'ALIEN CRYSTAL',v:90,w:3,c:'#cc44cc'},
  {id:'relic',n:'ANCIENT RELIC',v:260,w:1,c:'#b8c76f'}];
 const UPG={
- dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:25,base:600,mul:1.6,shop:'weapons'},
- guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:25,base:500,mul:1.55,shop:'weapons'},
+ dmg:{n:'HEAVY ROUNDS',d:'EACH SHOT DOES MORE DAMAGE',max:25,base:600,mul:1.6,from:14,soft:1.3,shop:'weapons'},
+ guns:{n:'RAPID LOADER',d:'FIRES MORE SHOTS EVERY SECOND',max:25,base:500,mul:1.55,from:14,soft:1.3,shop:'weapons'},
  startgun:{n:'MULTI-SHOT LINK',d:'START EACH MISSION WITH EXTRA GUNS',max:2,base:4000,mul:3,shop:'weapons'},
  hull:{n:'HULL PLATING',d:'+1 HULL POINT',max:12,base:750,mul:1.6,shop:'armour'},
  shield:{n:'SHIELD GENERATOR',d:'START EACH MISSION WITH A SHIELD',max:8,base:1250,mul:1.7,shop:'armour'},
@@ -554,7 +554,7 @@ const UPG={
  coin:{n:'SCAVENGER ARM',d:'5% MORE GOLD FROM COINS',max:6,base:15000,mul:2,shop:'design'},
  repair:{n:'REPAIR BOTS',d:'REGAIN 1 HULL EVERY 25 SECONDS',max:1,base:250000,mul:1,shop:'design',eng:1},
  salv:{n:'SALVAGE ARM',d:'PULLS IN LOOT, MORE SALVAGE',max:1,base:450000,mul:1,shop:'design',eng:2},
- missile:{n:'MISSILE POD',d:'FIRES HOMING MISSILES',max:3,base:700000,mul:2.2,shop:'design',eng:3},
+ missile:{n:'MISSILE POD',d:'FIRES HOMING MISSILES',max:3,base:700000,mul:1.8,shop:'design',eng:3},
  cargo:{n:'CARGO NET',d:'ENEMIES DROP MORE SALVAGE',max:6,base:10000,mul:1.9,shop:'design'}};
 const SPEED_NEED={1:0,2:0,4:3,8:6,16:8},SPEED_BUY={8:30000,16:120000};   // X4 comes with the Lava World; X8 and X16 are much later and are bought in the Design shop
 function speedLocked(sp){return systemsDone()<SPEED_NEED[sp]||!!(SPEED_BUY[sp]&&!(SAVE.speedBuy&&SAVE.speedBuy[sp]))}
@@ -580,11 +580,11 @@ const PLANETS=[
  {n:'THE DYSON FORGE',pow:2700,diff:13,gold:38,loot:.29,hit:6,big:1,d:'BIGGER SHIP STAGE. A STAR CAGED IN MACHINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'EVENT HORIZON',pow:3600,diff:14,gold:52,loot:.31,hit:8,big:1,d:'BIGGER SHIP STAGE. THE EDGE OF A BLACK HOLE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
- {n:'ION STORM BELT',pow:1150,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'SPORE CLOUD',pow:1400,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'MIRROR MAZE',pow:1700,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'DEAD STAR YARD',pow:2050,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'THE HIVE QUEEN',pow:2500,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]}];
+ {n:'ION STORM BELT',pow:1100,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'SPORE CLOUD',pow:1300,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'MIRROR MAZE',pow:1550,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'DEAD STAR YARD',pow:1850,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'THE HIVE QUEEN',pow:2150,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]}];
 const THEMES=[
  {cl:['#000000','#352879','#6f3d86'],pl:['#000000','#352879','#6f3d86','#9a6759','#b8c76f']},
  {cl:['#000000','#2a2a2a','#444444'],pl:['#000000','#444444','#6c6c6c','#9a6759','#bbbbbb']},
@@ -639,7 +639,8 @@ function surfReq(k){
   return {built,done,ok:built&&sys&&prev,need,msg:'LOCKED. NEEDS '+need}}
 function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':i===15?'LOCKED. BEAT THE BURNING CITY BOSS FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
   if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY SHIP FROM THE LUXURY SHIP SHOP';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
-function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=Math.round(u.base*Math.pow(u.mul,j)/5)*5;return t}
+function upCost(u,l){const f=u.from||99;return Math.round(u.base*Math.pow(u.mul,Math.min(l,f))*Math.pow(u.soft||u.mul,Math.max(0,l-f))/5)*5}   // levels past 'from' grow by 'soft' instead of 'mul'
+function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=upCost(u,j);return t}
 const RESET_FEE=1000;
 function resetRow(shop){
   let spent=0,any=false;for(const k in UPG)if(UPG[k].shop===shop&&(SAVE.up[k]||0)>0){spent+=upSpent(k);any=true}
@@ -650,7 +651,7 @@ function resetRow(shop){
       let back=0;for(const k in UPG)if(UPG[k].shop===shop&&(SAVE.up[k]||0)>0){back+=upSpent(k);SAVE.up[k]=0}
       SAVE.coins+=back-RESET_FEE;HUB.resetAt=0;toast('UPGRADES RESET. +'+back+' GOLD BACK, '+RESET_FEE+' FEE');checkUnlocks();save()}};
 }
-function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return Math.round(u.base*Math.pow(u.mul,l)/5)*5}
+function upPrice(k){const u=UPG[k],l=SAVE.up[k]||0;return upCost(u,l)}
 const CREW=[
  {id:'nav',n:'NAVIGATOR',d:'FASTER SHIP, BETTER DODGING',cost:[25000,90000,300000]},
  {id:'weap',n:'WEAPONS EXPERT',d:'FASTER AND STRONGER SHOTS',cost:[30000,110000,350000]},
@@ -1353,7 +1354,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.45';
+const VERSION='2.46';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
