@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.43</title>
+<title>Idlyte v2.44</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1353,7 +1353,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.43';
+const VERSION='2.44';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2900,7 +2900,12 @@ STORY.swarm={t:'THE SECOND THREAT',p:[
 STORY.swarm5={t:'THE QUEEN FALLS',p:[
     'THE HIVE QUEEN BREAKS APART AND THE SWARM SCATTERS INTO THE DARK.',
     'THE ARTIFACT HUMS. IT SAYS THERE IS STILL SOMETHING BEHIND THE SWARM. BUT THAT IS ANOTHER STORY.'],when:()=>(SAVE.prog[19]||0)>=3};
-const STORYORDER=['sys1','sys3','sys5','buddy','big1','big3','big5','swarm','swarm5'];
+STORY.surface={t:'THE SURFACE WORLDS',p:[
+    'FOUR SYSTEMS ARE CLEAR. THE SKY IS QUIETER, AND YOUR SCANNERS CAN NOW SEE THE GROUND BELOW.',
+    'FIVE SURFACE WORLDS HAVE APPEARED ON THE STAR MAP. YOU CAN WALK ON THEM, WITH A LASER GUN AND A JETPACK IF YOU CAN FIND ONE.',
+    'YOU NEED THE SURFACE TRANSPORTER. BUY IT IN THE BUILD MENU, THEN USE IT FROM THE STATION.',
+    'THE GREEN GOLD YOU FIND DOWN THERE IS A DIFFERENT KIND OF MONEY. KEEP IT SAFE.'],when:()=>systemsDone()>=4};
+const STORYORDER=['sys1','sys3','surface','sys5','buddy','big1','big3','big5','swarm','swarm5'];
 let STY=null;
 function tellStory(id,back){
   const d=STORY[id];if(!d)return false;SAVE.story=SAVE.story||{};if(SAVE.story[id])return false;SAVE.story[id]=1;save();
