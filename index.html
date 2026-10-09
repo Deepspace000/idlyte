@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.33</title>
+<title>Idlyte v2.34</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1346,7 +1346,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.33';
+const VERSION='2.34';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2815,9 +2815,30 @@ const THINGS=[];
 })();
 const TIPS=['THE BANK ONLY PAYS INTEREST WHILE YOU FLY MISSIONS.','SHARES PAY MONEY EVERY MONTH.','EAT, THEN WORK OUT TO GET FIT.','ENGINEERS BUILD THE SPECIAL PARTS.','DRONES FIRE WHEN YOU FIRE.','SELL YOUR SALVAGE AT THE SALVAGE SHOP.'];
 function curDeck(){let b=0,bd=1e9;for(let d=0;d<NDECK;d++){const q=Math.abs(HUB.sp.y-FYd(d));if(q<bd){bd=q;b=d}}return b}
+/* ===== station people: walk up and talk. advice, kind words and a little philosophy ===== */
+const TALK={
+ adv:['SELL YOUR SALVAGE BEFORE YOU BUY ANYTHING. LOOT IN THE HOLD EARNS NOTHING.','A SHIELD SAVES MORE SHIPS THAN A BIG GUN. BUY ARMOUR EARLY.','THE BANK PAYS ONLY WHILE YOU FLY. SHARES PAY EVERY MONTH. USE BOTH.','IF A STAGE IS TOO HARD, FLY AN EASIER ONE AND COME BACK STRONGER.','CHECK THE POWER NUMBER ON THE STAR MAP BEFORE YOU LAUNCH.','HARD CONTRACTS PAY MORE GOLD. TAKE THEM WHEN YOU ARE STRONG.','EAT AND WORK OUT. A FIT PILOT FLIES BETTER.','BIG SHIPS ARE SLOW. LEARN WHERE THE ENEMY FIRE COMES FROM.','THE SWARM IS TOO FAST FOR BIG SHIPS. SEND A SMALL ONE.','WALK THE CORRIDORS. SOMEONE ALWAYS HAS A TIP.','SPEND ON ENGINE BOOSTERS. A FASTER SHIP DODGES MORE.','DO NOT SAVE ALL YOUR GOLD. A SHIP THAT SITS UNUPGRADED EARNS NOTHING.'],
+ kind:['YOU ARE DOING A GREAT JOB OUT THERE.','THIS STATION FEELS SAFER WITH YOU ON IT.','IT IS NICE TO SEE YOU HOME IN ONE PIECE.','WE ALL SLEEP BETTER BECAUSE YOU FLY.','THE STATION LOOKS LOVELY TODAY. YOU BUILT THIS.','THANK YOU FOR LOOKING AFTER US.','YOU HAVE A GOOD HEART, CAPTAIN.','WE ARE PROUD TO SERVE UNDER YOU.','A SMILE FROM THE CAPTAIN MAKES A LONG SHIFT SHORT.','YOU MAKE US BRAVER.'],
+ phil:['A STAR IS JUST A FIRE THAT NEVER GAVE UP.','IF THE UNIVERSE IS ENDLESS, THEN SO IS THE NEXT CHANCE.','GOLD BUYS A SHIP. IT DOES NOT BUY A REASON TO FLY IT.','EVERY ENEMY BELIEVES IT IS THE HERO OF ITS OWN STORY.','SPACE IS EMPTY, AND YET WE FEEL SO CLOSE.','A STATION IS A SMALL HOME IN A VERY LARGE QUESTION.','WE ARE ALL DRIFTING. THE TRICK IS TO DRIFT TOGETHER.','BRAVE IS WHEN YOU ARE AFRAID AND LAUNCH ANYWAY.','THE DARK IS NOT AN ENEMY. IT IS JUST THE PART WE CANNOT SEE YET.','WHAT IS A WIN, IF THERE IS ALWAYS A BIGGER STAGE?','TIME ONLY FEELS SLOW WHEN YOU WATCH IT.','EVERY LONG VOYAGE IS MADE OF SMALL TURNS.'],
+ role:{nav:['THE FASTEST ROUTE IS THE ONE YOU DO NOT HAVE TO REPEAT.','KEEP MOVING. A MOVING SHIP IS A HARD SHIP TO HIT.'],weap:['BIG DAMAGE IS GOOD. MORE SHOTS IS BETTER. BOTH IS BEST.','I TRAIN SO YOU DO NOT HAVE TO.'],tech:['SHIELDS ARE LIKE FRIENDS. YOU ONLY NOTICE THEM WHEN THEY ARE GONE.','THE SHIELD LASTS LONGER WITH MY CARE.'],eng:['GIVE ME GOLD AND I WILL GIVE YOU A MIRACLE.','EVERY SPARE PART HAS A STORY.'],cook:['A FULL PLATE MAKES A BRAVE PILOT.','TRY THE SOUP. IT IS A SECRET FROM THE LAST CAPTAIN.'],barista:['COFFEE IS JUST A WARM HUG WITH A KICK.','ONE CUP, THEN BACK TO THE STARS.'],shop:['LOOK AROUND. TAKE YOUR TIME.','WELCOME. THE BEST ITEM IS THE ONE YOU CAN AFFORD.','COME BACK WHEN YOU HAVE MORE GOLD. I WILL KEEP IT SAFE.']}};
+function talkTo(key,role,nm){
+  HUB.talk=HUB.talk||{};let n=HUB.talk[key]=(HUB.talk[key]||0)+1,sd=0;for(const ch of String(key))sd+=ch.charCodeAt(0);
+  const ro=TALK.role[role],pools=[ro||TALK.adv,TALK.kind,TALK.phil,TALK.adv],pool=pools[(n+sd)%4],line=pool[(Math.floor(n/4)*5+sd+n)%pool.length];
+  toast(nm+': '+line);
+}
+function peopleNear(d,x,range){
+  let best=null,bd=range;
+  const chk=(px,key,role,nm)=>{const q=Math.abs(x-px);if(q<bd){bd=q;best={d,x:px,label:()=>'TALK TO THE '+nm,fn:()=>talkTo(key,role,nm)}}};
+  for(const v of VIS)if(EXT[v.d]&&v.d===d)chk(v.x,'v'+v.d,null,'VISITOR');
+  for(const n of NPCS){const r=n.room;if(!r||r.d!==d||!r.built||!(r.p>.5))continue;if(n.crew&&!SAVE.crew[n.crew])continue;if(n.extra&&!(SAVE.extras&&SAVE.extras[n.extra]))continue;
+    const role=n.crew||n.extra||'shop',nm=n.crew?CREW.find(c=>c.id===n.crew).n:n.extra==='cook'?'COOK':n.extra==='barista'?'BARISTA':'SHOPKEEPER';
+    chk(r.x0+n.x+4,r.id+role+n.seed,role,nm)}
+  return best;
+}
 function nearThing(){
   const sp=HUB.sp,d=deckOf(sp.y);if(d<0)return null;
   let best=null,bd=11;
+  {const pp=peopleNear(d,sp.x,7);if(pp)return pp}
   for(const t of THINGS)if(t.d===d&&t.room.built){const q=Math.abs(sp.x-t.x);if(q<bd){bd=q;best=t}}
   if(!best)for(const p of PETS)if(EXT[p.d]&&p.d===d&&Math.abs(sp.x-p.x)<10){const df=PETDEF[p.id];return {d,x:p.x,label:()=>'PET THE '+df.n+' (LV '+petLevel(p.id)+')',fn:()=>patPet(p.id)}}
   if(!best&&EXT[CAT.d]&&CAT.d===d&&Math.abs(sp.x-CAT.x)<10)return {d,x:CAT.x,label:()=>'PET THE CAT (LV '+petLevel('cat')+')',fn:()=>patPet('cat')};
@@ -2933,6 +2954,7 @@ function hubHover(wx,wy){
   for(let d=0;d<NDECK;d++)if(EXT[d]&&wy>=yTop(d)&&wy<yTop(d)+DECK_H){
     let hit=null;for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8)hit=t;
     if(hit)return{x:hit.x,d,label:typeof hit.label==='function'?hit.label():hit.label};
+    {const pp=peopleNear(d,wx,8);if(pp)return{x:pp.x,d,label:pp.label()}}
     if(CAT.d===d&&Math.abs(wx-CAT.x)<10)return{x:CAT.x,d,label:'PET THE CAT'};
     return null;
   }
@@ -2957,6 +2979,7 @@ function hubClick(x,y){
     if(!EXT[d])return;
     let pend=null,tx=Math.max(14,Math.min(WWID-14,wx));
     for(const t of THINGS)if(t.d===d&&t.room.built&&Math.abs(wx-t.x)<=16&&wy>yTop(d)+8){pend=t;tx=t.x}
+    {const pp=peopleNear(d,wx,8);if(pp){pend=pp;tx=pp.x}}
     if(!pend&&CAT.d===d&&Math.abs(wx-CAT.x)<10){pend={fn:()=>patPet('cat')};tx=CAT.x}
     planPath(tx,FYd(d)-4,pend);return;
   }
