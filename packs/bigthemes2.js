@@ -71,28 +71,28 @@ function devourerBoss(g,w,h){
   const cx=w*.5,cy0=h/2;
   for(let i=0;i<260;i++){const a=i/260*TAU;px(g,i%2?mg:MG,cx+Math.cos(a)*(h/2-9),cy0+Math.sin(a)*(h/2-9),2,2)}   // a hot halo around the black sphere
   for(let k=0;k<4;k++)for(let i=0;i<220;i++){const a=i/220*TAU,rr=h*.5+k*3-6,v=.5+.5*Math.sin(a*2-k);px(g,rampAt([mg,MG,LV,YL,WH],v*(1-k*.15),i,k),cx+Math.cos(a)*rr*1.4,cy0+Math.sin(a)*rr*.34,2,2)}   // the accretion ring
-  ell(g,cx,cy0,h/2-14,h/2-14,[K,K,'#0a0630',VI]);                                                                                                                              // the black sphere
+  ell(g,cx,cy0,h/2-14,h/2-14,['#0a0010','#3a0a40',PU,mg,MG]);                                                                                                                              // the black sphere
   for(let i=0;i<220;i++){const a=i/220*TAU,lit=Math.cos(a+2.4)>0?WH:LV;px(g,lit,cx+Math.cos(a)*(h/2-13),cy0+Math.sin(a)*(h/2-13),2,2)}   // a bright rim so it stands out of the backdrop
   for(let k=0;k<2;k++)for(let i=0;i<220;i++){const a=i/220*TAU;if(Math.sin(a)<0)continue;px(g,rampAt([VI,BL,LV,WH],.6+.4*Math.sin(a*3),i,k),cx+Math.cos(a)*(h*.5+k*3-6)*1.4,cy0+Math.sin(a)*(h*.5+k*3-6)*.34,2,2)}   // the front of the ring
   thick(g,LV,cx,6,cx+3,0,2);thick(g,LV,cx,h-6,cx+3,h,2);                                                                                                                      // jets
-  ell(g,cx-h*.18,cy0-4,7,9,[K,VI,LV,WH]);px(g,K,cx-h*.18-2,cy0-6,4,6);                                                                                                        // the eye
+  ell(g,cx-h*.18,cy0-4,11,13,[K,VI,YL,WH]);px(g,K,cx-h*.18-3,cy0-8,6,9);px(g,WH,cx-h*.18-1,cy0-6,2,2);                                                                                                        // the eye
 }
 function houndBody(g,w,h){   // a gyroscope: two crossed rings round a hot core
   const cx=w*.5,cy0=h/2;
   for(let i=0;i<200;i++){const a=i/200*TAU;px(g,rampAt([VI,mg,MG,YL,WH],.5+.5*Math.sin(a*2+1),i,0),cx+Math.cos(a)*w*.44,cy0+Math.sin(a)*h*.17,2,2);px(g,rampAt([VI,BL,LV,CY,WH],.5+.5*Math.sin(a*3),i,1),cx+Math.cos(a)*w*.15,cy0+Math.sin(a)*h*.46,2,2)}
-  ell(g,cx,cy0,13,13,[K,'#0a0630',VI,BL]);ell(g,cx-3,cy0,6,6,[K,VI,LV,WH]);px(g,K,cx-4,cy0-2,3,4);
+  ell(g,cx,cy0,15,15,[K,'#3a0a40',PU,mg]);ell(g,cx,cy0,9,9,[K,YL,WH,WH]);px(g,K,cx-3,cy0-2,3,4);
   for(let i=0;i<4;i++){const a=i*PI/2+PI/4;poly(g,[[cx+Math.cos(a)*18,cy0+Math.sin(a)*18],[cx+Math.cos(a+.3)*10,cy0+Math.sin(a+.3)*10],[cx+Math.cos(a-.3)*10,cy0+Math.sin(a-.3)*10]],[VI,LV,WH])}
 }
 const HORIZON={
   bullets:{orb:['orb',YL,WH],bub:['big',mg,YL,WH],needle:['needle',YL,WH],shard:['shard',mg,WH,YL],dot:['dot',YL]},
   en:{
-    ring:{kit:'orb',w:28,h:28,o:{pal:GHOST,eye:[K,VI,LV,WH],ring:1,rc:LV},hp:1.6,pts:180,vx:-44,mv:'sine',mvp:{a:36,f:3},at:'aim',atp:{n:3,sd:.5,sp:82,s:'orb',cd:2.3}},
-    ringR:{kit:'manta',w:40,h:30,o:{pal:[K,'#0a0630',VI,BL,LV],fins:1,eye:WH},hp:3.4,pts:300,vx:-44,mv:'sine',mvp:{a:24,f:1.7},at:'aim',atp:{n:5,sd:1,sp:78,s:'shard',cd:2.8}},
+    ring:{kit:'orb',w:28,h:28,o:{pal:[K,'#1b3036','#3c6a78',CY,WH],eye:[K,rd,OR,YL],ring:1,rc:CY},hp:1.6,pts:180,vx:-44,mv:'sine',mvp:{a:36,f:3},at:'aim',atp:{n:3,sd:.5,sp:82,s:'orb',cd:2.3}},
+    ringR:{kit:'manta',w:40,h:30,o:{pal:[K,'#0a1030','#3c6a78',cy,CY],fins:1,eye:YL},hp:3.4,pts:300,vx:-44,mv:'sine',mvp:{a:24,f:1.7},at:'aim',atp:{n:5,sd:1,sp:78,s:'shard',cd:2.8}},
     dart:{kit:'eel',w:46,h:18,o:{pal:[K,VI,LV,CY,WH],spark:WH,tent:1,eye:WH},hp:2,pts:210,vx:-155,mv:'zig',mvp:{p:.4,a:90},at:false},
     cross:{kit:'crystal',w:34,h:34,o:{pal:[K,VI,LV,CY,WH],core:[K,mg,YL,WH]},hp:5.5,pts:380,vx:-30,mv:'bounce',mvp:{vy:24},at:'ring',atp:{n:12,sp:54,s:'bub',cd:2.8}},
-    pod:{kit:'hauler',w:48,h:30,o:{pal:[K,'#0a0630',VI,BL,LV],cargo:1,win:[K,mg,YL,WH],flame:LV,eye:YL},hp:9.5,pts:580,vx:-22,mv:'drift',mvp:{a:8},at:'aim',atp:{n:9,sd:1.5,sp:70,s:'shard',cd:3}}
+    pod:{kit:'hauler',w:48,h:30,o:{pal:[K,'#3a0a40',PU,mg,MG],cargo:1,win:[K,mg,YL,WH],flame:MG,eye:YL},hp:9.5,pts:580,vx:-22,mv:'drift',mvp:{a:8},at:'aim',atp:{n:9,sd:1.5,sp:70,s:'shard',cd:3}}
   },
-  mini:{w:100,h:70,hp:1.9,x:232,bob:44,debris:[BL,LV,WH],build:houndBody,core:{x:-18,y:-6,w:24,h:24},muz:[[-.45,-.1]],
+  mini:{w:136,h:96,hp:1.9,x:226,bob:40,debris:[BL,LV,WH],build:houndBody,core:{x:-3,y:0,w:26,h:26},muz:[[-.45,-.1]],
     phases:[[{a:'fan',n:5,sd:1,sp:78,cd:1.6,s:'orb',m:0},{a:'mines',n:3,ay:12,life:2.4,cd:4.4,s:'bub'}],
             [{a:'fan',n:7,sd:1.2,sp:82,cd:1.4,s:'orb',m:0},{a:'mines',n:4,ay:14,life:2.4,cd:3.6,s:'bub'},{a:'lance',n:9,sp:160,w:.8,cd:5,s:'needle'}],
             [{a:'fan',n:9,sd:1.4,sp:86,cd:1.2,s:'orb',m:0},{a:'mines',n:5,ay:16,life:2.4,cd:3,s:'bub'},{a:'lance',n:10,sp:170,w:.7,cd:4,s:'needle'},{a:'pull',t:2,f:34,cd:8}]]},
@@ -105,7 +105,7 @@ const HORIZON={
     layers:[
       {z:'bg',t:'clouds',ramp:['#05021a','#1c1840',BL,LV],seed:51,vx:7,alpha:.5,thr:.5,fx:.02,fy:.12},
       {z:'bg',t:'clouds',ramp:['#05021a','#0a0630',VI,LV],seed:52,vx:15,alpha:.4,thr:.55,fx:.012,fy:.16},
-      {z:'bg',t:'objs',n:1,vx:3,seed:50,list:[darken(blackHole(40),.5)],pos:[[96,58]]},
+      {z:'bg',t:'objs',n:1,vx:3,seed:50,list:[blackHole(36)],pos:[[84,62]]},
       {z:'bg',t:'objs',n:7,vx:18,seed:53,list:[blob(5,ASH),blob(8,VOID),blob(3,GHOST)]},
       {z:'mid',t:'streak',n:26,vx:60,len:12,cols:[BL,LV,WH],seed:8},
       {z:'fg',t:'streak',n:30,vx:130,len:9,cols:[LV,WH,CY],seed:9},
@@ -116,9 +116,11 @@ const HORIZON={
 
 /* =============== 14 THE ARMADA =============== */
 const CRIM=['#1c0808',BR,rd,RD,YL],STEEL=['#07050e',D,GM,LM,LL];
+const DSTEEL=['#05040a','#10101c','#2a2a3a',GM,LM];
 function warlordBoss(g,w,h){
   const cy0=h/2;
-  poly(g,[[3,cy0+10],[14,cy0-26],[w*.55,cy0-34],[w-6,cy0-16],[w-3,cy0],[w-6,cy0+18],[w*.55,cy0+36],[14,cy0+28]],STEEL);                      // hull
+  poly(g,[[3,cy0+10],[14,cy0-26],[w*.55,cy0-34],[w-6,cy0-16],[w-3,cy0],[w-6,cy0+18],[w*.55,cy0+36],[14,cy0+28]],DSTEEL);                      // hull
+  for(const yy of [-30,-22,22,30]){line(g,RD,12,cy0+yy,w-10,cy0+yy*.55)}for(let i=0;i<5;i++){px(g,YL,w*.2+i*w*.13,cy0-8+(i%2)*14,3,2);px(g,K,w*.2+i*w*.13-2,cy0-3,7,6)}                    // red trim and hangar bays
   poly(g,[[w*.18,cy0-30],[w*.28,cy0-h*.46],[w*.55,cy0-h*.46],[w*.62,cy0-32]],CRIM);poly(g,[[w*.3,cy0-h*.44],[w*.5,cy0-h*.44],[w*.5,cy0-h*.37],[w*.3,cy0-h*.37]],[K,rd,RD,YL]);   // bridge
   poly(g,[[w*.12,cy0+30],[w*.2,cy0+h*.46],[w*.5,cy0+h*.46],[w*.58,cy0+34]],CRIM,true);
   for(let i=0;i<5;i++){ell(g,w*.2+i*w*.12,cy0-33,7,5,CRIM);thick(g,K,w*.2+i*w*.12-3,cy0-33,w*.2+i*w*.12-17,cy0-30,3)}                         // gun turrets
@@ -152,7 +154,7 @@ const ARMADA={
     phases:[[{a:'fan',n:7,sd:1.1,sp:80,cd:1.5,s:'bolt',m:0},{a:'fan',n:7,sd:1.1,sp:80,cd:1.5,s:'bolt',m:1,at:.8},{a:'ring',n:14,sp:52,cd:3.6,s:'orb',m:0}],
             [{a:'fan',n:9,sd:1.3,sp:84,cd:1.3,s:'bolt',m:0},{a:'fan',n:9,sd:1.3,sp:84,cd:1.3,s:'bolt',m:1,at:.7},{a:'ring',n:16,sp:56,cd:3,s:'orb',m:0},{a:'summon',type:'dart',n:3,cd:8}],
             [{a:'fan',n:11,sd:1.5,sp:88,cd:1.1,s:'bolt',m:0},{a:'fan',n:11,sd:1.5,sp:88,cd:1.1,s:'bolt',m:1,at:.6},{a:'ring',n:18,sp:60,cd:2.6,s:'orb',m:0},{a:'lance',n:10,sp:170,w:.7,cd:4.4,s:'bolt'},{a:'summon',type:'dart',n:4,cd:7}]]},
-  boss:{w:204,h:130,hp:3.4,x:230,bob:34,charge:10,chargeDist:110,debris:[rd,OR,YL,LL],build:warlordBoss,core:{x:78,y:0,w:24,h:28},boom:46,deco(c,b,f){if(f)return;const on=((b.t*3)|0)%2,x=(b.x+78)|0,y=b.y|0;c.fillStyle=on?'#ffffff':'#ffffaa';c.fillRect(x-4,y-5,8,10);c.fillStyle='#ff9966';c.fillRect(x-6,y-2,12,4);
+  boss:{w:192,h:130,hp:3.4,x:216,bob:22,charge:10,chargeDist:110,debris:[rd,OR,YL,LL],build:warlordBoss,core:{x:73,y:0,w:24,h:28},boom:46,deco(c,b,f){if(f)return;const on=((b.t*3)|0)%2,x=(b.x+73)|0,y=b.y|0;c.fillStyle=on?'#ffffff':'#ffffaa';c.fillRect(x-4,y-5,8,10);c.fillStyle='#ff9966';c.fillRect(x-6,y-2,12,4);
     for(let i=0;i<8;i++){c.fillStyle=((b.t*4+i)|0)%2?'#ff7777':'#9a3a3a';c.fillRect((b.x-96+i*26)|0,(b.y-64)|0,3,2);c.fillRect((b.x-96+i*26)|0,(b.y+62)|0,3,2)}},
     muz:[[-.42,-.3],[-.42,0],[-.42,.3]],
     phases:[[{a:'fan',n:7,sd:1.2,sp:80,cd:1.5,s:'bolt',m:0},{a:'fan',n:7,sd:1.2,sp:80,cd:1.5,s:'bolt',m:2,at:.9},{a:'ring',n:16,sp:50,cd:3.4,s:'big',m:1},{a:'curtain',n:12,sp:72,gap:32,cd:5,s:'orb'}],
@@ -160,9 +162,9 @@ const ARMADA={
             [{a:'fan',n:11,sd:1.6,sp:88,cd:1.1,s:'bolt',m:0},{a:'fan',n:11,sd:1.6,sp:88,cd:1.1,s:'bolt',m:2,at:.7},{a:'ring',n:20,sp:58,cd:2.6,s:'big',m:1},{a:'curtain',n:14,sp:80,gap:28,cd:3.8,s:'orb'},{a:'spiral',arms:6,cnt:20,gap:.08,sp:64,cd:4.8,s:'orb',m:1},{a:'lance',n:12,sp:180,w:.7,cd:4.2,s:'bolt'},{a:'rain',n:8,both:1,sp:66,cd:4.4,s:'dot'},{a:'summon',type:'ringR',n:3,cd:8},{a:'summon',type:'dart',n:5,cd:6.5}]]},
   scene:K_=>({seed:14,angles:[0,.7,0,-.7,.3,0,-.4,.9],sky:['#0e0200','#1c0808',BR,rd],skyFn:(x,y)=>y/200*.4+.1+Math.sin((x*.9+y)*.018)*.05,stars:[BR,OR,YL,WH],
     layers:[
-      {z:'bg',t:'clouds',ramp:['#0e0200','#1c0808',BR,rd],seed:61,vx:6,alpha:.6,thr:.5},
-      {z:'bg',t:'objs',n:5,vx:10,seed:62,list:[darken(hullB(190,70,1,STEEL,RD),.45),darken(hullB(140,54,2,STEEL,OR),.45),darken(hullB(230,84,3,STEEL,RD),.45)],lights:RD},
-      {z:'mid',t:'objs',n:5,vx:22,seed:63,list:[darken(hullB(80,30,4,STEEL,YL),.3),blob(6,CRIM),darken(hullB(60,24,5,CRIM,YL),.2)],lights:YL},
+      {z:'bg',t:'clouds',ramp:['#0e0200','#3a0a08',rd,OR],seed:61,vx:6,alpha:.75,thr:.45},
+      {z:'bg',t:'objs',n:5,vx:10,seed:62,list:[darken(hullB(150,56,1,STEEL,RD),.62),darken(hullB(120,46,2,STEEL,OR),.62),darken(hullB(170,64,3,STEEL,RD),.62)],lights:RD},
+      {z:'mid',t:'objs',n:5,vx:22,seed:63,list:[hullB(90,34,4,STEEL,YL),blob(5,[rd,OR,YL,WH]),hullB(70,28,5,CRIMB,YL)],lights:YL},
       {z:'mid',t:'streak',n:18,vx:120,len:7,cols:[RD,OR,YL],seed:10},
       {z:'fg',t:'clouds',ramp:['#0e0200','#1c0808','#3a1c10'],seed:64,vx:50,alpha:.3,thr:.58},
       {z:'fg',t:'streak',n:26,vx:110,len:6,cols:[OR,YL,WH],seed:11}]}),
