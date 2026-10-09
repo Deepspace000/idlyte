@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.17</title>
+<title>Idlyte v2.19</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -510,11 +510,11 @@ const SHIPS=[
  {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:2.75,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
  {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:2.9,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
  {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.05,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'},
- {n:'SPARROW',price:11500,hp:0,sp:1.04,fr:1.04,dm:1.04,opt:0,mag:10,d:'SWEPT WINGS. +4% SPEED AND GUNS, WIDER COIN PICKUP'},
- {n:'KESTREL',price:13500,hp:1,sp:1.06,fr:1.06,dm:1.06,opt:0,shd:3,d:'FORWARD WINGS. +1 HULL, +6% SPEED, 3 SECOND START SHIELD'},
- {n:'MERLIN',price:17000,hp:1,sp:1.1,fr:1.1,dm:1.1,opt:0,gold:.1,d:'A NEEDLE WITH TAIL FINS. +1 HULL, +10% SPEED, 10% MORE GOLD'},
- {n:'HARRIER',price:22000,hp:2,sp:1.05,fr:1.06,dm:1.12,opt:0,dmp:.3,d:'A WIDE DELTA. +2 HULL, +12% DAMAGE, LONGER SAFE TIME'},
- {n:'NIGHTHAWK',price:30000,hp:2,sp:1.12,fr:1.15,dm:1.12,opt:0,sk:.04,mag:8,d:'A DARK STEALTH WING. +12% SPEED, +15% FIRE RATE, BETTER DODGING'}];
+ {n:'SPARROW',price:60000,hp:0,sp:1.04,fr:1.04,dm:1.04,opt:0,mag:10,d:'SWEPT WINGS. +4% SPEED AND GUNS, WIDER COIN PICKUP'},
+ {n:'KESTREL',price:90000,hp:1,sp:1.06,fr:1.06,dm:1.06,opt:0,shd:3,d:'FORWARD WINGS. +1 HULL, +6% SPEED, 3 SECOND START SHIELD'},
+ {n:'MERLIN',price:125000,hp:1,sp:1.1,fr:1.1,dm:1.1,opt:0,gold:.1,d:'A NEEDLE WITH TAIL FINS. +1 HULL, +10% SPEED, 10% MORE GOLD'},
+ {n:'HARRIER',price:165000,hp:2,sp:1.05,fr:1.06,dm:1.12,opt:0,dmp:.3,d:'A WIDE DELTA. +2 HULL, +12% DAMAGE, LONGER SAFE TIME'},
+ {n:'NIGHTHAWK',price:210000,hp:2,sp:1.12,fr:1.15,dm:1.12,opt:0,sk:.04,mag:8,d:'A DARK STEALTH WING. +12% SPEED, +15% FIRE RATE, BETTER DODGING'}];
 const MISSIONS=[
  {n:'STANDARD',diff:0,gold:1,price:0},
  {n:'HARD CONTRACT',diff:1,gold:1.6,price:3000},
@@ -620,7 +620,7 @@ function prevOk(i){return i===0||(i===10?planetOpen(9):(SAVE.prog[i-1]||0)>=3)}
 function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
 function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
-  if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY BIG SHIP FROM THE SHIPYARD';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
+  if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY SHIP FROM THE LUXURY SHIP SHOP';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
 function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=Math.round(u.base*Math.pow(u.mul,j)/5)*5;return t}
 const RESET_FEE=1000;
 function resetRow(shop){
@@ -1335,7 +1335,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.17';
+const VERSION='2.19';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1469,7 +1469,7 @@ const EXTRAS=[
 function extraMissing(x){return (x.need||[]).map(roomById).filter(r=>r&&!r.built).map(r=>r.n)}
 const BOOK_PRICE=[60,200,600,1500,4000];
 const SHOP_PRICE={salvage:300,weapons:800,armour:2000,bank:3000,missions:12000,design:30000,shares:75000,crew:180000,ships:450000};
-const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3000,missions:7800,design:19500,shares:48800,crew:122000,ships:305000,shipyard:1000000};
+const UNLOCK_GOLD={salvage:500,weapons:500,armour:1250,bank:3000,missions:7800,design:19500,shares:48800,crew:122000,ships:150000,luxury:400000,shipyard:1000000};
 const STUDIO_PRICE=4000;   /* the music studio is bought once, fairly early, from the settings menu */
 const SHOPS=[
  {id:'salvage',n:'SALVAGE',c:'#9a6759',need:'EARN '+UNLOCK_GOLD.salvage+' GOLD',now:()=>SAVE.earned,open:()=>SAVE.earned>=UNLOCK_GOLD.salvage},
@@ -1480,7 +1480,8 @@ const SHOPS=[
  {id:'design',n:'DESIGN',c:'#588d43',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.design+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.design},
  {id:'crew',n:'CREW',c:'#6f3d86',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.crew+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.crew},
  {id:'missions',n:'MISSIONS',c:'#b8c76f',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.missions+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.missions},
- {id:'ships',n:'SHIPS',c:'#959595',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.ships+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.ships},
+ {id:'ships',n:'SMALL SHIPS',c:'#959595',need:'CLEAR 2 SYSTEMS AND EARN '+UNLOCK_GOLD.ships+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=2&&SAVE.earned>=UNLOCK_GOLD.ships},
+ {id:'luxury',n:'LUXURY SHIPS',c:'#ffffaa',need:'CLEAR 4 SYSTEMS AND EARN '+UNLOCK_GOLD.luxury+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=4&&SAVE.earned>=UNLOCK_GOLD.luxury},
  {id:'shipyard',n:'SHIPYARD',c:'#cc99ff',need:'CLEAR 5 SYSTEMS AND EARN '+UNLOCK_GOLD.shipyard+' GOLD',now:()=>SAVE.earned,open:()=>systemsDone()>=5&&SAVE.earned>=UNLOCK_GOLD.shipyard}];
 SHOPS.forEach((s,i)=>s.x=520+i*180);
 function shopById(id){return SHOPS.find(s=>s.id===id)}
@@ -1571,7 +1572,7 @@ function drawIcon(b,id,cx,cy){
   else if(id==='weapons'){R(-9,-3,16,4,'#000');R(-8,-2,15,2,'#bbbbbb');R(-9,0,8,6,'#000');R(-8,1,6,4,'#6c6c6c');R(-5,4,4,6,'#000');R(-4,4,2,5,'#444444');R(7,-2,3,2,'#ff7777')}
   else if(id==='armour'){const w=[14,14,14,12,10,8,6,4];for(let i=0;i<8;i++){R(-w[i]/2-1,-8+i*2,w[i]+2,2,'#000');R(-w[i]/2,-8+i*2,w[i],2,i<3?'#bbbbbb':'#70a4b2')}R(-1,-6,2,10,'#fff');R(-4,-3,8,2,'#fff')}
   else if(id==='design'){R(-10,-8,20,16,'#000');R(-9,-7,18,14,'#352879');for(let i=0;i<4;i++){R(-9,-7+i*4,18,1,'#6c5eb5');R(-9+i*5,-7,1,14,'#6c5eb5')}R(-5,-2,10,1,'#fff');R(-2,-5,1,8,'#fff');R(3,-2,1,5,'#fff')}
-  else if(id==='ships'||id==='shipyard'){b.imageSmoothingEnabled=false;b.drawImage(SPR.shipSets[0][0],cx-12,cy-8,24,17)}
+  else if(id==='ships'||id==='shipyard'||id==='luxury'){b.imageSmoothingEnabled=false;b.drawImage(SPR.shipSets[0][0],cx-12,cy-8,24,17)}
   else if(id==='crew'){R(-7,-8,14,15,'#000');R(-6,-7,12,13,'#ffffff');R(-4,-4,10,6,'#000');R(-3,-3,8,4,'#b8c76f');R(-3,-3,3,1,'#fff');R(-9,3,18,5,'#000');R(-8,4,16,4,'#bbbbbb')}
   else if(id==='missions'){R(-8,-8,16,16,'#000');R(-7,-7,14,14,'#352879');R(-4,-4,8,8,'#9a6759');R(-3,-3,3,2,'#ff7777');R(-9,0,18,1,'#bbbbbb');R(5,-6,2,2,'#fff');R(-6,4,1,1,'#fff')}
   else if(id==='shares'){R(-9,-8,18,16,'#000');R(-8,-7,16,14,'#ffffff');R(-7,3,3,3,'#588d43');R(-3,0,3,6,'#588d43');R(1,-3,3,9,'#588d43');R(5,-6,3,12,'#588d43')}
@@ -1690,8 +1691,8 @@ const ROOMS=[
  {id:'atrium',d:6,x0:36,x1:228,t:'atrium',n:'ATRIUM',c:'#588d43'},
  {id:'mall',d:6,x0:312,x1:564,t:'mall',n:'GRAND MALL',c:'#cc99ff'},
  {id:'shipyard',d:6,x0:232,x1:288,t:'shop',shop:'shipyard'},
- {id:'transporter',d:7,x0:36,x1:200,t:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2'},
- {id:'trophy',d:7,x0:204,x1:288,t:'trophy',n:'TROPHY HALL',c:'#b8c76f'},
+ {id:'transporter',d:7,x0:36,x1:228,t:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2'},
+ {id:'luxury',d:7,x0:232,x1:288,t:'shop',shop:'luxury'},
  {id:'zoo',d:7,x0:312,x1:440,t:'zoo',n:'ALIEN ZOO',c:'#9ad284'},
  {id:'bridge',d:7,x0:444,x1:564,t:'bridge',n:'COMMAND BRIDGE',c:'#cc99ff'}];
 /* an achievement for every room built, and for how many rooms the station has */
@@ -1701,7 +1702,7 @@ ACHV.push({id:'allshops',n:'EVERY SHOP',d:'BUILD EVERY SHOP',t:()=>ROOMS.filter(
 ACHV.push({id:'allrooms',n:'EVERY ROOM',d:'BUILD EVERY ROOM ON THE STATION',t:()=>ROOMS.every(r=>r.built)});
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
 const SLOTS=ROOMS.map(r=>({d:r.d,x0:r.x0,x1:r.x1}));ROOMS.forEach((r,i)=>{r.slot0=i;r.slot=i});
-const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200,transporter:160,trophy:84,zoo:120,bridge:120};
+const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200,transporter:160,zoo:120,bridge:120};
 function applyLayout(){
   const lay=(SAVE&&SAVE.layout)||{};
   for(const r of ROOMS){const i=lay[r.id]!=null?lay[r.id]:r.slot0,sl=SLOTS[i];r.slot=i;r.d=sl.d;r.x0=sl.x0;r.x1=sl.x1;r.w=sl.x1-sl.x0;r.cx=(sl.x0+sl.x1)/2;if(typeof ROOMC!=='undefined')ROOMC[r.id]=undefined}
@@ -1816,7 +1817,7 @@ function shopDeco(g,id,w){
   else if(id==='design'){R_(g,5,8,22,16,'#352879');for(let i=1;i<4;i++){R_(g,5,8+i*4,22,1,'#6c5eb5');R_(g,5+i*5,8,1,16,'#6c5eb5')}R_(g,9,12,12,6,'#000');R_(g,10,13,10,1,'#fff');R_(g,32,8,3,16,'#6c6c6c');for(let i=0;i<3;i++)R_(g,34,9+i*5,8,2,'#bbbbbb');R_(g,44,28,6,6,'#959595');R_(g,46,26,2,10,'#959595')}
   else if(id==='crew'){frm(g,5,6,26,18,'#9a6759','#bbbbbb');for(let i=0;i<4;i++)R_(g,8+(i%2)*10,9+(i>>1)*7,8,5,['#fff','#70a4b2','#b8c76f','#ff7777'][i]);R_(g,38,12,10,12,'#222');R_(g,39,13,8,10,'#6f3d86');R_(g,41,16,4,4,'#bbbbbb')}
   else if(id==='missions'){R_(g,4,5,48,24,'#222');R_(g,5,6,46,22,'#352879');for(let i=0;i<10;i++)R_(g,6+rn()*44,7+rn()*20,1,1,'#fff');R_(g,14,14,3,3,'#9a6759');R_(g,34,18,4,4,'#588d43');R_(g,17,15,17,1,'#b8c76f');R_(g,34,10,2,2,'#ff7777');R_(g,15,12,1,3,'#ff7777')}
-  else if(id==='ships'||id==='shipyard'){for(let i=0;i<3;i++){R_(g,5,14+i*0,0,0,'#000')}R_(g,4,22,48,2,'#6f4f25');g.imageSmoothingEnabled=false;g.drawImage(SPR.shipSets[0][0],6,10,24,17);g.drawImage(SPR.shipSets[1][0],30,6,24,17);R_(g,36,28,12,6,'#222');R_(g,37,29,10,4,'#959595')}
+  else if(id==='ships'||id==='shipyard'||id==='luxury'){for(let i=0;i<3;i++){R_(g,5,14+i*0,0,0,'#000')}R_(g,4,22,48,2,'#6f4f25');g.imageSmoothingEnabled=false;g.drawImage(SPR.shipSets[0][0],6,10,24,17);g.drawImage(SPR.shipSets[1][0],30,6,24,17);R_(g,36,28,12,6,'#222');R_(g,37,29,10,4,'#959595')}
 }
 function foodMachine(g,x,y,w,h){
   R_(g,x,y,w,h,'#222');R_(g,x+1,y+1,w-2,h-2,'#9a3a3a');R_(g,x+1,y+1,w-2,2,'#ff7777');
@@ -2137,15 +2138,14 @@ function screenDef(id){
     for(const c of CREW){const l=SAVE.crew[c.id]||0,mx=l>=3,p=mx?0:c.cost[l];
       rows.push({ic:'crew_'+c.id,n:c.n+': '+(l?TIERS[l-1]+' '+CREWNAMES[c.id][l-1]:'NONE'),d:(mx?'BEST HIRED. ':(l?'UPGRADE TO '+TIERS[l]+'. ':'HIRE A '+TIERS[0]+'. '))+c.d,r:mx?'MAX':String(p),ok:!mx&&SAVE.coins>=p,pw:mx?null:[shipPowerRaw(),powerIf(SAVE.crew,c.id,l+1)],
         fn:()=>{if(SAVE.coins<p){toast('NOT ENOUGH GOLD');return}SAVE.coins-=p;SAVE.crew[c.id]=l+1;toast('HIRED '+CREWNAMES[c.id][l]+' ('+TIERS[l]+')');checkUnlocks();save()}})}
-  }else if(id==='ships'||id==='shipyard'){
-    const yard=id==='shipyard';title=yard?'SHIPYARD':'SHIP SHOP';info.push({t:'WALLET '+SAVE.coins+' GOLD   SHIP POWER '+shipPower(),c:'#70a4b2'});
+  }else if(id==='ships'||id==='shipyard'||id==='luxury'){
+    const yard=id==='shipyard',lx=id==='luxury';title=yard?'SHIPYARD':lx?'LUXURY SHIP SHOP':'SMALL SHIP SHOP';info.push({t:'WALLET '+SAVE.coins+' GOLD   SHIP POWER '+shipPower(),c:'#70a4b2'});
     if(yard)info.push('BIG SHIPS: MORE HULL AND GUNS. ONLY THE CORE CAN BE HIT.');
-    if(yard)info.push({t:'AT THE BACK OF THE YARD: THE LUXURY SHIPS. THEY COST A FORTUNE.',c:'#b8c76f'});
-    const yardOk=(()=>{const sy=SHOPS.find(q=>q.id==='shipyard');return !!(sy&&sy.open()&&SAVE.built&&SAVE.built.shipyard)})();
-    if(!yard)info.push({t:yardOk?'THE LUXURY SHIPS ARE AT THE END OF THE LIST.':'THE LUXURY SHIPS ARE AT THE END. BUY THEM WITH A SHIPYARD.',c:'#b8c76f'});
-    (yard?SHIPS.map((_,k)=>k):SHIPS.map((_,k)=>k).sort((a,b)=>SHIPS[a].price-SHIPS[b].price)).forEach(i=>{const s=SHIPS[i],lux=s.price>=2e7;if(yard?!s.yard:(s.yard&&!lux))return;const own=SAVE.ships.includes(i),cur=SAVE.ship===i,locked=!yard&&lux&&!own&&!yardOk;
-      rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:locked?'NEEDS THE SHIPYARD. '+s.d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:locked?false:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
-        fn:()=>{if(locked){toast('BUILD THE SHIPYARD FIRST');return}if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
+    if(lx)info.push({t:'THE BEST SHIPS MONEY CAN BUY. EACH ONE OPENS A NEW WORLD OF POWER.',c:'#b8c76f'});
+    if(id==='ships')info.push({t:'SMALL SHIPS. THEY ARE A LITTLE BETTER THAN THE DRIFTER.',c:'#b8c76f'});
+    SHIPS.map((_,k)=>k).filter(i=>{const q=SHIPS[i],lux=q.price>=2e7;return yard?(q.yard&&!lux):lx?lux:!q.yard}).sort((a,b)=>SHIPS[a].price-SHIPS[b].price).forEach(i=>{const s=SHIPS[i],lux=s.price>=2e7;const own=SAVE.ships.includes(i),cur=SAVE.ship===i;
+      rows.push({ic:'ship',ix:i,n:s.n+(cur?'  (IN USE)':own?'  (OWNED)':''),d:s.d,r:own?(cur?'':'USE'):shortGold(s.price),ok:own?!cur:SAVE.coins>=s.price,pw:cur?null:[shipPowerRaw(),powerIf(SAVE,'ship',i)],
+        fn:()=>{if(own){SAVE.ship=i;rebuildShip();toast(s.n+' READY IN THE HANGAR')}else{if(SAVE.coins<s.price){toast(lux?'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.':'NOT ENOUGH GOLD');return}SAVE.coins-=s.price;SAVE.ships.push(i);SAVE.ship=i;rebuildShip();toast('BOUGHT '+s.n);checkUnlocks()}save()}})});
   }else if(id==='missions'){
     title='MISSION SHOP';info.push('CONTRACTS MAKE ANY DESTINATION HARDER AND PAY MORE GOLD.');info.push('WALLET '+SAVE.coins+' GOLD');
     MISSIONS.forEach((m,i)=>{const own=SAVE.missions.includes(i),cur=SAVE.mission===i;
@@ -2760,9 +2760,9 @@ const THINGS=[];
   add('mall',r=>r.w>>1,()=>'SHOP FOR COSTUMES',scr('mall'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
   add('transporter',r=>r.w>>1,()=>'USE THE SURFACE TRANSPORTER',scr('transporter'));
-  add('trophy',r=>r.w>>1,()=>'LOOK AT THE TROPHIES',scr('trophy'));
   add('zoo',r=>r.w>>1,()=>'VISIT THE ALIEN ZOO',scr('zoo'));
-  add('bridge',r=>r.w>>1,()=>'LOOK AT THE STAR MAP',scr('starmap'));
+  add('bridge',34,()=>'LOOK AT THE STAR MAP',scr('starmap'));
+  add('bridge',86,()=>'LOOK AT THE TROPHIES',scr('trophy'));
 })();
 const TIPS=['THE BANK ONLY PAYS INTEREST WHILE YOU FLY MISSIONS.','SHARES PAY MONEY EVERY MONTH.','EAT, THEN WORK OUT TO GET FIT.','ENGINEERS BUILD THE SPECIAL PARTS.','DRONES FIRE WHEN YOU FIRE.','SELL YOUR SALVAGE AT THE SALVAGE SHOP.'];
 function curDeck(){let b=0,bd=1e9;for(let d=0;d<NDECK;d++){const q=Math.abs(HUB.sp.y-FYd(d));if(q<bd){bd=q;b=d}}return b}
@@ -2803,7 +2803,7 @@ const STORY={
 STORY.buddy={t:'THE ENEMY HAS A FRIEND',p:[
     'THE BURNING CITY IS OPEN. THE ARTIFACT HAS BEEN QUIET FOR A LONG TIME. NOW IT SPEAKS.',
     'THE ENEMY YOU HAVE BEEN HUNTING IS NOT ALONE. IT HAS A BUDDY, IN ANOTHER SYSTEM FAR BEYOND THE MAP.',
-    'THE SIGNAL IS FAINT AND THE STORMS AROUND IT ARE HUGE. ONLY A LUXURY BIG SHIP FROM THE SHIPYARD CAN FLY IN THERE.',
+    'THE SIGNAL IS FAINT AND THE STORMS AROUND IT ARE HUGE. ONLY A LUXURY SHIP FROM THE LUXURY SHIP SHOP CAN FLY IN THERE.',
     'SAVE YOUR GOLD AND BUY ONE. THE STAR MAP HAS A NEW PAGE CALLED BIGGER SHIPS, AND THE WEAPON AND ARMOUR SHOPS HAVE NEW PARTS FOR BIG SHIPS.'],when:()=>bigTierOpen()};
 STORY.big1={t:'THE GRAVEYARD',p:[
     'THE GRAVEYARD IS QUIET. IN THE WRECK OF THE TITAN YOU FIND A MAP TO THE NEXT SYSTEM.',
@@ -3213,7 +3213,7 @@ function extraScreen(id,rows,info){
       add(1,bl[0],'#ffffff');add(2,bl[1],'#ffffff');
       add(3,'HULL +'+q.hp+'   DAMAGE X'+q.dm+'   FIRE RATE X'+q.fr+'   POWER +'+gain,'#70a4b2');
       if(can)L('');else info.push({t:'YOU CAN AFFORD IT... WHEN YOU HAVE THE GOLD.',c:'#8f84d6',ind:1})});
-    if(SHIPS.some((q,i)=>(q.price>=2e7||i>=13)&&!SAVE.ships.includes(i)))L('  BUY THEM AT THE SHIP SHOP. THE LUXURY ONES NEED THE SHIPYARD.','#6c6c6c');
+    if(SHIPS.some((q,i)=>(q.price>=2e7||i>=13)&&!SAVE.ships.includes(i)))L('  SMALL SHIPS: SMALL SHIP SHOP. LUXURY SHIPS: LUXURY SHIP SHOP.','#6c6c6c');
     return 'SHIP STATS';
   }
   if(id==='personnel'){
@@ -4802,6 +4802,6 @@ window.__g.dev={
 <script src="packs/big.js?v=2.10"></script>
 <script src="packs/bigthemes1.js?v=2.10"></script>
 <script src="packs/bigthemes2.js?v=2.10"></script>
-<script src="surface.js?v=2.17"></script>
+<script src="surface.js?v=2.19"></script>
 </body>
 </html>

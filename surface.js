@@ -19,7 +19,7 @@ const WORLDS=[
    {id:'puffcap',n:'PUFFCAP',ai:'dropper',kit:'cap',pal:[BR,TN,OR,YL,WH],w:18,h:14,hp:2,spd:16,gold:2,fly:1},
    {id:'vinesnap',n:'VINESNAP',ai:'turret',kit:'turretk',o:{shape:'plant'},pal:['#102010',GD,GR,LG,PG],w:14,h:20,hp:3,cd:2.2,range:130,bul:{n:1,sp:80},gold:2},
    {id:'glowmoth',n:'GLOWMOTH',ai:'flyer',kit:'wing',o:{wing:'moth'},pal:[PU,LP,LV,CY,WH],w:18,h:12,hp:2,spd:34,gold:2,fly:1,shoot:{cd:2.6,sp:70}},
-   {id:'shroombrute',n:'SHROOM BRUTE',ai:'charger',kit:'golem',o:{cap:1},pal:[BR,TN,OR,YL,WH],w:22,h:22,hp:8,spd:18,gold:5}]},
+   {id:'shroombrute',n:'SHROOM BRUTE',ai:'charger',kit:'golem',o:{cap:1,fist:4.2,inset:4},pal:[BR,TN,OR,YL,WH],w:22,h:22,hp:8,spd:18,gold:5}]},
  {n:'CRYSTAL DESERT',sub:'RED SAND, CRUMBLING BRIDGES AND CRYSTAL SPIRES',lw:340,
   sky:['#1c5a8a','#70a4b2','#ffffaa','#ffffff'],skyY:.5,ridge:[['#9a3a3a','#ff7777'],['#ff9966','#ffffaa']],
   rock:['#68372b','#9a3a3a',RD,OR],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#9a3a3a','#ffffaa'],crumble:1,glow:CY,plant:{leaf:['#2c5a2c','#9ad284','#ccff99'],fl:[MG,RD,YL],kind:'desert'},
@@ -28,7 +28,7 @@ const WORLDS=[
    {id:'sandskipper',n:'SAND SKIPPER',ai:'hopper',kit:'crab',o:{shape:'hopper'},pal:['#2a1008',rd,RD,OR,YL],w:16,h:16,hp:2,spd:50,gold:2},
    {id:'shardturret',n:'SHARD TURRET',ai:'turret',kit:'turretk',o:{shape:'crystal'},pal:[VI,mg,MG,CY,WH],w:14,h:18,hp:4,cd:1.8,range:150,bul:{n:3,sp:80,sd:.35},gold:3},
    {id:'dustwisp',n:'DUST DEVIL',ai:'flyer',kit:'wing',o:{wing:'wisp'},pal:[BR,TN,OR,YL,WH],w:14,h:20,hp:2,spd:62,gold:2,fly:1},
-   {id:'crystalgolem',n:'CRYSTAL GOLEM',ai:'charger',kit:'golem',o:{crystal:1},pal:[VI,mg,MG,CY,WH],w:22,h:24,hp:10,spd:20,gold:6}]},
+   {id:'crystalgolem',n:'CRYSTAL GOLEM',ai:'charger',kit:'golem',o:{crystal:1,inset:3,fist:2.2},pal:[VI,mg,MG,CY,WH],w:22,h:24,hp:10,spd:20,gold:6}]},
  {n:'DERELICT STARSHIP',sub:'A CRASHED CARGO SHIP, OVERGROWN WITH GLOWING PLANTS',lw:380,ship:1,
   sky:['#0a0630','#1c1840',VI,BL],skyY:.5,ridge:[['#1c1840','#2a1d52'],['#352879','#4a2f86']],
   rock:['#1c2a4a','#3c5a8a','#70a4b2','#ccffff'],wallc:['#060a14','#0a1220','#101a30','#2c4a6a'],topc:['#6c6c6c','#bbbbbb','#ffffaa'],plat:['#6c6c6c','#9ad2e0'],glow:CY,plant:{leaf:['#1b5a3a','#2c8a2c','#9ad284'],fl:[CY,MG,YL],kind:'ship'},
@@ -37,7 +37,7 @@ const WORLDS=[
    {id:'sparkwisp',n:'SPARK WISP',ai:'dropper',kit:'cap',o:{ghost:1},pal:[VI,cy,CY,WH,WH],w:14,h:14,hp:2,spd:26,gold:2,fly:1},
    {id:'ventcrawler',n:'VENT CRAWLER',ai:'hopper',kit:'crab',o:{shape:'spider'},pal:['#102010',GD,LG,PG,YL],w:14,h:12,hp:3,spd:56,gold:2},
    {id:'wallgun',n:'WALL GUN',ai:'turret',kit:'turretk',o:{shape:'pylon'},pal:[D,GM,rd,OR,YL],w:12,h:24,hp:6,cd:1.8,range:150,bul:{n:2,sp:90,sd:.3},gold:3},
-   {id:'loadermech',n:'LOADER MECH',ai:'charger',kit:'golem',o:{mech:1},pal:[D,GM,OR,YL,WH],w:26,h:28,hp:14,spd:22,gold:8,shoot:{cd:2.6,sp:80}}]},
+   {id:'loadermech',n:'LOADER MECH',ai:'charger',kit:'golem',o:{mech:1,pad:4.6,fist:3.4},pal:[D,GM,OR,YL,WH],w:26,h:28,hp:14,spd:22,gold:8,shoot:{cd:2.6,sp:80}}]},
  {n:'MAGMA CAVERNS',sub:'LAVA POOLS, FALLING ROCKS AND FIRE BEASTS',lw:420,
   sky:['#0a0200','#2a0a08',rd,OR],skyY:.45,ridge:[['#2a0a08','#68372b'],['#68372b','#ff9966']],cavern:1,
   rock:['#2a0a08','#68372b','#9a3a3a','#ff9966'],wallc:['#05010a','#0a0204','#1c0808','#ff9966'],topc:['#ff9966','#ffffaa','#ffffff'],plat:['#444444','#ff9966'],lava:1,glow:YL,plant:{leaf:['#68372b','#ff9966','#ffffaa'],fl:[YL,RD,WH],kind:'magma'},
@@ -46,7 +46,7 @@ const WORLDS=[
    {id:'ashbat',n:'ASH BAT',ai:'flyer',kit:'wing',o:{wing:'bat'},pal:['#1c0808',D,GM,LL,RD],w:26,h:16,hp:3,spd:44,gold:3,fly:1,shoot:{cd:3,sp:75}},
    {id:'emberspitter',n:'EMBER SPITTER',ai:'lobber',kit:'turretk',o:{shape:'spitter'},pal:[BR,rd,OR,YL,WH],w:22,h:20,hp:5,cd:2.4,range:170,gold:3},
    {id:'magmahopper',n:'MAGMA HOPPER',ai:'hopper',kit:'blob',o:{legs:1,angry:1},pal:['#2a0a08',rd,RD,OR,YL],w:14,h:14,hp:4,spd:60,gold:3},
-   {id:'obsidianknight',n:'OBSIDIAN KNIGHT',ai:'charger',kit:'golem',o:{knight:1},pal:[K,'#1c1840',VI,BL,RD],w:20,h:26,hp:14,spd:24,gold:8}]},
+   {id:'obsidianknight',n:'OBSIDIAN KNIGHT',ai:'charger',kit:'golem',o:{knight:1,inset:8,fist:2.4},pal:[K,'#1c1840',VI,BL,RD],w:20,h:26,hp:14,spd:24,gold:8}]},
  {n:'ALIEN MOTHERSHIP',sub:'A LIVING SHIP: SLIME WALLS, EGG POOLS AND A HIVE GUARD',lw:480,ship:1,
   sky:['#0a0630','#352879',mg,CY],skyY:.5,ridge:[['#1c1840','#6c5eb5'],['#6c5eb5','#ff77ff']],
   rock:['#3a0a38','#8a3aa6',mg,MG],wallc:['#100210','#1c0420','#2a0a2a','#8a3aa6'],topc:['#9a3a3a','#ff77ff','#ffffaa'],plat:['#6f3d86','#ffffaa'],glow:PG,plant:{leaf:['#3a0a38','#cc44cc','#ff77ff'],fl:[PG,YL,CY],kind:'hive'},
@@ -54,22 +54,22 @@ const WORLDS=[
    {id:'hivebug',n:'HIVE BEETLE',ai:'walker',kit:'crab',o:{shape:'beetle'},pal:['#3a0a38',PU,mg,MG,YL],w:18,h:12,hp:5,spd:30,gold:3},
    {id:'stinger',n:'STINGER',ai:'flyer',kit:'wing',o:{wing:'wasp'},pal:['#3a0a38',mg,MG,PG,WH],w:18,h:12,hp:4,spd:40,gold:3,fly:1,shoot:{cd:2,sp:85}},
    {id:'eggpod',n:'EGG POD',ai:'turret',kit:'turretk',o:{shape:'egg'},pal:['#3a0a38',mg,MG,PG,WH],w:14,h:20,hp:8,cd:1.6,range:160,bul:{n:5,sp:85,sd:.7},gold:4},
-   {id:'leaper',n:'LEAPER',ai:'hopper',kit:'blob',o:{frog:1},pal:['#3a0a38',PU,mg,PG,WH],w:14,h:14,hp:5,spd:68,gold:3},
-   {id:'hiveguard',n:'HIVE GUARD',ai:'charger',kit:'golem',o:{mandibles:1,eye:PG},pal:['#3a0a38',PU,mg,MG,PG],w:28,h:30,hp:22,spd:26,gold:12,shoot:{cd:2.2,sp:88}}]}
+   {id:'leaper',n:'LEAPER',ai:'hopper',kit:'blob',o:{frog:1},pal:['#3a0a38','#2c5a2c','#588d43',PG,WH],w:14,h:14,hp:5,spd:68,gold:3},
+   {id:'hiveguard',n:'HIVE GUARD',ai:'charger',kit:'golem',o:{mandibles:1,eye:PG,inset:4,fist:3.6},pal:['#3a0a38',PU,PU,mg,MG],w:28,h:30,hp:22,spd:26,gold:12,shoot:{cd:2.2,sp:88}}]}
 ];
 const PARAM=[
- {gapMax:5,dens:.5,dmg:1,resp:50,caves:2,wt:{flat:3,stairs:3,gap:2,floaters:2,springs:3,cliff:1,tower:1,cavezone:3,hill:2}},
- {gapMax:6,dens:.65,dmg:1,resp:45,caves:3,wt:{flat:2,stairs:3,gap:2,floaters:2,crumble:3,cliff:2,tower:1,cavezone:3,hill:2}},
- {gapMax:7,dens:.8,dmg:1,resp:40,caves:3,wt:{flat:2,stairs:2,gap:3,floaters:3,liftgap:2,cliff:2,tower:2,updraft:3,gates:3,mezz:4,cavezone:3}},
+ {gapMax:5,dens:.5,dmg:1,resp:50,caves:2,wt:{flat:3,stairs:2,gap:2,floaters:2,springs:3,cliff:1,tower:1,cavezone:3,hill:2,mound:6}},
+ {gapMax:6,dens:.65,dmg:1,resp:45,caves:3,wt:{flat:2,stairs:2,gap:2,floaters:2,crumble:3,cliff:2,tower:1,cavezone:3,hill:2,mound:6}},
+ {gapMax:7,dens:.8,dmg:1,resp:40,caves:3,wt:{flat:2,stairs:2,gap:3,floaters:2,liftgap:2,cliff:2,tower:2,updraft:3,gates:3,mezz:7,cavezone:3}},
  {gapMax:7,dens:1,dmg:2,resp:35,caves:4,wt:{flat:2,stairs:3,gap:1,lava:7,liftgap:2,cliff:3,tower:2,cavezone:3,hill:2}},
- {gapMax:8,dens:1.2,dmg:2,resp:30,caves:4,wt:{flat:2,stairs:3,gap:3,floaters:2,liftgap:3,cliff:3,tower:2,gates:3,mezz:4,cavezone:4,hill:2}}
+ {gapMax:8,dens:1.2,dmg:2,resp:30,caves:4,wt:{flat:2,stairs:3,gap:2,floaters:2,liftgap:3,cliff:3,tower:2,gates:3,mezz:7,cavezone:4,hill:2}}
 ];
 
 /* ---------------- sprites ---------------- */
 function ellp(g,cx,cy0,rx,ry,pal){ell(g,cx,cy0,rx,ry,pal)}
 const KITS={
   blob(g,f,w,h,o){const cx=w/2,cy0=h/2+(o.slug?1:0),b=f&1?1:0;
-    if(o.frog){px(g,o.pal[1],1,h-3,4,3+b);px(g,o.pal[1],w-5,h-3,4,3+b);ell(g,cx,cy0+1,w/2-1,h/2-3,o.pal);px(g,K,3,cy0+2,w-6,1);px(g,o.pal[4],4,cy0+3,w-8,1);for(const x0 of [cx-5,cx+2]){ell(g,x0+1.5,cy0-4,2.6,2.6,[K,WH,WH,WH]);px(g,K,x0+1,cy0-4,2,2)}return}
+    if(o.frog){px(g,o.pal[0],1,h-3,4,3+b);px(g,o.pal[0],w-5,h-3,4,3+b);ell(g,cx,cy0+2,w/2-1,h/2-3,[o.pal[1],o.pal[2],o.pal[2]]);px(g,K,3,cy0+3,w-6,1);for(const x0 of [cx-5,cx+2]){ell(g,x0+1.5,cy0-3,3,3,[YL,YL,YL]);px(g,K,x0+1,cy0-3,2,3)}return}
     if(o.legs){px(g,o.pal[1],w*.25,h-3,2,3+b);px(g,o.pal[1],w*.7,h-3,2,3+b);px(g,o.pal[2],w*.25-1,h-1,4,1);px(g,o.pal[2],w*.7-1,h-1,4,1)}
     ell(g,cx,cy0,w/2-1,h/2-(o.legs?2:1),o.pal);
     if(o.slug){for(let i=0;i<5;i++)px(g,o.pal[4],w*.2+i*3,cy0-h*.3+(i+f)%2,1,1);px(g,o.pal[3],1,cy0,2,2)}
@@ -94,10 +94,11 @@ const KITS={
       ell(g,cx,cy0-1,w*.28,h*.3,o.pal);px(g,K,cx-3,cy0-2,2,2);px(g,K,cx+1,cy0-2,2,2);
       for(let s=-1;s<=1;s+=2)for(let i=0;i<3;i++){const x0=cx+s*(i+1)*2,kx=x0+s*5,ky=cy0-4-((f+i)&1)*2;line(g,o.pal[2],x0,cy0,kx,ky);line(g,o.pal[2],kx,ky,kx+s*3,h-1)}}},
   wing(g,f,w,h,o){const cx=w/2,cy0=h/2+1,fl=[0,3,0,-3][f%4],up=[-5,-2,2,-2][f%4];
-    if(o.wing==='wisp'){for(let j=0;j<h;j++){const t=j/h,rw=Math.max(1,(1-t)*(w/2-1)+1),sx=Math.sin(j*.9+f*1.57)*rw*.55;for(let i=-1;i<=1;i++){px(g,rampAt(o.pal,.3+t*.4+(i===0?.25:0),i+j,j),cx+sx+i*rw*.55,h-1-j,Math.max(1,rw*.5),1)}}px(g,WH,cx+Math.sin(f)*3,h*.3,1,1);px(g,o.pal[3],cx-3,h*.6,1,1)}
-    else if(o.wing==='moth'){
-      ell(g,cx+1,cy0+1,w*.2,h*.28,o.pal);ell(g,cx-w*.2,cy0,3,3,o.pal);px(g,K,cx-w*.2-1,cy0-1,2,2);line(g,o.pal[3],cx-w*.2-1,cy0-3,cx-w*.2-4,cy0-6);line(g,o.pal[3],cx-w*.2+1,cy0-3,cx-w*.2+3,cy0-6);   // body, head, antennae
-      ell(g,cx+2,cy0-3+up*.6,w*.32,h*.36,[o.pal[0],o.pal[1],o.pal[2],o.pal[3]]);ell(g,cx+3,cy0-3+up*.6,2,2,[K,o.pal[4],WH,WH]);ell(g,cx+w*.15,cy0-1,w*.2,h*.22,[o.pal[0],o.pal[1],o.pal[2]])}
+    if(o.wing==='wisp'){for(let l=0;l<5;l++){const t=l/4,ww=4+t*(w-5),yy=h-3-l*((h-6)/4),sx=Math.sin(f*1.57+l*1.3)*2;ell(g,cx+sx,yy,ww/2,2.4,[o.pal[1],o.pal[2],o.pal[3]]);if(l===3){px(g,K,cx+sx-3,yy-1,2,2);px(g,WH,cx+sx-3,yy-1,1,1);px(g,K,cx+sx+1,yy-1,2,2);px(g,WH,cx+sx+1,yy-1,1,1)}}}
+    else if(o.wing==='moth'){const wf=[0,2,0,-2][f%4];
+      for(const sd of [-1,1]){const X=x=>cx+sd*x;poly(g,[[X(1),cy0-1],[X(w*.48),cy0-h*.42+wf],[X(w*.5),cy0+1],[X(w*.28),cy0+h*.34],[X(1),cy0+2]],[o.pal[0],o.pal[1],o.pal[2]]);ell(g,X(w*.3),cy0-1+wf*.4,2.2,2.2,[K,o.pal[3],o.pal[4],WH]);px(g,o.pal[3],X(w*.42),cy0+wf*.4,1,1)}
+      ell(g,cx,cy0+1,2.4,h*.34,[BR,TN,YL,WH]);ell(g,cx,cy0-h*.3,2.3,2.3,[BR,TN,YL,WH]);px(g,K,cx-1,cy0-h*.3,1,1);px(g,K,cx+1,cy0-h*.3,1,1);
+      for(const sd of [-1,1]){line(g,YL,cx+sd,cy0-h*.4,cx+sd*4,cy0-h*.5-1);px(g,WH,cx+sd*4,cy0-h*.5-1,1,1);px(g,YL,cx+sd*3,cy0-h*.5+1,1,1)}}
     else if(o.wing==='bat'){
       const tip=[-6,-2,3,-2][f%4],ww=w*.5-1;
       for(const s of [-1,1]){const X=x=>cx+s*x;
@@ -111,9 +112,10 @@ const KITS={
       const wy=cy0-5+up*.5;ell(g,cx+1,wy,w*.18,3,[o.pal[3],o.pal[4],WH,WH]);ell(g,cx+w*.14,wy+1,w*.14,2.5,[o.pal[3],o.pal[4],WH,WH])}},
   golem(g,f,w,h,o){const cx=w/2,sw=f&1;
     thick(g,o.pal[1],cx-3,h*.74,cx-3-sw,h-1,3);thick(g,o.pal[1],cx+3,h*.74,cx+3+sw,h-1,3);px(g,K,cx-6-sw,h-1,5,1);px(g,K,cx+1+sw,h-1,5,1);
-    poly(g,[[5,h*.3],[w-5,h*.3],[w-7,h*.76],[7,h*.76]],o.pal);
-    for(const s of [-1,1]){const sx=s<0?3:w-4,ex=s<0?1:w-2,ey=h*.74+((s<0?sw:1-sw)*2);ell(g,sx,h*.34,3.5,3,o.pal);thick(g,o.pal[2],sx,h*.36,ex,ey,3);ell(g,ex,ey+1,2.8,2.8,[o.pal[0],o.pal[1],o.pal[3],o.pal[4]])}
-    ell(g,cx,h*.17,w*.2,h*.13,o.pal);
+    const ins=o.inset||5,pd=o.pad||3.5,fs=o.fist||2.8,tr=[o.pal[1],o.pal[2],o.pal[3]];
+    poly(g,[[ins,h*.3],[w-ins,h*.3],[w-ins-2,h*.76],[ins+2,h*.76]],tr);
+    for(const s of [-1,1]){const sx=s<0?3:w-4,ex=s<0?1:w-2,ey=h*.74+((s<0?sw:1-sw)*2);ell(g,sx,h*.34,pd,pd*.85,tr);thick(g,o.pal[2],sx,h*.36,ex,ey,3);ell(g,ex,ey+1,fs,fs,[o.pal[1],o.pal[2],o.pal[3]])}
+    ell(g,cx,h*.17,w*.2,h*.13,tr);
     if(o.knight){poly(g,[[cx-6,h*.12],[cx,h*.0],[cx+6,h*.12]],[K,VI,BL]);line(g,RD,cx,0,cx+4,h*.12);px(g,o.eye||RD,cx-4,h*.17,8,2)}
     else if(o.mech){px(g,CY,cx-5,h*.12,10,5);px(g,WH,cx-5,h*.12,3,1);px(g,K,cx-5,h*.12,10,1);poly(g,[[cx-3,h*.42],[cx+4,h*.42],[cx+3,h*.58],[cx-2,h*.58]],[K,D,GM]);px(g,YL,cx-6,h*.64,2,2);px(g,YL,cx+4,h*.64,2,2);thick(g,o.pal[3],w-3,h*.5,w+1,h*.82,3);px(g,o.eye||RD,w-3,h*.84,3,2)}
     else if(o.mandibles){px(g,o.eye||PG,cx-5,h*.13,3,3);px(g,o.eye||PG,cx+2,h*.13,3,3);thick(g,o.pal[4],cx-4,h*.24,cx-6,h*.34,2);thick(g,o.pal[4],cx+4,h*.24,cx+6,h*.34,2);for(let i=0;i<3;i++)px(g,o.pal[0],7+i*4,h*.45,2,1)}
@@ -127,12 +129,12 @@ const KITS={
       if(pulse){px(g,K,cx-1,h*.28,3,h*.4);px(g,o.pal[4],cx,h*.45,1,2)}else px(g,K,cx,h*.3,1,h*.36);for(let i=0;i<4;i++)px(g,o.pal[4],3+i*3,h*.4+(i%2)*5,1,1)}
     else if(o.shape==='crystal'){poly(g,[[cx-6,h],[cx-3,h*.3],[cx,0],[cx+3,h*.3],[cx+6,h]],o.pal);poly(g,[[cx-3,h],[cx,h*.2],[cx+3,h]],[o.pal[2],o.pal[3],WH]);if(pulse)px(g,WH,cx,h*.25,1,2)}
     else if(o.shape==='gargoyle'){poly(g,[[2,h],[w-2,h],[w-3,h*.45],[2,h*.45]],o.pal);poly(g,[[1,h*.5],[cx,0],[w-1,h*.5]],o.pal);px(g,RD,cx-3,h*.4,2,2);px(g,RD,cx+2,h*.4,2,2);poly(g,[[0,h*.7],[3,h*.3],[3,h*.8]],o.pal)}
-    else if(o.shape==='spitter'){ // a squat lizard with its head cocked up like a mortar
-      ell(g,cx+2,h*.72,w*.38,h*.22,o.pal);thick(g,o.pal[1],w-2,h*.85,w+1,h*.55,2);
-      poly(g,[[3,h*.62],[w*.3,h*.32],[w*.62,h*.18],[w*.7,h*.45],[w*.55,h*.72]],o.pal);                        // the raised head
-      poly(g,[[1,h*.35],[w*.34,h*.06],[w*.42,h*.2],[w*.16,h*.46]],o.pal);px(g,K,3,h*.3,w*.28,3);px(g,pulse?YL:OR,4,h*.33,w*.2,1);   // open mouth
-      px(g,WH,w*.4,h*.2,2,2);px(g,K,w*.42,h*.22,1,1);px(g,WH,w*.52,h*.26,2,2);px(g,K,w*.54,h*.28,1,1);
-      ell(g,w*.4,h*.5+(pulse?-1:1),3,3,[rd,OR,YL,YL]);for(let i=0;i<3;i++)px(g,o.pal[3],w*.55+i*3,h*.62-(i%2),2,2)}
+    else if(o.shape==='spitter'){
+      ell(g,cx+1,h*.7,w*.42,h*.27,[o.pal[0],o.pal[1],o.pal[2]]);thick(g,o.pal[1],w-2,h*.88,w+1,h*.6,2);
+      poly(g,[[1,h*.5],[w*.2,h*.12],[w*.55,h*.1],[w*.62,h*.56]],[o.pal[1],o.pal[2],o.pal[2]]);                                  // the head tipped up
+      poly(g,[[3,h*.46],[w*.2,h*.18],[w*.5,h*.16],[w*.56,h*.5]],[K,K,K]);ell(g,w*.34,h*.34,3.2,3.2,pulse?[rd,OR,YL,WH]:[rd,rd,OR,YL]);   // black mouth with a glowing ball inside
+      px(g,YL,w*.3,h*.04,2,2);px(g,K,w*.31,h*.05,1,1);px(g,YL,w*.55,h*.06,2,2);px(g,K,w*.56,h*.07,1,1);
+      for(let i=0;i<3;i++)px(g,o.pal[3],w*.4+i*3,h*.58-(i%2),2,2)}
     else{poly(g,[[cx-4,h],[cx+4,h],[cx+3,2],[cx-3,2]],o.pal);ell(g,cx,5,5,5,[K,mg,MG,pulse?WH:MG]);for(let i=0;i<3;i++)px(g,MG,cx-3,h*.4+i*5,6,1)}},
   cap(g,f,w,h,o){const cx=w/2,k=f&1;
     for(let i=0;i<4;i++){const x0=3+i*(w-6)/3;line(g,o.pal[3],x0,h*.5,x0+(k?1:-1),h-1)}
@@ -176,7 +178,7 @@ function mkTiles(W_){
   T.spike=cnv(8,8,g=>{for(let i=0;i<2;i++)poly(g,[[i*4,8],[i*4+2,1],[i*4+4,8]],[LM,LL,WH,WH])});
   T.spring=cnv(8,8,g=>{px(g,K,0,5,8,3);px(g,YL,1,6,6,1);for(let j=0;j<3;j++)px(g,j%2?OR:YL,1+(j%2),2+j,6-(j%2)*2,1);px(g,mg,0,1,8,2);px(g,MG,1,1,6,1)});
   T.crumble=cnv(8,8,g=>{dith(g,['#68372b','#9a6759','#b8884a'],0,0,8,8,7);px(g,K,2,1,1,5);px(g,K,4,3,1,4);px(g,K,6,2,1,3)});
-  T.lava=[0,1].map(f=>cnv(8,8,g=>{for(let j=0;j<8;j++)for(let i=0;i<8;i++){const v=.5+.5*Math.sin((i+f*3)*.9+j*.7);px(g,rampAt([rd,OR,YL,WH],.25+v*.55,i,j),i,j)}}));
+  T.lava=[0,1].map(f=>cnv(8,8,g=>{for(let j=0;j<8;j++)for(let i=0;i<8;i++){const v=.5+.5*Math.sin((i+f*3)*.9+j*.7);px(g,rampAt([rd,OR,YL,WH],(j<2?.8:.35)+v*.25,i,j),i,j)}px(g,WH,1+f*3,2,2,1);px(g,YL,5-f*2,5,1,1);px(g,WH,0,0,8,1)}));
   if(W_.ship){
     T.top=cnv(8,8,g=>{dith(g,W_.rock.slice(1,4),0,0,8,8,5);px(g,'#222222',0,0,8,3);for(let i=0;i<8;i+=4){px(g,YL,i,0,2,1);px(g,K,i+2,0,2,1)}px(g,W_.topc[1],0,1,8,1);px(g,W_.topc[0],0,2,8,1)});
     T.mid=cnv(8,8,g=>{dith(g,W_.rock.slice(0,3),0,0,8,8,3);px(g,W_.rock[0],0,0,8,1);px(g,W_.rock[0],0,0,1,8);px(g,W_.rock[3],1,1,1,1);px(g,W_.rock[3],6,6,1,1);px(g,W_.rock[3],6,1,1,1);px(g,W_.rock[3],1,6,1,1)});
@@ -289,6 +291,10 @@ function genLevel(idx){
       let py=cyc-3,side=0;while(py>cyc-th+2){plats.push({x:side?tx-8:tx-4,y:py,w:4});py-=3;side^=1}
       L.chests.push({x:(tx+1)*TS,y:(cyc-th)*TS-10,open:0,v:5+idx*3});spawn(2,(tx+2)*TS,(cyc-th-1)*TS);groundSpawns(tx-6,14,cyc-1);
     }
+    else if(kind==='mound'){
+      const n=rn(14,22),hgt=rn(4,8);for(let i=0;i<n&&x<LW-34;i++)top[x++]=cyc-Math.round(hgt*Math.sin(i/(n-1)*PI));
+      groundSpawns(x0,x-x0,cyc-hgt-1);
+    }
     else if(kind==='mezz'){
       const n=rn(26,34),gx=x;for(let i=0;i<n;i++)top[x++]=cyc;
       for(let k=0;k<7;k++)feats.push({x:gx+2+k*2,y:cyc-1-k,t:1,w:2,h:k+1});
@@ -341,6 +347,9 @@ function genLevel(idx){
       L.chests.push({x:(x2-6)*TS,y:(t2+4)*TS,open:0,v:12+idx*4});
     }
   }
+  if(Wd.ship){for(let cx=28;cx<LW-36;cx+=rn(8,14)){let ok=true;const len=rn(8,14);for(let i=0;i<len;i++)if(top[cx+i]<0||top[cx+i]!==top[cx])ok=false;
+      if(!ok)continue;const y1=top[cx]-5;for(let i=0;i<len;i++)if(T0(g,LW,LH,cx+i,y1)===0)S(cx+i,y1,2);for(let i=2;i<len-2;i+=3)L.coins.push({x:(cx+i)*TS+4,y:(y1-2)*TS,v:1});
+      if(R()<.5)spawn([0,3,1][rn(0,2)],(cx+3)*TS,(y1-1)*TS)}}
   /* swiss cheese: round holes through the ground, tunnels between them, and pits and shafts you can climb out of */
   {const blobs=[],nb=Math.floor(LW/1.9);
     const nzc=B.mkNoise(70+idx);
@@ -370,7 +379,7 @@ function genLevel(idx){
       }
     }
     /* small craters in the surface */
-    for(let c=26;c<LW-30;c+=rn(9,16)){if(top[c]>=0&&top[c+3]===top[c]&&top[c-1]===top[c]&&R()<.7){rect(c,top[c],3,rn(2,3),0)}}
+    for(let c=26;c<LW-30;c+=rn(7,13)){if(top[c]>=0&&top[c+4]===top[c]&&top[c-2]===top[c]&&R()<.8){const rx=rn(2,4),ry=rn(2,4);for(let j=-1;j<=ry;j++)for(let i=-rx;i<=rx;i++){const d=(i*i)/(rx*rx)+(j*j)/(ry*ry)+(nzc.vn(c+i*.8,top[c]+j*.8)-.5)*.6;if(d<1&&T0(g,LW,LH,c+i,top[c]+j)===1)S(c+i,top[c]+j,0)}}}
   }
   /* coins along the ground, on the surface */
   for(let cx=16;cx<LW-30;cx+=rn(6,12))if(top[cx]>=0&&R()<.8)L.coins.push({x:cx*TS+4,y:(top[cx]-2)*TS,v:1});
@@ -406,7 +415,7 @@ SURF.assets_=idx=>{
     }else{
       if(hive)for(let i=0;i<9;i++){const x0=(R2()*128)|0;for(let j=0;j<96;j++){const xx=(x0+Math.sin(j*.15+i)*5)|0;px(g,rk[2],mod(xx,128),j,2,1);px(g,rk[3],mod(xx,128),j,1,1)}}
       for(let i=0;i<50;i++){const cxx=((R2()*128)|0),cyy=((R2()*96)|0),rr=1+((R2()*4)|0);ell(g,cxx,cyy,rr+1,rr,[rk[0],rk[1],rk[2]])}
-      for(let i=0;i<8;i++){const x0=(R2()*128)|0;line(g,rk[3],x0,0,x0+(R2()*6-3),96)}                                                                            // glowing cracks
+      for(let i=0;i<3;i++){const x0=(R2()*128)|0;line(g,rk[2],x0,0,x0+(R2()*6-3),96)}                                                                            // glowing cracks
     }});
   a.skyobj=cnv(110,60,g=>{
     if(idx===0){ell(g,55,30,22,22,[VI,PU,mg,MG,WH]);for(let i=0;i<110;i++){const an=i/110*TAU;if(Math.sin(an)>0||Math.abs(Math.cos(an))>.4)px(g,i%2?YL:OR,55+Math.cos(an)*38,30+Math.sin(an)*9,2,1)}}
@@ -656,7 +665,7 @@ SURF.draw=function(){
   const tf=Math.floor(L.tick*3)%2;
   for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){
     const t=L.g[ty*L.LW+tx],X=Math.floor(tx*TS-cam.x),Y=Math.floor(ty*TS-cam.y);
-    if(t===0){if(ty>L.bgRow[tx]+1)ctx.drawImage(T.back[(tx*7+ty*13)%3===0?1:(tx+ty)%5===0?2:0],X,Y);else if(Wd.ship&&tx%14===0){ctx.drawImage(T.wall[4],X,Y)}continue}
+    if(t===0){if(ty>L.bgRow[tx]+1)ctx.drawImage(T.back[(tx*7+ty*13)%3===0?1:(tx+ty)%5===0?2:0],X,Y);else if(Wd.ship&&tx%14===0&&!(Wd.plant&&Wd.plant.kind==='hive')){ctx.drawImage(T.wall[4],X,Y)}continue}
     let im;
     if(t===1){const up=ty>0?L.g[(ty-1)*L.LW+tx]:0;im=up===0||up===2||up===3||up===5?T.top:(ty>L.bgRow[tx]+10?T.deep:T.mid)}
     else if(t===2)im=T.plat;else if(t===3)im=T.spikeA?T.spikeA[tf]:T.spike;else if(t===4)im=T.lava[tf];else if(t===5)im=T.spring;
@@ -689,6 +698,7 @@ SURF.draw=function(){
   for(const e of SURF.en){if(e.hp<=0)continue;const fr=A.en[e.k],f=Math.floor(e.t*7)%4,im=(e.flash>0?fr.wh:fr.fr)[f];
     const w=Math.round(im.width*e.sc),h=Math.round(im.height*e.sc),X=Math.floor(e.x+e.w/2-w/2-cam.x),Y=Math.floor(e.y+e.h-h+1-cam.y);
     if(e.x-cam.x>-40&&e.x-cam.x<VW+40){
+      ctx.save();ctx.globalAlpha=.4;{const wi=fr.wh[f];if(e.face>0){ctx.translate(X+w,Y);ctx.scale(-1,1);for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(wi,ox,oy,w,h);ctx.scale(-1,1);ctx.translate(-(X+w),-Y)}else for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(wi,X+ox,Y+oy,w,h)}ctx.restore();
       ctx.save();if(e.face>0){ctx.translate(X+w,Y);ctx.scale(-1,1);ctx.drawImage(im,0,0,w,h)}else ctx.drawImage(im,X,Y,w,h);ctx.restore();
       if(e.elite||e.hp<e.mhp){const bw=Math.max(14,e.w);ctx.fillStyle=K;ctx.fillRect(X+w/2-bw/2-1,Y-5,bw+2,4);ctx.fillStyle=e.elite?RD:LG;ctx.fillRect(X+w/2-bw/2,Y-4,Math.max(0,bw*e.hp/e.mhp),2)}
       if(e.st===1&&e.sp.ai==='charger'&&((e.t*16)|0)%2===0){ctx.fillStyle=WH;ctx.fillRect(X+w/2-1,Y-9,3,3)}}}
