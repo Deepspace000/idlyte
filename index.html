@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.10</title>
+<title>Idlyte v2.14</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1335,7 +1335,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.10';
+const VERSION='2.14';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -1653,8 +1653,8 @@ function autoIcon(r,sid){
 function fitText(t,px){t=String(t||'');const mx=Math.floor(px/4);return t.length<=mx?t:t.slice(0,Math.max(0,mx-2))+'..'}
 
 /* ===== station world: cutaway with 4 decks, rooms that open when you walk in ===== */
-const NDECK=7,DECKS=[0,1,2,3,4,5,6];
-const DECK_H=64,FD=9,WWID=600,WH=280+64*3,RH=58,FL=49,SHAFTS=[24,300,576];
+const NDECK=8,DECKS=[0,1,2,3,4,5,6,7];
+const DECK_H=64,FD=9,WWID=600,WH=280+64*4,RH=58,FL=49,SHAFTS=[24,300,576];
 const yTop=d=>WH-(d+1)*DECK_H,FYd=d=>yTop(d)+DECK_H-6;
 const ROOMS=[
  {id:'hangar',d:0,x0:36,x1:186,t:'hangar',n:'HANGAR',c:'#6c6c6c'},
@@ -1689,7 +1689,11 @@ const ROOMS=[
  {id:'disco',d:5,x0:444,x1:564,t:'disco',n:'DISCO',c:'#ff77ff'},
  {id:'atrium',d:6,x0:36,x1:228,t:'atrium',n:'ATRIUM',c:'#588d43'},
  {id:'mall',d:6,x0:312,x1:564,t:'mall',n:'GRAND MALL',c:'#cc99ff'},
- {id:'shipyard',d:6,x0:232,x1:288,t:'shop',shop:'shipyard'}];
+ {id:'shipyard',d:6,x0:232,x1:288,t:'shop',shop:'shipyard'},
+ {id:'transporter',d:7,x0:36,x1:200,t:'transporter',n:'SURFACE TRANSPORTER',c:'#70a4b2'},
+ {id:'trophy',d:7,x0:204,x1:288,t:'trophy',n:'TROPHY HALL',c:'#b8c76f'},
+ {id:'zoo',d:7,x0:312,x1:440,t:'zoo',n:'ALIEN ZOO',c:'#9ad284'},
+ {id:'bridge',d:7,x0:444,x1:564,t:'bridge',n:'COMMAND BRIDGE',c:'#cc99ff'}];
 /* an achievement for every room built, and for how many rooms the station has */
 for(const r of ROOMS)if(r.id!=='hangar'&&r.id!=='sleep')ACHV.push({id:'rm_'+r.id,n:'BUILT: '+(r.n||(r.shop||r.id).toUpperCase()),d:'BUILD THE '+(r.n||(r.shop||r.id).toUpperCase()),t:()=>!!r.built});
 for(const n of [5,10,15,20,25,30])ACHV.push({id:'rooms'+n,n:n+' ROOMS',d:'HAVE '+n+' ROOMS BUILT ON THE STATION',t:()=>ROOMS.filter(r=>r.built).length>=n});
@@ -1697,7 +1701,7 @@ ACHV.push({id:'allshops',n:'EVERY SHOP',d:'BUILD EVERY SHOP',t:()=>ROOMS.filter(
 ACHV.push({id:'allrooms',n:'EVERY ROOM',d:'BUILD EVERY ROOM ON THE STATION',t:()=>ROOMS.every(r=>r.built)});
 ROOMS.forEach(r=>{r.w=r.x1-r.x0;r.p=0;r.cx=(r.x0+r.x1)/2;if(r.shop){const s=SHOPS.find(q=>q.id===r.shop);r.n=s.n;r.c=s.c;r.sh=s}});
 const SLOTS=ROOMS.map(r=>({d:r.d,x0:r.x0,x1:r.x1}));ROOMS.forEach((r,i)=>{r.slot0=i;r.slot=i});
-const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200};
+const NEEDW={shop:56,nook:28,hangar:150,engine:98,gym:112,cargo:136,cafe:136,library:84,lounge:128,arcade:120,sleep:98,dining:120,garden:128,office:120,plantlab:120,scilab:100,scope:100,chill:100,pool:150,sauna:56,bath:100,disco:100,atrium:190,mall:200,transporter:160,trophy:84,zoo:120,bridge:120};
 function applyLayout(){
   const lay=(SAVE&&SAVE.layout)||{};
   for(const r of ROOMS){const i=lay[r.id]!=null?lay[r.id]:r.slot0,sl=SLOTS[i];r.slot=i;r.d=sl.d;r.x0=sl.x0;r.x1=sl.x1;r.w=sl.x1-sl.x0;r.cx=(sl.x0+sl.x1)/2;if(typeof ROOMC!=='undefined')ROOMC[r.id]=undefined}
@@ -2004,6 +2008,27 @@ function mkInterior(r){
     R_(g,6,30,18,19,'#222');R_(g,8,32,14,7,'#444');R_(g,10,34,4,3,'#ff7777');R_(g,16,34,4,3,'#9ad284');R_(g,8,40,14,2,'#6c6c6c');
     R_(g,w-24,30,18,19,'#222');R_(g,w-22,32,14,15,'#444');R_(g,w-17,36,4,4,'#bbbbbb');R_(g,w-17,42,4,3,'#bbbbbb');
     R_(g,w>>1,2,1,10,'#6c6c6c');
+  }else if(t==='transporter'){
+    base(g,w,'#1c1840','#000010','#2c2c4a','#111111','#444466');
+    const cx=w>>1;R_(g,cx-26,FL-2,52,4,'#000');R_(g,cx-25,FL-2,50,2,'#70a4b2');R_(g,cx-20,FL-5,40,3,'#444466');R_(g,cx-20,FL-5,40,1,'#9ad2e0');
+    for(let i=0;i<9;i++)R_(g,cx-18+i*4,FL-3,2,1,i%2?'#ffffff':'#9ad2e0');
+    R_(g,cx-22,6,2,FL-12,'#6c6c6c');R_(g,cx+20,6,2,FL-12,'#6c6c6c');R_(g,cx-22,6,44,3,'#6c6c6c');R_(g,cx-20,9,40,1,'#9ad2e0');
+    frm(g,8,12,26,18,'#222','#000010');for(let k=0;k<6;k++)R_(g,11+k*4,22-((k*5)%9),2,((k*5)%9)+3,'#9ad284');
+    R_(g,8,32,26,10,'#444466');R_(g,10,34,4,3,'#ff7777');R_(g,16,34,4,3,'#9ad284');R_(g,22,34,4,3,'#ffffaa');
+    R_(g,w-34,10,26,30,'#222');R_(g,w-32,12,22,26,'#000010');for(let k=0;k<4;k++){ell2(g,w-26+((k%2)*10),20+((k>>1)*12),4)}
+  }else if(t==='trophy'){
+    base(g,w,'#352879','#1c1840','#6f4f25','#3a2a10','#b8c76f');
+    for(let i=0;i<3;i++){const x=8+i*((w-24)/3);R_(g,x,28,22,2,'#6f4f25');R_(g,x,29,22,1,'#b8c76f');R_(g,x+7,16,8,6,'#ffffaa');R_(g,x+6,16,2,4,'#ffffaa');R_(g,x+14,16,2,4,'#ffffaa');R_(g,x+9,22,4,6,'#b8c76f');R_(g,x+7,27,8,2,'#6f4f25');R_(g,x+9,17,2,3,'#ffffff')}
+    R_(g,w>>1,8,1,6,'#6c6c6c');R_(g,(w>>1)-8,14,16,4,'#6c6c6c');R_(g,(w>>1)-7,15,14,2,'#9ad284');
+  }else if(t==='zoo'){
+    base(g,w,'#102010','#000000','#2c5a2c','#1a3a1a','#588d43');
+    for(let i=0;i<3;i++){const x=6+i*((w-12)/3),tw=(w-12)/3-6;R_(g,x,6,tw,34,'#000');R_(g,x+1,7,tw-2,32,'#1b3a3a');for(let k=0;k<tw-2;k+=3)R_(g,x+1+k,7,1,32,'#00000033');
+      ell2(g,x+tw/2,24,6);R_(g,x+tw/2-3,22,2,2,'#000');R_(g,x+tw/2+1,22,2,2,'#000');R_(g,x+3,34,tw-6,3,['#9ad284','#cc99ff','#ff9966'][i]);R_(g,x,40,tw,2,'#6c6c6c')}
+  }else if(t==='bridge'){
+    base(g,w,'#000010','#000000','#352879','#1c1840','#6c5eb5');
+    spaceWin(g,10,6,w-20,30,true);
+    for(let i=0;i<3;i++){const x=20+i*((w-50)/3);R_(g,x,34,22,10,'#222');R_(g,x+2,36,18,5,'#70a4b2');R_(g,x+6,40,10,2,'#ffffaa')}
+    R_(g,w-14,24,6,22,'#6c6c6c');R_(g,w-13,25,4,6,'#ff7777');
   }else if(t==='office'){
     base(g,w,'#6c5eb5','#352879','#68372b','#444','#444444');
     frm(g,6,8,30,22,'#6f4f25','#9ad284');R_(g,10,12,22,6,'#70a4b2');R_(g,12,20,18,6,'#588d43');
@@ -2703,6 +2728,7 @@ function costumeFrames(c){
     out[flip?'l':'r'].push(cv)}
   return COSF[c.id]=out;
 }
+function ell2(g,cx,cy,r){for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const d=Math.hypot(i,j);if(d<=r)R_(g,cx+i,cy+j,1,1,d<r*.5?'#ccff99':d<r*.8?'#9ad284':'#588d43')}}
 function wornCostume(){const w=SAVE.costume&&SAVE.costume.wear;const c=COSTUMES.find(q=>q.id===w);return c&&c.id!=='suit'?c:null}
 const THINGS=[];
 (function(){
@@ -2733,6 +2759,10 @@ const THINGS=[];
   add('atrium',r=>r.w>>1,()=>'WALK AMONG THE TREES',()=>toast('THE ATRIUM TREES RUSTLE IN THE AIR VENTS.'));
   add('mall',r=>r.w>>1,()=>'SHOP FOR COSTUMES',scr('mall'));
   add('office',92,()=>'VIEW YOUR GOALS',scr('achv'));
+  add('transporter',r=>r.w>>1,()=>'USE THE SURFACE TRANSPORTER',scr('transporter'));
+  add('trophy',r=>r.w>>1,()=>'LOOK AT THE TROPHIES',scr('trophy'));
+  add('zoo',r=>r.w>>1,()=>'VISIT THE ALIEN ZOO',scr('zoo'));
+  add('bridge',r=>r.w>>1,()=>'LOOK AT THE STAR MAP',scr('starmap'));
 })();
 const TIPS=['THE BANK ONLY PAYS INTEREST WHILE YOU FLY MISSIONS.','SHARES PAY MONEY EVERY MONTH.','EAT, THEN WORK OUT TO GET FIT.','ENGINEERS BUILD THE SPECIAL PARTS.','DRONES FIRE WHEN YOU FIRE.','SELL YOUR SALVAGE AT THE SALVAGE SHOP.'];
 function curDeck(){let b=0,bd=1e9;for(let d=0;d<NDECK;d++){const q=Math.abs(HUB.sp.y-FYd(d));if(q<bd){bd=q;b=d}}return b}
@@ -3124,6 +3154,39 @@ function extraScreen(id,rows,info){
     const parts=[];for(const k in UPG)if(SAVE.up[k])parts.push(UPG[k].n+(UPG[k].max>1?' '+SAVE.up[k]:''));
     L('');L('PARTS BOUGHT: '+(parts.length?parts.length:'NONE'),'#fff');
     return 'INVENTORY';
+  }
+  if(id==='transporter'){
+    const sf=SURF.state(),ready=systemsDone()>=4;
+    L('GREEN GOLD '+sf.green+'   WORLDS CLEARED '+sf.done.filter(v=>v).length+' OF 5','#9ad284');
+    L('BEAM DOWN TO FIVE ALIEN WORLDS AND PLAY THE SPACEWALKER.');
+    L('RUN, BIG JUMPS AND A LASER. YOU CONTROL EVERYTHING.');
+    L('GREEN GOLD IS FOUND ONLY DOWN THERE. FARM AS MUCH AS YOU LIKE.');
+    L('BEAM BACK UP AT ANY TIME. CLEAR ALL FIVE TO WIN A LUXURY SHIP.',ready?G_:'#ff9966');
+    if(!ready)L('NEEDS 4 SYSTEMS CLEARED FIRST. YOU HAVE '+systemsDone()+'.','#ff9966');
+    SURF.WORLDS.forEach((w,i)=>{const un=SURF.unlocked(i),dn=!!sf.done[i];
+      rows.push({n:'WORLD '+(i+1)+': '+w.n,d:un?w.sub:'CLEAR THE WORLD BEFORE IT FIRST',r:dn?'CLEARED':un?'GO':'LOCKED',ok:ready&&un,
+        fn:()=>{HUB.screen=null;SURF.start(i)}})});
+    if(SURF.allDone()&&!sf.reward){L('');L('ALL FIVE WORLDS ARE CLEAR. CHOOSE A LUXURY SHIP:','#ffffaa');
+      for(const i of [8,9,10,11])rows.push({ic:'ship',ix:i,n:'CLAIM THE '+SHIPS[i].n,d:SHIPS[i].d,r:'FREE',ok:true,fn:()=>{if(!SAVE.ships.includes(i))SAVE.ships.push(i);sf.reward=i;toast('YOU WON THE '+SHIPS[i].n+'!');checkUnlocks();save()}})}
+    else if(sf.reward)L('YOUR PRIZE: THE '+SHIPS[sf.reward].n+'. WELL DONE.','#ffffaa');
+    return 'SURFACE TRANSPORTER';
+  }
+  if(id==='zoo'){
+    L('ALIEN SPECIES YOU HAVE MET ON THE FIVE WORLDS.','#9ad284');
+    const sf=SURF.state();let n=0;
+    SURF.WORLDS.forEach((w,i)=>{L('');L(w.n,'#fff');w.en.forEach(e=>{const c=sf.seen[i+'_'+(w.en.indexOf(e))]||0;if(c)n++;L('  '+(c?e.n+'   DEFEATED '+c:'??????'),c?'#9ad284':'#6c6c6c')})});
+    info.splice(1,0,{t:'SPECIES FOUND '+n+' OF 25',c:'#ffffaa'});
+    return 'ALIEN ZOO';
+  }
+  if(id==='trophy'){
+    const sf=SURF.state();
+    L('YOUR TROPHIES','#ffffaa');L('');
+    L('WORLDS CLEARED  '+sf.done.filter(v=>v).length+' OF 5',sf.done.every(v=>v)?'#9ad284':'#bbbbbb');
+    L('ALIENS DEFEATED  '+(sf.kills||0));L('GREEN GOLD  '+sf.green,'#9ad284');L('');
+    L('LUXURY SHIPS OWNED','#fff');
+    for(const i of [8,9,10,11,12])L('  '+SHIPS[i].n+(SAVE.ships.includes(i)?'   OWNED':'   NOT YET'),SAVE.ships.includes(i)?'#9ad284':'#6c6c6c');
+    L('');L('SYSTEMS CLEARED  '+systemsDone()+' OF 10');L('BIGGER SHIP STAGES CLEARED  '+[10,11,12,13,14].filter(i=>(SAVE.prog[i]||0)>=3).length+' OF 5');
+    return 'TROPHY HALL';
   }
   if(id==='shipstats'){
     L(sh.n+'   NEXT MISSION: '+MISSIONS[SAVE.mission].n,'#fff');
@@ -3952,6 +4015,7 @@ function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad3',mus.pad?
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
 function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND EFFECTS OFF':'SOUND EFFECTS ON')}
 function handleKey(k){
+  if(MODE==='surface'&&k!=='m'&&k!=='n'){SURF.key(k);return}
   if(k==='m'){if(!INP.repeat)setMusic(!mus.on);return}
   if(k==='n'&&MODE!=='slots'){if(!INP.repeat)setMute(!mus.mute);return}
   if(MODE==='studio'){if(studioKey(k))return;if(k==='escape'||k==='backspace'||k==='q'){studioStop();MODE='tset';UI.focus=0}return}
@@ -4062,6 +4126,7 @@ document.addEventListener('pointermove',e=>{
 document.addEventListener('pointerup',e=>{if(!MD.on||e.pointerId!==MD.id)return;MD.on=false;if(!MD.moved&&MODE==='hub'&&HUB.screen&&MD.fn)MD.fn()});
 document.addEventListener('pointercancel',e=>{if(MD.on&&e.pointerId===MD.id)MD.on=false});
 cv.addEventListener('pointerdown',e=>{
+  if(MODE==='surface')return;
   if(e.pointerType==='touch')INP.last='touch';else if(e.pointerType==='mouse')INP.last='key';
   if(MODE==='game'){const [gx,gy]=toCanvas(e);if(G&&G.slot&&slotTap(gx,gy))return;const bi=uiAt(gx,gy);if(bi>=0){UI.list[bi].fn();return}if(dragMode()){if(e.pointerType!=='touch')startDrag(e);return}tapAt(gx,gy);return}
   musInit();
@@ -4586,6 +4651,7 @@ function frame(now){
   }else if(MODE==='loot'){lootTick(dt);musVol(lostPage?.5:.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
   else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
+  else if(MODE==='surface'){SURF.tick(dt);musVol(.25);SURF.draw();drawToast(150)}
   else if(MODE==='story'){musVol(.25);drawStory(dt)}
   else if(MODE==='studio'){musVol(.6);drawStudio()}
   const show=MODE==='game',tshow=isTouch&&(MODE==='hub'||MODE==='arcade'),mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display='none';fit()}
@@ -4599,7 +4665,7 @@ requestAnimationFrame(frame);
 /* The game used to write its in-memory save into the slot every 5 seconds from any screen, even from a hidden tab or the title screen.
    With the game open twice (a home-screen icon plus a browser tab, or an old tab) two stale copies overwrote each other, so one slot kept flipping
    between different gold and planet counts. Now only the visible tab, and only while playing, writes; a tab that comes back adopts a newer save. */
-setInterval(()=>{if(MODE==='hub'||MODE==='game'||MODE==='loot'||MODE==='arcade')save()},5000);
+setInterval(()=>{if(MODE==='hub'||MODE==='game'||MODE==='loot'||MODE==='arcade'||MODE==='surface')save()},5000);
 /* auto-update: browsers (iPad Safari especially) keep an old copy of the page. Look at the live page; if its version is newer, reload it once. */
 async function checkForUpdate(cur,force){
   try{
@@ -4622,9 +4688,9 @@ function adoptNewer(){
   if(o&&(o.savedAt||0)>(SAVE.savedAt||0)+50){SAVE=Object.assign(freshSave(),o);finishLoad();syncBuilt();toast('SAVE UPDATED FROM ANOTHER WINDOW')}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){if(MODE==='hub'||MODE==='loot'||MODE==='arcade')save(true)}else adoptNewer();
+  if(document.hidden){if(MODE==='hub'||MODE==='loot'||MODE==='arcade'||MODE==='surface')save(true)}else adoptNewer();
 });
-addEventListener('pagehide',()=>{if(MODE==='hub'||MODE==='loot'||MODE==='arcade')save(true)});
+addEventListener('pagehide',()=>{if(MODE==='hub'||MODE==='loot'||MODE==='arcade'||MODE==='surface')save(true)});
 document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   const sp=+b.dataset.sp;if(speedLocked(sp)){if(MODE==='game'&&G){G.msg=speedLockMsg(sp);G.msgT=2.5}return}
   SPEED=sp;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
@@ -4736,5 +4802,6 @@ window.__g.dev={
 <script src="packs/big.js?v=2.10"></script>
 <script src="packs/bigthemes1.js?v=2.10"></script>
 <script src="packs/bigthemes2.js?v=2.10"></script>
+<script src="surface.js?v=2.14"></script>
 </body>
 </html>
