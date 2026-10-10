@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.99</title>
+<title>Idlyte v3.00</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -208,12 +208,15 @@ const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHI
 /* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
 /* OBJECT SIZE: enemies (not bosses), pick-ups and bullets are drawn smaller around their centres, and their hit boxes shrink to match. Kept on this device. */
 let OBJK=.75;try{const k=parseFloat(localStorage.getItem('idlyte_objk'));if(k>=.5&&k<=1)OBJK=k}catch(e){}
-function setObjK(k){OBJK=k;try{localStorage.setItem('idlyte_objk',String(k))}catch(e){}}
+let OBJEFF=OBJK;   // the size actually used: the object size setting times the zoom (ship size / mouse wheel), so the wheel scales enemies, bullets and power-ups too
+function objEff(){OBJEFF=Math.max(.3,OBJK*(typeof SHIPZ==='number'?SHIPZ:1))}
+function setObjK(k){OBJK=k;objEff();try{localStorage.setItem('idlyte_objk',String(k))}catch(e){}}
 function cycleObjK(){const o=[1,.85,.75,.6],i=o.findIndex(v=>Math.abs(v-OBJK)<.01);setObjK(o[(i+1)%o.length])}
-function objSc(x,y,fn){if(OBJK>=.999){fn();return}ctx.save();ctx.translate(x,y);ctx.scale(OBJK,OBJK);ctx.translate(-x,-y);fn();ctx.restore()}
-function setShipZ(z){SHIPZ=Math.max(.5,Math.min(1,z));try{localStorage.setItem('idlyte_shipz',String(SHIPZ))}catch(e){}if(MODE==='game')SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ)}
+function objSc(x,y,fn){if(OBJEFF>=.999){fn();return}ctx.save();ctx.translate(x,y);ctx.scale(OBJEFF,OBJEFF);ctx.translate(-x,-y);fn();ctx.restore()}
+function setShipZ(z){SHIPZ=Math.max(.5,Math.min(1,z));objEff();try{localStorage.setItem('idlyte_shipz',String(SHIPZ))}catch(e){}if(MODE==='game')SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ)}
 function cycleShipZ(){const o=[1,.9,.8,.7,.6,.5],i=o.findIndex(v=>Math.abs(v-SHIPZ)<.01);setShipZ(o[(i+1)%o.length])}
 let SHIPZ=1;try{const z=parseFloat(localStorage.getItem('idlyte_shipz'));if(z>=.5&&z<=1)SHIPZ=z}catch(e){}   /* mouse wheel in a mission: ship size 50% to 100% (the ship and its hit box) */
+objEff();
 let SHIPSC=1;   /* how much bigger than the standard ship the one being flown is (corvettes and bigger) */
 const SHIP_K=SHIP_W/48,shk=n=>Math.round(n*SHIP_K*SHIPSC);
 /* ramps for the parts that keep their own colours (bright to dark) */
@@ -1096,7 +1099,7 @@ function updateEntities(dt,live){
     if(e.dead)continue;
     for(const b of PB){
       if(b.dead)continue;
-      const ek=(e.type==='boss'||e.type==='mini')?1:OBJK,hm=e.hitTest?e.hitTest(e,e.x+(b.x-e.x)/ek,e.y+(b.y-e.y)/ek):((Math.abs(b.x-e.x)<e.w*ek/2+3&&Math.abs(b.y-e.y)<e.h*ek/2+1)?1:0);
+      const ek=(e.type==='boss'||e.type==='mini')?1:OBJEFF,hm=e.hitTest?e.hitTest(e,e.x+(b.x-e.x)/ek,e.y+(b.y-e.y)/ek):((Math.abs(b.x-e.x)<e.w*ek/2+3&&Math.abs(b.y-e.y)<e.h*ek/2+1)?1:0);
       if(hm>0){
         if(b.wx&&b.hs&&b.hs.has(e))continue;
         if(b.wx&&!e.immune&&window.WX){WX.hit(b,e,hm);if(e.dead)break;continue}
@@ -1111,7 +1114,7 @@ function updateEntities(dt,live){
   E=E.filter(e=>!e.dead&&(e.type==='boss'||e.type==='mini'||(e.x>-40&&e.y>-30&&e.y<H+30)));   // a boss may leave the screen and come back
   if(live&&G.state==='play'){
     for(const e of E){
-      const ek=(e.type==='boss'||e.type==='mini')?1:OBJK;
+      const ek=(e.type==='boss'||e.type==='mini')?1:OBJEFF;
       if(e.touch?e.touch(e,e.x+(P.x-e.x)/ek,e.y+(P.y-e.y)/ek):(Math.abs(e.x-P.x)<e.w*ek/2+shk(12)&&Math.abs(e.y-P.y)<e.h*ek/2+shk(6))){
         if(e.type!=='boss'&&P.inv<=0){e.hp-=3;e.flash=.1;if(e.hp<=0){e.dead=1;killEnemy(e)}}
         hurtPlayer();
@@ -1225,7 +1228,7 @@ function zapReticle(e){
     for(const sx of [-1,1])for(const sy of [-1,1]){ctx.fillRect(sx>0?x+hw-2:x-hw,sy>0?y+hh:y-hh,3,1);ctx.fillRect(sx>0?x+hw:x-hw,sy>0?y+hh-2:y-hh,1,3)}
   }
 }
-function drawEnemy(e){if(e.type!=='boss'&&e.type!=='mini'&&OBJK<.999){objSc(e.x,e.y,()=>drawEnemy0(e));return}drawEnemy0(e)}
+function drawEnemy(e){if(e.type!=='boss'&&e.type!=='mini'&&OBJEFF<.999){objSc(e.x,e.y,()=>drawEnemy0(e));return}drawEnemy0(e)}
 function drawEnemy0(e){
   if(e.type==='mini'){drawMini(e);return}
   let spr;
@@ -1440,7 +1443,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.99';
+const VERSION='3.00';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
