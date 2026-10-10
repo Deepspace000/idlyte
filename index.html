@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.85</title>
+<title>Idlyte v2.86</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1109,7 +1109,12 @@ function updateEntities(dt,live){
       if(k.k==='coin'){const cm=G.stats.coinMul,v=Math.max(1,Math.floor(cm)+(Math.random()<cm%1?1:0));SAVE.coins+=v;SAVE.earned+=v;G.coinsRun+=v;G.score+=10}
       else if(k.k==='token'){SAVE.tokens=(SAVE.tokens||0)+1;G.salv.unshift({t:1.8,name:'AREA TOKEN',txt:'AREA TOKEN +1  ('+SAVE.tokens+' TOTAL)',c:'#70a4b2',ix:3});if(G.salv.length>3)G.salv.pop();save()}
       else if(k.k==='chance'){SAVE.chance=Math.min(5,(SAVE.chance||0)+1);G.salv.unshift({t:1.8,name:'CHANCE ORB',txt:'CHANCE ORB +1  ('+SAVE.chance+' OF 5)',c:'#cc99ff',ix:3});if(G.salv.length>3)G.salv.pop();save()}
-      else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;SAVE.inv[k.id]=(SAVE.inv[k.id]||0)+1;save();G.score+=25;G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop();if(it.v>=90)G.flashT=.3}
+      else if(k.k==='item'){const it=ITEMS.find(q=>q.id===k.id);G.loot[k.id]=(G.loot[k.id]||0)+1;SAVE.inv[k.id]=(SAVE.inv[k.id]||0)+1;save();G.score+=25;
+        /* the first few finds and every rare one get their own sign; after that the common ones are counted up and shown as one sign per 10, so the screen stays clear */
+        G.salvN=(G.salvN||0)+1;
+        if(it.v>=90||G.salvN<=4){G.salv.unshift({t:1.8,name:it.n,c:it.c,v:it.v,ix:ITEMS.indexOf(it)});if(G.salv.length>3)G.salv.pop()}
+        else{G.salvAcc=(G.salvAcc||0)+1;if(G.salvAcc>=10){G.salvAcc=0;G.salv.unshift({t:1.8,name:'SALVAGE',txt:'SALVAGE FOUND: 10 MORE ITEMS  ('+G.salvN+' TOTAL)',c:'#bbbbbb',ix:3});if(G.salv.length>3)G.salv.pop()}}
+        if(it.v>=90)G.flashT=.3}
       else powerup(k.p);
     }
   }
@@ -1409,7 +1414,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.85';
+const VERSION='2.86';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
