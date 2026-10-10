@@ -1416,6 +1416,31 @@ function genLevel(idx){
   /* a signature room reward that cannot be reached is taken out of the secret count */
   for(const c of L.chests.slice()){if(!c.setc)continue;const tx=Math.floor((c.x+7)/TS),ty=Math.floor((c.y+9)/TS);let ok=false;for(let dy=-3;dy<=1&&!ok;dy++)for(let dx=-2;dx<=2;dx++)if(AP.F[(ty+dy)*LW+tx+dx]){ok=true;break}
     if(!ok){L.chests.splice(L.chests.indexOf(c),1);const si=L.secrets.findIndex(q=>q.id===c.sec);if(si>=0){L.secrets.splice(si,1);L.secretTotal=L.secrets.length}L.secretPts=L.secretPts.filter(q=>q.sid!==c.sec)}}
+
+  /* ROCKET PACK BOOSTER: one on each of worlds 2 to 5, in a different kind of place each time; a bonus, never needed to finish */
+  if(idx>=1&&idx<=4){
+    const RB=rng(9300+idx*29),rb=(a,b)=>a+Math.floor(RB()*(b-a+1)),sid=idx+'_boost';
+    const farOK=(tx,ty)=>{for(const sp of L.shipPieces)if(Math.hypot(sp.x/TS-tx,sp.y/TS-ty)<16)return false;for(const c of L.chests)if(Math.hypot((c.x+7)/TS-tx,(c.y+5)/TS-ty)<7)return false;for(const o of (L.ia||[]))if(Math.hypot(o.x/TS-tx,o.y/TS-ty)<7)return false;return Math.hypot(L.start.x/TS-tx,L.start.y/TS-ty)>40&&Math.hypot(L.exit.x/TS-tx,L.exit.y/TS-ty)>25};
+    const clear=(tx,ty,w,h)=>{for(let y=ty-h+1;y<=ty;y++)for(let x=tx-(w>>1);x<=tx+(w>>1);x++)if(G(x,y)!==0)return false;return true};
+    let cells=null;const getCells=()=>{if(cells)return cells;cells=[];const A0=analyzeLevel(L,{noUps:true});for(let y=L.skyRow+20;y<LH-12;y+=1)for(let x=14;x<LW-14;x++){const q=y*LW+x;if(A0.F[q]&&A0.st[q]&&G(x,y)===0&&G(x,y+1)===1&&farOK(x,y))cells.push([x,y])}return cells};
+    const pick=(f,sortf)=>{const c=getCells().filter(f);if(!c.length)return null;if(sortf)c.sort(sortf);else return c[Math.floor(RB()*c.length)];return c[0]};
+    const reach=(tx,ty)=>{const A2=analyzeLevel(L,{pack:true});for(let dy=-3;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(A2.F[(ty+dy)*LW+tx+dx])return true;return false};
+    let spot=null,how='';
+    const ledge=(tx,ty,w)=>{const sv_=[];for(let x=tx-(w>>1);x<=tx+(w>>1);x++){sv_.push([x,ty+1,G(x,ty+1)]);S(x,ty+1,x===tx-(w>>1)||x===tx+(w>>1)?1:2)}return sv_};
+    const undo=(sv_)=>{for(const [x,y,t] of sv_)S(x,y,t)};
+    const tryLedge=(tx,ty,w)=>{if(ty<6||!clear(tx,ty,w+2,6))return false;ledge(tx,ty,w);spot=[tx,ty];return true};
+    if(idx===1){/* a ledge in the sky above the highest crest */
+      const cr=[];for(let x=60;x<LW-60;x+=3)if(L.surf[x]>=0)cr.push([x,L.surf[x]]);cr.sort((a,b)=>a[1]-b[1]);
+      for(const [x,y] of cr.slice(0,14)){if(!farOK(x,y))continue;for(const h of [13,11,15]){if(tryLedge(x,y-h,5)){how='sky';break}}if(spot)break}}
+    else if(idx===3){/* up a tall cavern, on a ledge near the ceiling */
+      const tall=getCells().filter(c=>clear(c[0],c[1]-1,5,13));for(let i=tall.length-1;i>0;i--){const j=Math.floor(RB()*(i+1));[tall[i],tall[j]]=[tall[j],tall[i]]}
+      for(const [x,y] of tall.slice(0,10)){if(tryLedge(x,y-10,5)){how='tall';break}}}
+    else if(idx===4){/* the far end of the world, deep */
+      const c=pick(()=>true,(a,b)=>(Math.abs(b[0]-L.start.x/TS)+b[1]*.5)-(Math.abs(a[0]-L.start.x/TS)+a[1]*.5));if(c){spot=c;how='far'}}
+    if(!spot){/* idx 2 and any fallback: the deepest dead end reachable on foot */
+      const c=pick(()=>true,(a,b)=>b[1]-a[1]);if(c){spot=c;how=how||'deep'}}
+    if(spot){const [tx,ty]=spot;L.boost={x:tx*TS+4,y:(ty+1)*TS,sid,how,got:false};L.secrets.push({id:sid,name:'ROCKET BOOSTER'});L.secretTotal=L.secrets.length;L.secretPts.push({x:tx*TS+4,y:ty*TS,sid});L.glows.push({x:tx-2,y:ty-5,w:4,h:6,c:'#ffffcc',hint:1})}
+  }
   return L;
 }
 
@@ -1815,11 +1840,12 @@ function bakeChunk(L,idx,ci,cj){
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
 window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
-function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
+function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
   return s}
 SURF.state=sv;
 const PIECE_NAMES=['HULL','ENGINE','REACTOR','WINGS','COCKPIT','WEAPON CORE'];SURF.PIECE_NAMES=PIECE_NAMES;
 SURF.pieceIds=i=>i===4?[4,5]:[i];
+SURF.boosters=()=>{const b=sv().boost;let n=0;for(let i=1;i<5;i++)if(b[i])n++;return n};
 SURF.piecesFound=()=>{const p=sv().pieces;let n=0;for(let i=0;i<6;i++)if(p[i])n++;return n};
 SURF.pieceStatus=i=>{const p=sv().pieces,ids=SURF.pieceIds(i),f=ids.filter(k=>p[k]).length;return ids.length===1?(f?'PIECE: FOUND':'PIECE: NOT FOUND YET'):'PIECES: '+f+' OF 2 FOUND'};
 SURF.rewardReady=()=>SURF.allDone()&&SURF.piecesFound()>=6;
@@ -2040,7 +2066,7 @@ SURF.tick=function(dt){
     p.thrust=false;
     if(p.on||p.lad){p.jarm=false;if(p.fuel==null)p.fuel=1;p.fuel=Math.min(1,p.fuel+dt*1.4)}
     else{if(!I.jump)p.jarm=true;if(p.fuel==null)p.fuel=1;
-      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed&&!p.inW){p.thrust=true;p.vy-=900*dt;if(p.vy<-105)p.vy=-105;p.fuel=Math.max(0,p.fuel-dt*.5/(1+.4*(s.shop.fuel||0)+(s.perk[3]?.4:0)));
+      if(s.jet&&I.jump&&p.jarm&&p.fuel>0&&!beamed&&!p.inW){p.thrust=true;p.vy-=900*dt;if(p.vy<-105)p.vy=-105;p.fuel=Math.max(0,p.fuel-dt*.5/((1+.4*(s.shop.fuel||0)+(s.perk[3]?.4:0))*(1+.15*SURF.boosters())));
         p.jt=(p.jt||0)-dt;if(p.jt<=0){p.jt=.07;try{sfxTone(150,80,.07,'sawtooth',.012,{att:.001})}catch(e){}}
         for(let k=0;k<2;k++)SURF.fx.push({x:p.x+p.w/2-p.face*4+rnd(-1,1),y:p.y+p.h-2,vx:rnd(-14,14)-p.face*10,vy:rnd(70,130),life:rnd(.18,.4),c:[WH,YL,OR,OR,RD][(Math.random()*5)|0],s:k?1:2})}}
     /* move x with step-up */
@@ -2080,6 +2106,7 @@ SURF.tick=function(dt){
     if(I.fire&&p.fire<=0&&!beamed){p.fire=s.perk[2]?.15:.2;const up=I.up&&!I.l&&!I.r?1:0,dir=p.face;
       SURF.bul.push({x:p.x+p.w/2+dir*8,y:p.y+(up?2:7),vx:up?0:dir*260,vy:up?-260:0,life:.7,d:1+(s.shop.dmg||0)*.5});try{sfxLaser()}catch(e){}}
     /* checkpoints and chests and coins */
+    {const bo=L.boost;if(bo&&!s.boost[SURF.idx]&&Math.abs(p.x+5-bo.x)<12&&Math.abs(p.y+8-bo.y+8)<16){s.boost[SURF.idx]=1;const n=SURF.boosters();foundSecret(bo.sid,'ROCKET BOOSTER');SURF.banner={t:6,lines:['ROCKET BOOSTER FOUND!','FLIGHT TIME +15%.','BOOSTERS: '+n+' OF 4.']};try{sfxTone(300,1500,.8,'triangle',.06,{att:.005});setTimeout(()=>{try{sfxTone(700,1900,.45,'sine',.05,{att:.005})}catch(e){}},240)}catch(e){}shakeS=.2;try{save()}catch(e){}}}
     for(const sp of (L.shipPieces||[]))if(!s.pieces[sp.id]&&Math.abs(p.x+5-sp.x)<14&&Math.abs(p.y+8-sp.y)<16){s.pieces[sp.id]=1;const n=SURF.piecesFound();
       SURF.banner={t:7,lines:['SHIP PIECE FOUND: '+PIECE_NAMES[sp.id],'('+n+' OF 6)',n>=6?'ALL SIX PIECES FOUND! FINISH ALL FIVE WORLDS TO CLAIM THE SHIP.':'KEEP LOOKING. THE REST ARE HIDDEN IN THE OTHER WORLDS.']};
       try{sfxTone(400,1600,.7,'triangle',.06,{att:.005});setTimeout(()=>{try{sfxTone(800,1800,.4,'sine',.05,{att:.005})}catch(e){}},220)}catch(e){}shakeS=.2;
@@ -2451,7 +2478,7 @@ function drawModal(){const m=SURF.modal;if(!m)return;SURF.mh=[];const s=sv(),A=S
 function drawPause(m){const s=sv(),L=SURF.L,idx=SURF.idx,Wd=SURF.W,A=SURF.A;panelBox(8,6,VW-16,VH-12,'PAUSED:  '+Wd.n);
   const tabs=['PROGRESS','LORE','CREATURES','MAP'];tabs.forEach((t,i)=>{const x=14+i*76,foc=m.tab===i;ctx.fillStyle=foc?(m.focus===0?'#6c5eb5':'#4a3f8a'):'#1c1840';ctx.fillRect(x,18,72,11);textC2(t,x+36,20,foc?WH:'#8888aa');mhit(x,18,72,11,()=>{m.tab=i;m.focus=0})});
   const T=trk(),y0=34;
-  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
+  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['ROCKET BOOSTERS',SURF.boosters()+' OF 4'],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
     rows.forEach((r,i)=>{text(r[0],20,y0+i*11,'#bbbbdd',1);textR(r[1],VW-20,y0+i*11,i<3&&(i===0?T.sec>=T.tot:i===1?T.lr>=T.lt:T.met>=T.mt)?GREEN[3]:WH,1)});
     const yy=y0+rows.length*11+4;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
     text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: B',20,yy+38,'#8888aa',1);text('A SECRET IS A HIDDEN VAULT, PUZZLE OR TREASURE.',20,yy+48,'#8888aa',1)}
@@ -2849,6 +2876,11 @@ SURF.draw=function(){
     if(open&&!SURF.done&&Math.abs(p.x-e.x)<24){textC2('PRESS ENTER OR TAP THE BEACON',X+9,Y-38,YL)}}
   /* chests */
   for(const c of L.chests){if(c.gone||c.x<cam.x-16||c.x>cam.x+VW+16||c.y<cam.y-12||c.y>cam.y+VH+12)continue;const im=A.chest[c.open?1:0],cw_=Math.round(im.width*1.3),ch_=Math.round(im.height*1.3);ctx.drawImage(im,Math.floor(c.x-cam.x+7-cw_/2),Math.floor(c.y-cam.y+11-ch_),cw_,ch_)}
+  /* the rocket booster: a small fuel cell that glows softly */
+  {const bo=L.boost;if(bo&&!sv().boost[SURF.idx]){const X=Math.round(bo.x-cam.x),Y=Math.round(bo.y-cam.y);if(X>-30&&X<VW+30&&Y>-30&&Y<VH+30){const pu=.5+.5*Math.sin(L.tick*1.6),col=['','#ffaa33','#44ddff','#ff5522','#ff66dd'][SURF.idx],bob=Math.round(Math.sin(L.tick*1.8));
+    ctx.globalAlpha=.12+.1*pu;ctx.fillStyle=col;ctx.beginPath();ctx.arc(X,Y-8+bob,15+pu*3,0,TAU);ctx.fill();ctx.globalAlpha=.18+.12*pu;ctx.beginPath();ctx.arc(X,Y-8+bob,9,0,TAU);ctx.fill();ctx.globalAlpha=1;
+    ctx.fillStyle=K;ctx.fillRect(X-5,Y-17+bob,10,15);ctx.fillStyle='#8a94a8';ctx.fillRect(X-4,Y-16+bob,8,13);ctx.fillStyle='#d0d8e8';ctx.fillRect(X-4,Y-16+bob,2,13);ctx.fillStyle=col;ctx.fillRect(X-4,Y-12+bob,8,3);ctx.fillStyle=WH;ctx.fillRect(X-3,Y-11+bob,2,1);ctx.fillStyle='#5a6478';ctx.fillRect(X-3,Y-3+bob,6,2);ctx.fillStyle=col;ctx.globalAlpha=.6+.3*pu;ctx.fillRect(X-1,Y-1+bob,2,2);ctx.globalAlpha=1;
+    ctx.fillStyle=WH;for(let k=0;k<3;k++){const u=((L.tick*.5+k/3)%1);ctx.globalAlpha=(1-u)*.7;ctx.fillRect(X-6+k*5,Math.round(Y-8-u*16+bob),1,1)}ctx.globalAlpha=1}}}
   /* ship pieces glow where they lie */
   for(const sp of (L.shipPieces||[])){if(sv().pieces[sp.id])continue;const X=Math.floor(sp.x-cam.x),Y=Math.floor(sp.y-cam.y);if(X<-30||X>VW+30||Y<-30||Y>VH+30)continue;const ic=A.pieceIcons[sp.id],pu=.5+.5*Math.sin(L.tick*3.2),bob=Math.round(Math.sin(L.tick*2.4)*1.5);
     ctx.globalAlpha=.1+.07*pu;ctx.fillStyle='#ffffcc';ctx.fillRect(X-2,Y-60,4,60);ctx.globalAlpha=.08+.06*pu;ctx.fillRect(X-5,Y-60,10,60);
@@ -2912,10 +2944,12 @@ function hud(){
   if(SURF.msg&&SURF.msg[1]>0){const mw=textW(SURF.msg[0],1)+10;ctx.fillStyle='#000000bb';ctx.fillRect(Math.round((VW-mw)/2),37,mw,11);textC(SURF.msg[0],40,YL,1)}
   if(SURF.intro&&!SURF.cut){const it=SURF.intro,A=SURF.A,ids=SURF.pieceIds(SURF.idx),f=ids.filter(k=>s.pieces[k]).length,n=SURF.piecesFound();
     const wrap=(t,w)=>{const o=[];let cur='';for(const wd of t.split(' ')){if((cur+' '+wd).trim().length>w){o.push(cur);cur=wd}else cur=(cur+' '+wd).trim()}if(cur)o.push(cur);return o};
+    const bst=SURF.idx>=1&&SURF.L.boost?(s.boost[SURF.idx]?'A ROCKET BOOSTER WAS HIDDEN HERE. ALREADY FOUND.':'A ROCKET BOOSTER IS HIDDEN HERE. NOT FOUND YET.'):'';
     const hidden=ids.length===1?'ONE PIECE IS HIDDEN IN THIS LEVEL.':'TWO PIECES ARE HIDDEN IN THIS LEVEL.';
     const status=ids.length===1?(f?'THE PIECE FROM THIS LEVEL IS ALREADY FOUND.':'IT IS NOT FOUND YET.'):(f===2?'BOTH ARE ALREADY FOUND.':f===1?'ONE OF THEM IS FOUND. ONE IS STILL WAITING.':'NEITHER IS FOUND YET. THE SECOND IS THE HARDEST HIDING PLACE OF ALL.');
     let lines=[];if(it.first&&SURF.idx===0)lines=lines.concat(wrap('SIX PIECES OF A LUXURY SPACESHIP ARE HIDDEN IN THE SURFACE WORLDS. FIND ALL SIX TO WIN THE SHIP.',58),['']);
     lines=lines.concat(wrap('SHIP PIECES FOUND: '+n+' OF 6. '+hidden+' '+status,58));
+    if(bst)lines=lines.concat([''],wrap(bst,58));
     lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS E TO USE THINGS. PRESS B FOR THE MENU AND MAP.',58));
     const h=lines.length*9+50,y0=Math.max(18,Math.round((VH-h)/2)-8),al=Math.min(1,it.t*3,(9-it.t)*2);
     ctx.globalAlpha=.9*al;ctx.fillStyle='#05031a';ctx.fillRect(16,y0,VW-32,h);ctx.globalAlpha=al;ctx.fillStyle=YL;ctx.fillRect(16,y0,VW-32,1);ctx.fillRect(16,y0+h-1,VW-32,1);ctx.fillStyle='#352879';ctx.fillRect(16,y0+1,VW-32,9);
@@ -2929,7 +2963,7 @@ function hud(){
     if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('MENU AND BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
     else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP   Y USE   X, B OR RB FIRE   START MENU   BACK STUCK',VH-17,'#9ad2e0',1)}}
   else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: X, R OR MOUSE   USE: E   MENU: B',VH-9,'#bbbbdd',1)}
-  if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78,9);text('ROCKET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
+  if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78+(SURF.boosters()?30:0),9);text('ROCKET',6,17,YL,1);if(SURF.boosters())text('X'+(1+.15*SURF.boosters()).toFixed(2),84,17,GREEN[3],1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
   const btn=(id,x,y,w,h,label)=>{tb.push({id,x,y,w,h});ctx.fillStyle=SURF.touch[id]?'#ffffff88':'#00000066';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffffff55';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);textC2(label,x+w/2,y+h/2-2,WH)};
