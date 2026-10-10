@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.93</title>
+<title>Idlyte v2.94</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1390,8 +1390,8 @@ function drawHud(){
   uiBtn(W-37,30,32,11,()=>{G.menuOpen=!G.menuOpen;G.mf=0;G.leaveAt=0},(f)=>{const o=!!G.menuOpen;ctx.fillStyle=o?'#4d40a8':f?'#6c5eb5':'#352879';ctx.fillRect(W-37,30,32,11);ctx.fillStyle='#9a8fe0';ctx.fillRect(W-37,30,32,1);ctx.fillRect(W-37,30,1,11);ctx.fillStyle='#1c1840';ctx.fillRect(W-37,40,32,1);ctx.fillRect(W-6,30,1,11);textC2(o?'CLOSE':'MENU',W-37+16,33,o?'#ffffff':'#bbbbbb')});
   drawBossBar();drawSpeedTiles();drawChanceMeter();drawZapHud();if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if(!G.slot&&G.readyT>0&&(G.tap||0)<.3){if(blinkAt(G.t,5))text('READY: TAP AGAIN',66,BOT-9,'#9ad284',1)}else if(!G.slot&&G.tapDbg&&tapNow()-G.tapDbgT<2.5&&!((G.tapStreak||0)>=2))text(G.tapDbg,66,BOT-9,'#bbbbbb',1);if(!G.slot&&(G.tapStreak||0)>=2&&tapNow()-(G.tapLast||0)<Math.max(1.5,1.8*(G.tapIv||0)))text('STEADY X'+G.tapStreak,66,BOT-9,'#9ad284',1);if((G.tap||0)>=.99&&blinkAt(G.t,6))text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7||G.tapFlash>0?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80&&!(G.zap>0))textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
-  /* salvage signs: small, see-through and tucked in the top-left corner so they never cover the action */
-  G.salv.forEach((q,i)=>{const txt=(q.txt||('FOUND: '+q.name)).replace('SALVAGE FOUND: ','FOUND: '),w=textW(txt,1)+6,x=3,y=32+i*10;
+  /* salvage signs: small, see-through and tucked beside the weapon box (top left, to its right) so they never cover the action or the power-ups */
+  G.salv.forEach((q,i)=>{const txt=(q.txt||('FOUND: '+q.name)).replace('SALVAGE FOUND: ','FOUND: '),w=textW(txt,1)+6,x=60,y=28+i*10;
     ctx.save();ctx.globalAlpha=Math.min(.5,q.t*1.6);ctx.fillStyle='#000';ctx.fillRect(x,y,w,9);ctx.fillStyle=q.c;ctx.fillRect(x,y,1,9);ctx.globalAlpha=Math.min(.75,q.t*2);text(txt,x+3,y+2,'#ffffff',1);ctx.restore()});
   /* the one place a full screen flash is drawn. REDUCED: at most 2 a second, each about a tenth of a second and fading, never brighter than 25% white */
   if(G.flashT>0){
@@ -1429,7 +1429,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.93';
+const VERSION='2.94';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
