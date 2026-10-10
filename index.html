@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.88</title>
+<title>Idlyte v2.91</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -593,7 +593,7 @@ function speedLocked(sp){return systemsDone()<SPEED_NEED[sp]||!!(SPEED_BUY[sp]&&
 function speedLockMsg(sp){const n=SPEED_NEED[sp];return systemsDone()<n?'X'+sp+' LOCKED. CLEAR '+n+' SYSTEMS FIRST':'X'+sp+' LOCKED. BUY IT IN THE DESIGN SHOP FOR '+SPEED_BUY[sp]+' GOLD'}
 function systemsDone(){let n=0;for(let i=0;i<10;i++)if((SAVE.prog[i]||0)>=3)n++;return n}
 function maxLevel(i){return Math.min(3,(SAVE.prog[i]||0)+1)}
-function setPlanet(i){SAVE.planet=i;SAVE.level=maxLevel(i)}
+function setPlanet(i,lv){SAVE.planet=i;SAVE.level=lv?Math.min(lv,maxLevel(i)):maxLevel(i)}   // lv: the level to fly. Choosing a planet never unlocks anything
 function refreshSpeedBtns(){document.querySelectorAll('#bar button').forEach(b=>{const sp=+b.dataset.sp,lock=speedLocked(sp);b.classList.toggle('locked',lock);b.textContent=(sp===1?'SPEED ':'')+'X'+sp+(lock?' LOCKED':'')})}
 const PLANETS=[
  {n:'OPEN SPACE',pow:0,diff:0,gold:1,loot:0,d:'EMPTY SPACE. EASY ENEMIES.',every:0},
@@ -612,11 +612,16 @@ const PLANETS=[
  {n:'THE DYSON FORGE',pow:2700,diff:13,gold:38,loot:.29,hit:6,big:1,d:'BIGGER SHIP STAGE. A STAR CAGED IN MACHINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'EVENT HORIZON',pow:3600,diff:14,gold:52,loot:.31,hit:8,big:1,d:'BIGGER SHIP STAGE. THE EDGE OF A BLACK HOLE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
- {n:'ION STORM BELT',pow:900,flat:[1100,1210,1331],hard:1.83,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'SPORE CLOUD',pow:1300,flat:[1730, 1903, 2093],hard:2,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'MIRROR MAZE',pow:1550,flat:[2060, 2266, 2493],hard:2,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'DEAD STAR YARD',pow:1850,flat:[2460, 2706, 2977],hard:2,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'THE HIVE QUEEN',pow:2150,flat:[2860, 3146, 3461],hard:2,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]}];
+ {n:'ION STORM BELT',pow:900,flat:[1100,1210,1331],hard:3,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'SPORE CLOUD',pow:1300,flat:[1730, 1903, 2093],hard:3.4,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'MIRROR MAZE',pow:1550,flat:[2060, 2266, 2493],hard:3.4,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'DEAD STAR YARD',pow:1850,flat:[2460, 2706, 2977],hard:3.4,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'THE HIVE QUEEN',pow:2150,flat:[2860, 3146, 3461],hard:3.4,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'THE CRYSTAL CHOIR',pow:6000,diff:16,gold:80,loot:0.35,hit:12,big:1,d:'BIGGER SHIP STAGE. A SINGING REEF OF LIVING CRYSTAL.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE CLOCKWORK ABYSS',pow:7500,diff:17,gold:95,loot:0.37,hit:14,big:1,d:'BIGGER SHIP STAGE. A MOON OF GIANT GEARS AND PISTONS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE VOID GARDEN',pow:9500,diff:18,gold:115,loot:0.39,hit:16,big:1,d:'BIGGER SHIP STAGE. A WRECK OVERGROWN WITH ALIEN VINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE GHOST FLEET',pow:12000,diff:19,gold:140,loot:0.41,hit:18,big:1,d:'BIGGER SHIP STAGE. A GRAVEYARD OF SPECTRAL WARSHIPS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
+ {n:'THE LAST GATE',pow:15000,diff:20,gold:170,loot:0.43,hit:20,big:1,d:'BIGGER SHIP STAGE. THE ANCIENT GATE. THE FINAL STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]}];
 const THEMES=[
  {cl:['#000000','#352879','#6f3d86'],pl:['#000000','#352879','#6f3d86','#9a6759','#b8c76f']},
  {cl:['#000000','#2a2a2a','#444444'],pl:['#000000','#444444','#6c6c6c','#9a6759','#bbbbbb']},
@@ -628,12 +633,21 @@ const THEMES=[
  {cl:['#000000','#68372b','#b8c76f'],pl:['#000000','#68372b','#9a6759','#b8c76f','#ffffaa']},
  {cl:['#000000','#1c1840','#6f3d86'],pl:['#000000','#1c1840','#6f3d86','#cc99ff','#ffffff']}];
 THEMES.push({cl:['#000000','#1c0808','#9a3a3a'],pl:['#000000','#68372b','#9a3a3a','#ff9966','#ffffaa']},
- {cl:['#000000','#0a0630','#6c5eb5'],pl:['#000000','#1c1840','#6c5eb5','#70a4b2','#ffffaa']},{cl:['#000000','#0a2010','#588d43'],pl:['#000000','#2c5a2c','#588d43','#ccff99','#ffffaa']},{cl:['#000000','#1c2440','#70a4b2'],pl:['#000000','#6c6c6c','#bbbbbb','#9ad2e0','#ffffff']},{cl:['#000000','#1c1c1c','#6c6c6c'],pl:['#000000','#444444','#9a3a3a','#ffffaa','#ffffff']},{cl:['#000000','#3a0a38','#cc44cc'],pl:['#000000','#3a0a38','#8a3aa6','#ff77ff','#ffffaa']},
  {cl:['#000000','#1c1008','#68372b'],pl:['#000000','#1c1008','#68372b','#9a6759','#d8a878']},
  {cl:['#000000','#0a0630','#cc44cc'],pl:['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff']},
  {cl:['#000000','#2a1500','#ff9966'],pl:['#000000','#68372b','#ff9966','#ffffaa','#ffffff']},
  {cl:['#000000','#05021a','#6c5eb5'],pl:['#000000','#05021a','#352879','#cc99ff','#ffffff']},
- {cl:['#000000','#1c0808','#ff7777'],pl:['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa']});
+ {cl:['#000000','#1c0808','#ff7777'],pl:['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa']},
+ {cl:['#000000','#0a0630','#6c5eb5'],pl:['#000000','#1c1840','#6c5eb5','#70a4b2','#ffffaa']},
+ {cl:['#000000','#0a2010','#588d43'],pl:['#000000','#2c5a2c','#588d43','#ccff99','#ffffaa']},
+ {cl:['#000000','#1c2440','#70a4b2'],pl:['#000000','#6c6c6c','#bbbbbb','#9ad2e0','#ffffff']},
+ {cl:['#000000','#1c1c1c','#6c6c6c'],pl:['#000000','#444444','#9a3a3a','#ffffaa','#ffffff']},
+ {cl:['#000000','#3a0a38','#cc44cc'],pl:['#000000','#3a0a38','#8a3aa6','#ff77ff','#ffffaa']},
+ {cl:['#000000','#0a1030','#5a4ac0'],pl:['#000000','#1c1450','#5a4ac0','#a6e6ff','#ffffff']},
+ {cl:['#000000','#2a1808','#8a6a28'],pl:['#000000','#2a1808','#8a6a28','#e0b050','#ffeeaa']},
+ {cl:['#000000','#0a2a1c','#2c8a4c'],pl:['#000000','#0a2a1c','#2c8a4c','#ff77cc','#ffffaa']},
+ {cl:['#000000','#102a30','#4a8a9a'],pl:['#000000','#102a30','#4a8a9a','#bff0e8','#ffffff']},
+ {cl:['#000000','#1a1020','#8a6a20'],pl:['#000000','#1a1020','#8a6a20','#ffd866','#ffffff']});
 const THC={};
 function mkCloud(seed,cols){
   let s=seed;const rnd=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
@@ -662,14 +676,15 @@ function drawPowerMeter(x,y){
 /* the bigger ship stages: the first opens when the Burning City is unlocked, and every one of them needs a luxury big ship */
 const isLux=s=>!!s&&s.price>=2e7;
 function ownsLux(){return (SAVE.ships||[]).some(i=>isLux(SHIPS[i]))}
-function prevOk(i){return i===0||(i===10?planetOpen(9):i===15?(SAVE.prog[9]||0)>=3:(SAVE.prog[i-1]||0)>=3)}
+function prevI(i){return i===10||i===15?9:i===20?14:i-1}   // the stage that must be cleared first: the Swarm opens after the Burning City, the Deep Beyond after the Armada
+function prevOk(i){return i===0||(i===10?planetOpen(9):(SAVE.prog[prevI(i)]||0)>=3)}
 function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
 function surfReq(k){
   const sf=SURF.state(),tr=roomById('transporter'),built=!!(tr&&tr.built),sys=systemsDone()>=4,prev=k===0||!!sf.done[k-1],done=!!sf.done[k];
   const need=!built?'THE SURFACE TRANSPORTER. BUY IT IN THE BUILD MENU':!sys?'4 SYSTEMS CLEARED. YOU HAVE '+systemsDone():!prev?'CLEAR '+SURF.WORLDS[k-1].n+' FIRST':'NOTHING MORE. USE THE TRANSPORTER';
   return {built,done,ok:built&&sys&&prev,need,msg:'LOCKED. NEEDS '+need}}
-function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':i===15?'LOCKED. BEAT THE BURNING CITY BOSS FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
+function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':i===15?'LOCKED. BEAT THE BURNING CITY BOSS FIRST':'LOCKED. CLEAR '+PLANETS[prevI(i)].n+' FIRST';
   if(p.big&&!ownsLux())return 'LOCKED. YOU NEED A LUXURY SHIP FROM THE LUXURY SHIP SHOP';return 'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+shipPower()+')'}
 function upCost(u,l){const f=u.from||99;return Math.round(u.base*Math.pow(u.mul,Math.min(l,f))*Math.pow(u.soft||u.mul,Math.max(0,l-f))/5)*5}   // levels past 'from' grow by 'soft' instead of 'mul'
 function upSpent(k){const u=UPG[k],l=SAVE.up[k]||0;let t=0;for(let j=0;j<l;j++)t+=upCost(u,j);return t}
@@ -780,7 +795,7 @@ function newRun(){
 G=null;newRun(false);
 function loopScale(){return (1+G.loop*.45)*((PLANETS[G.planet||0]||{}).hard||1)}   // 'hard' makes a whole stage tougher: enemies, mini bosses and bosses
 /* ordinary enemies are tougher from the Asteroid Belt on (x1.25), the Ice Moon (x1.6) and from the Lava World on (x2). Bosses and mini bosses keep loopScale */
-const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,9,9.8,10.5,12,14,16,9.4,10,10.8,11.6,12.5];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
+const ENEMY_MUL=[1,1.25,1.6,2,3,4.6,5.3,6,6.8,9,9.8,10.5,12,14,16,9.4,10,10.8,11.6,12.5,18,20,22.5,25,28.5];   // ordinary enemy toughness by system: the Gas Giant is 3x and it keeps climbing
 function enemyScale(){return loopScale()*ENEMY_MUL[Math.min(ENEMY_MUL.length-1,G.planet||0)]}
 
 /* ===== salvage drops and option drones ===== */
@@ -815,7 +830,7 @@ function spawn(o){
 /* boss health by level; Open Space level 2 was too easy, so its boss is tougher */
 function bossMul(){return (G.level>=3?1.3:1)*(G.planet===0&&G.level===2?1.45:1)}
 /* ===== mini boss: halfway through every level, a double size elite built from the planet's own enemy art ===== */
-const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR'];
+const MINI_KEY=['pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod','ringR','pod'];
 function spawnMini(){
   const A=pk(),M=A&&A.mini,k=MINI_KEY[G.planet||0],hp=26*loopScale()*(G.level>=3?1.3:1)*((M&&M.hp)||1);
   const e={type:'mini',fr:k,x:W+30,y:100,vx:-55,vy:0,w:M?M.w:36,h:M?M.h:26,hp,mhp:hp,pts:1500,t:0,flash:0,shootT:1.5,ringT:3.5,in:true,pkMini:!!M};
@@ -1375,10 +1390,9 @@ function drawHud(){
   uiBtn(W-37,30,32,11,()=>{G.menuOpen=!G.menuOpen;G.mf=0;G.leaveAt=0},(f)=>{const o=!!G.menuOpen;ctx.fillStyle=o?'#4d40a8':f?'#6c5eb5':'#352879';ctx.fillRect(W-37,30,32,11);ctx.fillStyle='#9a8fe0';ctx.fillRect(W-37,30,32,1);ctx.fillRect(W-37,30,1,11);ctx.fillStyle='#1c1840';ctx.fillRect(W-37,40,32,1);ctx.fillRect(W-6,30,1,11);textC2(o?'CLOSE':'MENU',W-37+16,33,o?'#ffffff':'#bbbbbb')});
   drawBossBar();drawSpeedTiles();drawChanceMeter();drawZapHud();if(G.slot)drawSlot();text('TAP',4,BOT-9,'#bbbbbb',1);if(!G.slot&&G.readyT>0&&(G.tap||0)<.3){if(blinkAt(G.t,5))text('READY: TAP AGAIN',66,BOT-9,'#9ad284',1)}else if(!G.slot&&G.tapDbg&&tapNow()-G.tapDbgT<2.5&&!((G.tapStreak||0)>=2))text(G.tapDbg,66,BOT-9,'#bbbbbb',1);if(!G.slot&&(G.tapStreak||0)>=2&&tapNow()-(G.tapLast||0)<Math.max(1.5,1.8*(G.tapIv||0)))text('STEADY X'+G.tapStreak,66,BOT-9,'#9ad284',1);if((G.tap||0)>=.99&&blinkAt(G.t,6))text('FULL',66,BOT-9,'#ffffff',1);ctx.fillStyle='#000';ctx.fillRect(20,BOT-10,42,6);ctx.fillStyle=(G.tap||0)>.7||G.tapFlash>0?'#ffffff':'#70a4b2';ctx.fillRect(21,BOT-9,Math.round(40*(G.tap||0)),4);
   if(G.t>3.5&&G.t<10&&(SAVE.taps||0)<80&&!(G.zap>0))textC('TAP THE SCREEN TO FIRE FASTER',BOT-24,'#ffffff',1);
-  G.salv.forEach((q,i)=>{const age=1.8-q.t,fl=age<1.2&&blinkAt(age,14)===0,txt=q.txt||('SALVAGE FOUND: '+q.name),w=textW(txt,1)+18,x=((W-w)/2)|0,y=32+i*14;
-    if(q.t<.3&&blinkAt(q.t,20))return;
-    ctx.fillStyle=fl?'#ffffff':q.c;ctx.fillRect(x-1,y-1,w+2,13);ctx.fillStyle=fl?q.c:'#000';ctx.fillRect(x,y,w,11);
-    ctx.drawImage(SPR.crate[q.ix],x+2,y+2);text(txt,x+11,y+3,fl?'#000':'#fff',1)});
+  /* salvage signs: small, see-through and tucked in the top-left corner so they never cover the action */
+  G.salv.forEach((q,i)=>{const txt=(q.txt||('FOUND: '+q.name)).replace('SALVAGE FOUND: ','FOUND: '),w=textW(txt,1)+6,x=3,y=32+i*10;
+    ctx.save();ctx.globalAlpha=Math.min(.5,q.t*1.6);ctx.fillStyle='#000';ctx.fillRect(x,y,w,9);ctx.fillStyle=q.c;ctx.fillRect(x,y,1,9);ctx.globalAlpha=Math.min(.75,q.t*2);text(txt,x+3,y+2,'#ffffff',1);ctx.restore()});
   /* the one place a full screen flash is drawn. REDUCED: at most 2 a second, each about a tenth of a second and fading, never brighter than 25% white */
   if(G.flashT>0){
     if(!fxReduced()){ctx.fillStyle=pat('#ffffff');ctx.fillRect(0,TOP,W,BOT-TOP)}
@@ -1415,7 +1429,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.88';
+const VERSION='2.91';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2253,11 +2267,9 @@ function screenDef(id){
     info.push('FIRE RATE '+st.fire.toFixed(1)+'   DAMAGE '+st.dmg.toFixed(1)+'   START GUN '+st.startGun);
     info.push('DESTINATION: '+pl.n+' LEVEL '+(SAVE.level||1));info.push('CONTRACT: '+ms.n);
     info.push({t:'BEST: '+[1,2,3].map(l=>'L'+l+' '+((SAVE.prog[SAVE.planet||0]||0)>=l?100:Math.floor(SAVE.bestPct[(SAVE.planet||0)+'-'+l]||0))+'%').join('   '),c:'#9ad284'});
-    rows.push({ic:'rocket',n:'LAUNCH',d:'FLY TO '+pl.n+' LEVEL '+(SAVE.level||1),ok:true,fn:launch});
+    rows.push({ic:'rocket',n:'LAUNCH: '+pl.n+' LEVEL '+(SAVE.level||1),d:'FLY THE SAME STAGE AGAIN. TO FLY ANOTHER, CHOOSE A DESTINATION',ok:true,fn:launch});
     if(SAVE.ships.length>1)SHIPS.forEach((s2,i)=>{if(!SAVE.ships.includes(i))return;const cur=SAVE.ship===i;rows.push({ic:'ship',ix:i,n:'HANGAR: '+s2.n+(cur?'  (IN USE)':''),d:cur?'THIS SHIP IS ON THE LAUNCH PAD.':'SWAP TO THIS SHIP. '+s2.d,ok:!cur,fn:()=>{SAVE.ship=i;rebuildShip();toast(s2.n+' ON THE LAUNCH PAD');save()}})});
-    const opens=PLANETS.map((p,i)=>i).filter(planetOpen);
-    if(opens.length>1){const nx=opens[(opens.indexOf(SAVE.planet||0)+1)%opens.length];rows.push({n:'CHANGE DESTINATION',d:'NEXT: '+PLANETS[nx].n,ok:true,fn:()=>{setPlanet(nx);save()}})}
-    const ml=maxLevel(SAVE.planet||0);if(ml>1)rows.push({n:'CHANGE LEVEL',d:'NEXT: LEVEL '+(((SAVE.level||1)%ml)+1)+'.  LEVELS CLEARED: '+(SAVE.prog[SAVE.planet||0]||0)+' OF 3',ok:true,fn:()=>{SAVE.level=((SAVE.level||1)%ml)+1;save()}});
+    rows.push({n:'CHOOSE A DESTINATION',d:'OPEN THE STAR MAP. PICK A PLANET AND A LEVEL TO FLY',ok:true,fn:()=>{HUB.screen='starmap';UI.focus=Math.max(0,SMORD.indexOf(Math.min(SAVE.planet||0,24)))}});
     if(SAVE.missions.length>1){const nx=SAVE.missions[(SAVE.missions.indexOf(SAVE.mission)+1)%SAVE.missions.length];rows.push({n:'CHANGE CONTRACT',d:'NEXT: '+MISSIONS[nx].n,ok:true,fn:()=>{SAVE.mission=nx;save()}})}
     rows.push({n:'DECORATE YOUR SHIP',d:'PAINT SHOP. COLOURS AND PATTERNS. CHEAP.',ok:true,fn:()=>{HUB.paintSel=Object.assign({},SAVE.paint);HUB.screen='paint';UI.focus=0}});
   }else{title=extraScreen(id,rows,info)}
@@ -2402,8 +2414,17 @@ function slotRespin(i){
   if(tri(t3(ns))&&(!SLOT_PW.includes(ns)||(ns==='H'&&P.hp>=G.stats.hp))){do{ns=slotPick()}while(tri(t3(ns)))}
   q.fin[i]=ns;q.rs[i]=q.t;q.rsSnd[i]=0;q.phase='spinning2';
 }
+/* DISMISS: get rid of the roulette at once and go back to tapping */
+function slotDismiss(){
+  const q=G.slot;if(!q)return;
+  if(q.phase==='respin')slotStreak(false);
+  G.slot=null;G.tap=0;G.tapArm=true;G.tapLast=null;G.tapIv=0;G.tapStreak=0;G.readyT=3;
+}
+const SLOT_DISMISS=()=>({x:(((W-66)/2)|0)+70,y:BOT-34+8,w:38,h:13});
 function slotTap(x,y){
-  const q=G.slot;if(!q||q.phase!=='respin')return false;
+  const q=G.slot;if(!q)return false;
+  if(q.phase==='respin'||q.phase==='win'||q.phase==='lose'){const d=SLOT_DISMISS();if(x>=d.x-3&&x<=d.x+d.w+3&&y>=d.y-3&&y<=d.y+d.h+3){slotDismiss();return true}}
+  if(q.phase!=='respin')return false;
   const x0=((W-66)/2)|0,y0=BOT-34;
   for(let i=0;i<3;i++){const bx=x0+4+i*20,by=y0+3;if(x>=bx-2&&x<bx+20&&y>=by-3&&y<by+20){slotRespin(i);return true}}
   return false;
@@ -2490,7 +2511,8 @@ function drawSlot(){
   ctx.fillStyle='#ff777777';ctx.fillRect(x0+2,y0+11,62,1);
   if(q.phase==='win')textC2(q.rname||'POWER UP!',W>>1,y0+21,fl?'#ffffff':'#b8c76f');
   else if(q.phase==='lose')textC2('NO LUCK',W>>1,y0+21,'#6c6c6c');
-  else if(q.phase==='respin'){textC2('TAP A REEL',W>>1,y0+21,Math.floor(q.t*5)%2?'#ffffff':'#cc99ff');textC2('USE A CHANCE ORB ('+(SAVE.chance||0)+' LEFT)',W>>1,y0-7,'#cc99ff')}
+  else if(q.phase==='respin'){textC2('TAP A REEL',W>>1,y0+21,blinkAt(q.t,5)?'#ffffff':'#cc99ff');textC2('USE A CHANCE ORB ('+(SAVE.chance||0)+' LEFT)',W>>1,y0-7,'#cc99ff')}
+  if(res){const d=SLOT_DISMISS();ctx.fillStyle='#000';ctx.fillRect(d.x,d.y,d.w,d.h);ctx.fillStyle='#9a3a3a';ctx.fillRect(d.x,d.y,d.w,1);ctx.fillRect(d.x,d.y+d.h-1,d.w,1);ctx.fillRect(d.x,d.y,1,d.h);ctx.fillRect(d.x+d.w-1,d.y,1,d.h);textC2('DISMISS',d.x+(d.w>>1),d.y+4,'#ff9966')}
 }
 function drawChanceMeter(){
   ctx.fillStyle='#000000';ctx.fillRect(2,BOT-33,74,32);ctx.fillStyle='#6c5eb5';ctx.fillRect(2,BOT-33,74,1);ctx.fillRect(2,BOT-33,1,32);ctx.fillStyle='#1c1840';ctx.fillRect(2,BOT-2,74,1);ctx.fillRect(75,BOT-33,1,32);text('TOKENS',5,BOT-29,'#ffffff',1);text(String(SAVE.tokens||0),32,BOT-29,'#9ad284',1);
@@ -2513,42 +2535,41 @@ function smapPlanet(i,R){
     const lit=Math.max(0,(-nx*.75-ny*.35+nz*.55)),band=Math.round((.5+.5*Math.sin(ny*(5+i%3*2)+Math.sin(nx*3+i)*.8))*3)/3;return Math.min(1,Math.pow(lit,1.25)*.55+band*.45*lit+(d>R-1.2?(lit>.2?.5:-.3):0))*0.999},cols);
 }
 SMPAL[15]=['#000000','#1c1840','#6c5eb5','#70a4b2','#ffffaa'];SMPAL[16]=['#000000','#2c5a2c','#588d43','#ccff99','#ffffaa'];SMPAL[17]=['#000000','#6c6c6c','#bbbbbb','#9ad2e0','#ffffff'];SMPAL[18]=['#000000','#444444','#9a3a3a','#ffffaa','#ffffff'];SMPAL[19]=['#000000','#3a0a38','#8a3aa6','#ff77ff','#ffffaa'];
-SMPAL[20]=['#000000','#6f3d86','#cc44cc','#ff77ff','#ffffaa'];SMPAL[21]=['#000000','#9a3a3a','#ff9966','#ffffaa','#ffffff'];SMPAL[22]=['#000000','#1c2a4a','#3c5a8a','#70a4b2','#ccffff'];SMPAL[23]=['#000000','#3a0a08','#9a3a3a','#ff7777','#ffffaa'];SMPAL[24]=['#000000','#3a0a38','#8a3aa6','#cc44cc','#ccff99'];
+SMPAL[25]=['#000000','#6f3d86','#cc44cc','#ff77ff','#ffffaa'];SMPAL[26]=['#000000','#9a3a3a','#ff9966','#ffffaa','#ffffff'];SMPAL[27]=['#000000','#1c2a4a','#3c5a8a','#70a4b2','#ccffff'];SMPAL[28]=['#000000','#3a0a08','#9a3a3a','#ff7777','#ffffaa'];SMPAL[29]=['#000000','#3a0a38','#8a3aa6','#cc44cc','#ccff99'];
+SMPAL[20]=['#000000','#1c1450','#5a4ac0','#a6e6ff','#ffffff'];SMPAL[21]=['#000000','#2a1808','#8a6a28','#e0b050','#ffeeaa'];SMPAL[22]=['#000000','#0a2a1c','#2c8a4c','#ff77cc','#ffffaa'];SMPAL[23]=['#000000','#102a30','#4a8a9a','#bff0e8','#ffffff'];SMPAL[24]=['#000000','#1a1020','#8a6a20','#ffd866','#ffffff'];
 SMPAL[10]=['#000000','#1c1008','#68372b','#9a6759','#d8a878'];SMPAL[11]=['#000000','#0a0630','#6f3d86','#cc44cc','#ff77ff'];SMPAL[12]=['#000000','#68372b','#ff9966','#ffffaa','#ffffff'];SMPAL[13]=['#000000','#05021a','#352879','#cc99ff','#ffffff'];SMPAL[14]=['#000000','#1c0808','#9a3a3a','#ff7777','#ffffaa'];
-function smapPos(i){if(i>=20)return {x:44+(i-20)*56,y:430};if(i>=15)return {x:268-(i-15)*56,y:322};if(i>=10)return {x:44+(i-10)*56,y:208};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
+const SMORD=[0,1,2,3,4,5,6,7,8,9,15,16,17,18,19,10,11,12,13,14,20,21,22,23,24];   // the order the planets sit on the map and the order the d-pad visits them: ordinary, the Swarm (small ships), the bigger ships, then the surface worlds
+function smapPos(i){if(i>=25)return {x:44+(i-25)*56,y:544};if(i>=20)return {x:268-(i-20)*56,y:436};if(i>=15)return {x:44+(i-15)*56,y:208};if(i>=10)return {x:44+(i-10)*56,y:322};const k=i%5,row=Math.floor(i/5);return {x:(row?268-k*56:44+k*56),y:row?112:54}}
 function drawStarMap(){
   SMAP.t+=1/60;const t=SMAP.t,pw=shipPower();
   ctx.fillStyle=pat('#000000');ctx.fillRect(0,14,W,H-14);
   box(14,18,292,172,'#04020f','#6c5eb5');
   ctx.fillStyle='#352879';ctx.fillRect(15,19,290,13);
   /* one long map: ten systems, then the bigger ship stages below them. It scrolls (wheel, arrows, drag) and follows the chosen planet */
-  const NPL=PLANETS.length,MAXSY=Math.max(0,smapPos(24).y+46-154);HUB.infoMax=Math.ceil(MAXSY/8);
-  if(performance.now()-(SMAP.lastDraw||0)>400){HUB.iscroll=Math.round(clamp01((smapPos(SAVE.planet||0).y-84)/Math.max(1,MAXSY))*HUB.infoMax);SMAP.lastFoc=-2;UI.focus=SAVE.planet||0}
+  const NPL=PLANETS.length,MAXSY=Math.max(0,smapPos(29).y+46-154);HUB.infoMax=Math.ceil(MAXSY/8);
+  if(performance.now()-(SMAP.lastDraw||0)>400){HUB.iscroll=Math.round(clamp01((smapPos(SAVE.planet||0).y-84)/Math.max(1,MAXSY))*HUB.infoMax);SMAP.lastFoc=-2;UI.focus=Math.max(0,SMORD.indexOf(Math.min(SAVE.planet||0,24)));SMAP.sel=Math.min(SAVE.planet||0,24);SMAP.follow=false}
   SMAP.lastDraw=performance.now();HUB.iscroll=Math.max(0,Math.min(HUB.infoMax,HUB.iscroll||0));const sy=Math.min(MAXSY,HUB.iscroll*8);
   text('STAR MAP',20,22,'#ffffff',1);text(NPL+' SYSTEMS  5 SURFACE WORLDS',100,22,'#8f84d6',1);textR('SHIP POWER '+pw,282,22,'#b8c76f',1);
   ctx.save();ctx.beginPath();ctx.rect(15,33,290,122);ctx.clip();ctx.translate(0,-sy);
   // stars
   for(let i=0;i<150;i++){const sx=16+((i*53+7)%288),sy0=34+((i*97+11)%230),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy0,1,1)}
-  {const bo=bigTierOpen(),by=160;ctx.fillStyle=bo?'#6c5eb5':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('WE NEED A BIGGER SHIP',160,by,bo?'#ffffaa':'#6c6c6c');textC2('LUXURY BIG SHIPS ONLY',160,by+8,bo?'#9a8fe0':'#444444')}
-  {const sm=(SAVE.prog[9]||0)>=3,by=270;ctx.fillStyle=sm?'#9a3a3a':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('THE SWARM',160,by,sm?'#ff9966':'#6c6c6c');textC2('SMALL SHIPS ONLY. BEAT THE BURNING CITY BOSS',160,by+8,sm?'#ff7777':'#444444')}
-  {const sw=surfReq(0).built,by=378;ctx.fillStyle=sw?'#2c5a2c':'#2a2a2a';ctx.fillRect(22,by+3,64,1);ctx.fillRect(234,by+3,64,1);textC2('THE SURFACE WORLDS',160,by,sw?'#9ad284':'#6c6c6c');textC2('BEAM DOWN FROM THE SURFACE TRANSPORTER',160,by+8,sw?'#70a4b2':'#444444')}
+  {const sm=(SAVE.prog[9]||0)>=3,by=160;ctx.fillStyle=sm?'#9a3a3a':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('THE SWARM',160,by,sm?'#ff9966':'#6c6c6c');textC2('SMALL SHIPS ONLY. BEAT THE BURNING CITY BOSS',160,by+8,sm?'#ff7777':'#444444')}
+  {const bo=bigTierOpen(),by=270;ctx.fillStyle=bo?'#6c5eb5':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('WE NEED A BIGGER SHIP',160,by,bo?'#ffffaa':'#6c6c6c');textC2('LUXURY BIG SHIPS ONLY',160,by+8,bo?'#9a8fe0':'#444444')}
+  {const sw=surfReq(0).built,by=492;ctx.fillStyle=sw?'#2c5a2c':'#2a2a2a';ctx.fillRect(22,by+3,64,1);ctx.fillRect(234,by+3,64,1);textC2('THE SURFACE WORLDS',160,by,sw?'#9ad284':'#6c6c6c');textC2('BEAM DOWN FROM THE SURFACE TRANSPORTER',160,by+8,sw?'#70a4b2':'#444444')}
   // route between the planets
   const P=PLANETS.map((p,i)=>smapPos(i));
-  for(let i=0;i<NPL-1;i++){const a=P[i],b=P[i+1],done=(SAVE.prog[i]||0)>=3,steps=(i===9||i===14)?26:14;
-    for(let k=1;k<steps;k++){let u=k/steps,x,y;
-      if(i===4){x=a.x+Math.sin(u*3.1416)*18;y=a.y+(b.y-a.y)*u}
-      else if(i===9||i===14){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}
-      else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}
-      if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
-  for(let i=19;i<24;i++){const a=smapPos(i),b=smapPos(i+1),done=i===19?((SAVE.prog[19]||0)>=3):!!SURF.state().done[i-20],steps=i===19?26:14;
-    for(let k=1;k<steps;k++){const u=k/steps;let x,y;if(i===19){x=a.x+Math.sin(u*3.1416)*22;y=a.y+(b.y-a.y)*u}else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}if(k%2)continue;ctx.fillStyle=done?'#9ad284':'#444444';ctx.fillRect(x|0,y|0,2,1)}}
+  {const RT=[];for(let i=0;i<9;i++)RT.push([i,i+1]);RT.push([9,15]);RT.push([9,10,[[22,150],[22,296]]]);for(let i=10;i<14;i++)RT.push([i,i+1]);RT.push([14,20]);for(let i=20;i<24;i++)RT.push([i,i+1]);RT.push([24,25]);for(let i=15;i<19;i++)RT.push([i,i+1]);for(let i=25;i<29;i++)RT.push([i,i+1]);
+  for(const [i,j,via] of RT){const a=smapPos(i),b=smapPos(j),done=i>=25?!!SURF.state().done[i-25]:((SAVE.prog[i]||0)>=3);ctx.fillStyle=done?'#9ad284':'#444444';
+    if(via){const pts=[a,...via.map(q=>({x:q[0],y:q[1]})),b];for(let q=0;q<pts.length-1;q++){const p0=pts[q],p1=pts[q+1],n=Math.ceil(Math.hypot(p1.x-p0.x,p1.y-p0.y)/4);for(let k=(q?0:1);k<n;k++)ctx.fillRect((p0.x+(p1.x-p0.x)*k/n)|0,(p0.y+(p1.y-p0.y)*k/n)|0,2,1)}continue}
+    const vert=a.x===b.x,steps=vert?26:14;
+    for(let k=1;k<steps;k++){const u=k/steps;if(k%2)continue;let x,y;if(vert){x=a.x+Math.sin(u*3.1416)*(i===4?18:22);y=a.y+(b.y-a.y)*u}else{x=a.x+(b.x-a.x)*u;y=a.y+(b.y-a.y)*u}ctx.fillRect(x|0,y|0,2,1)}}}
   let foc=-1;const cur=SAVE.planet||0;
-  PLANETS.forEach((pl,i)=>{
+  SMORD.forEach(i=>{const pl=PLANETS[i];
     const ps=P[i],ok=planetOpen(i),prevDone=prevOk(i),R=9+Math.min(5,Math.floor(i*.6)),i0=UI.list.length;
     const hit=UI.list.length;
     const f0=UI.focus===hit;if(f0)foc=i;
-    {const hy=ps.y-R-4-sy,hh=R*2+54,y0=Math.max(33,hy),y1=Math.min(154,hy+hh);UI.list.push({x:ps.x-26,y:y0,w:y1>y0?52:0,h:Math.max(0,y1-y0),fn:()=>{if(ok){setPlanet(i);toast('DESTINATION SET: '+pl.n+' LEVEL '+SAVE.level);save()}else toast(lockMsg(i))}})}
-    if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
+    {const hy=ps.y-R-4-sy,hh=R*2+54,y0=Math.max(33,hy),y1=Math.min(154,hy+hh);UI.list.push({x:ps.x-26,y:y0,w:y1>y0?52:0,h:Math.max(0,y1-y0),fn:()=>{SMAP.sel=i;if(SMAP.follow)SMAP.wantLv=true}})}
+    if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;if(SMAP.follow)HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
     // the planet
     ctx.save();
     if(i===0){ctx.imageSmoothingEnabled=false;ctx.drawImage(SPR.earth,ps.x-R-1,ps.y-R-1,R*2+2,R*2+2)}
@@ -2560,6 +2581,7 @@ function drawStarMap(){
     // cleared ring or current marker
     if(i===cur){const pu=Math.floor(t*4)%2,rr=R+3;ctx.fillStyle=pu?'#ffffff':'#9ad2e0';for(let k=0;k<4;k++){const a=k*1.5708+t*.8;ctx.fillRect((ps.x+Math.cos(a)*rr)|0,(ps.y+Math.sin(a)*rr)|0,2,2)}}
     if(f0){ctx.fillStyle=Math.floor(t*5)%2?'#ffffff':'#9a8fe0';const q=R+6;ctx.fillRect(ps.x-q,ps.y-q,5,1);ctx.fillRect(ps.x-q,ps.y-q,1,5);ctx.fillRect(ps.x+q-4,ps.y-q,5,1);ctx.fillRect(ps.x+q,ps.y-q,1,5);ctx.fillRect(ps.x-q,ps.y+q,5,1);ctx.fillRect(ps.x-q,ps.y+q-4,1,5);ctx.fillRect(ps.x+q-4,ps.y+q,5,1);ctx.fillRect(ps.x+q,ps.y+q-4,1,5)}
+    if(i===SMAP.sel&&!f0){ctx.fillStyle='#ffffaa';const q=R+6;ctx.fillRect(ps.x-q,ps.y-q,5,1);ctx.fillRect(ps.x-q,ps.y-q,1,5);ctx.fillRect(ps.x+q-4,ps.y-q,5,1);ctx.fillRect(ps.x+q,ps.y-q,1,5);ctx.fillRect(ps.x-q,ps.y+q,5,1);ctx.fillRect(ps.x-q,ps.y+q-4,1,5);ctx.fillRect(ps.x+q-4,ps.y+q,5,1);ctx.fillRect(ps.x+q,ps.y+q-4,1,5)}
     // name, two lines
     const words=(i===0?'OPEN SPACE':pl.n).replace('THE ','').split(' '),nl=words.length>2?[words[0]+' '+words[1],words[2]]:words;
     nl.forEach((w2,k)=>textC2(w2,ps.x,ps.y+R+4+k*7,ok?(f0?'#ffffff':'#bbbbbb'):'#6c6c6c'));
@@ -2570,9 +2592,9 @@ function drawStarMap(){
     if(i===cur){const by=Math.round(Math.sin(t*3)*2);itemIcon(ctx,'ship',ps.x,ps.y-R-9+by,{ix:SAVE.ship||0})}
   });
   SURF.WORLDS.forEach((wd,k)=>{
-    const i=20+k,ps=smapPos(i),rq=surfReq(k),R=11,hit=UI.list.length,f0=UI.focus===hit;if(f0)foc=i;
+    const i=25+k,ps=smapPos(i),rq=surfReq(k),R=11,hit=UI.list.length,f0=UI.focus===hit;if(f0)foc=i;
     {const hy=ps.y-R-4-sy,hh=R*2+54,y0=Math.max(33,hy),y1=Math.min(154,hy+hh);UI.list.push({x:ps.x-26,y:y0,w:y1>y0?52:0,h:Math.max(0,y1-y0),fn:()=>{if(rq.ok){HUB.screen='transporter';UI.focus=0}else toast(rq.msg)}})}
-    if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
+    if(f0&&SMAP.lastFoc!==i){SMAP.lastFoc=i;if(SMAP.follow)HUB.iscroll=Math.round(Math.max(0,Math.min(MAXSY,ps.y-84))/8)}
     ctx.save();if(!rq.ok&&!rq.done)ctx.globalAlpha=.45;ctx.drawImage(smapPlanet(i,R),ps.x-R,ps.y-R);ctx.restore();
     if(wd.ship){ctx.fillStyle='#000';ctx.fillRect(ps.x-6,ps.y-1,13,3);ctx.fillStyle=rq.ok||rq.done?'#bbbbbb':'#6c6c6c';ctx.fillRect(ps.x-5,ps.y-1,11,2)}   // the two ship worlds get a hull stripe
     if(!rq.ok&&!rq.done){ctx.fillStyle='#000';ctx.fillRect(ps.x-4,ps.y-4,9,9);ctx.fillStyle='#959595';ctx.fillRect(ps.x-3,ps.y-1,7,5);ctx.fillRect(ps.x-2,ps.y-4,5,1);ctx.fillRect(ps.x-2,ps.y-3,1,3);ctx.fillRect(ps.x+2,ps.y-3,1,3)}
@@ -2585,22 +2607,40 @@ function drawStarMap(){
   ctx.restore();
   if(HUB.infoMax>0){text(sy>0?'^':' ',296,38,'#70a4b2',1);text(sy<MAXSY?'v':' ',296,142,'#70a4b2',1)}
   // detail panel
-  if(foc>=20){const k=foc-20,wd=SURF.WORLDS[k],rq=surfReq(k);ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
+  if(foc>=25){SMAP.lvBase=-1;const k=foc-25,wd=SURF.WORLDS[k],rq=surfReq(k);ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
     text('SURFACE WORLD '+(k+1)+': '+wd.n,22,160,'#ffffff',1);textR(rq.done?'CLEARED':rq.ok?'ENTER TO GO':'LOCKED',298,160,rq.done||rq.ok?'#9ad284':'#ff9966',1);
     text(fitText(wd.sub,270),22,169,'#70a4b2',1);text(fitText('YOU NEED: '+rq.need,170),22,178,rq.ok||rq.done?'#b8c76f':'#ff9966',1);textR(SURF.pieceStatus(k),298,178,SURF.pieceStatus(k).includes('NOT')||SURF.pieceStatus(k).includes('0 OF')?'#ffffaa':'#9ad284',1);
     UI.list.push({x:288,y:19,w:16,h:13,fn:()=>{HUB.screen=null}});ctx.fillStyle=UI.focus===UI.list.length-1?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1);UI.nrows=UI.list.length-1;if(UI.focus>=UI.list.length)UI.focus=0;return}
-  const fi=foc>=0?foc:cur,pl=PLANETS[fi],ok=planetOpen(fi),prevDone=prevOk(fi);
+  /* the detail panel: the chosen planet and its three level buttons. Pressing a level button flies that level now */
+  const sp=(SMAP.sel>=0&&SMAP.sel<25)?SMAP.sel:cur,pl=PLANETS[sp],LS=[1,2,3].map(L=>levelState(sp,L)),lockAll=!planetOpen(sp);
   ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
-  text(pl.n+(fi===cur?'  (NEXT)':''),22,160,'#ffffff',1);
-  textR(ok?(fi===cur?'DESTINATION':'ENTER TO GO'):(prevDone?'NEEDS POWER '+pl.pow:'LOCKED'),298,160,ok?'#9ad284':'#ff9966',1);
-  text(fitText(pl.d,270),22,169,'#70a4b2',1);
-  text('LEVELS CLEARED '+(SAVE.prog[fi]||0)+' OF 3   '+(ok||prevDone?'POWER '+pl.pow+' (YOU HAVE '+pw+')':'CLEAR '+PLANETS[fi-1].n+' FIRST'),22,178,ok?'#b8c76f':'#959595',1);
+  text(pl.n+(sp===cur?'   (LAST FLIGHT: LEVEL '+(SAVE.level||1)+')':''),22,160,'#ffffff',1);
+  textR(pl.big?'BIG SHIPS ONLY':pl.small?'SMALL SHIPS ONLY':'',298,160,'#9a8fe0',1);
+  SMAP.lvBase=UI.list.length;let hint=null;
+  LS.forEach((q,i)=>{const bx=22+i*94,by=177,bw=90,bh=12,idx=UI.list.length,fo=UI.focus===idx;
+    UI.list.push({x:bx,y:by,w:bw,h:bh,fn:()=>{if(q.why){toast(q.why);return}setPlanet(sp,q.L);save();launch()}});
+    if(fo)hint=q;
+    ctx.fillStyle=q.why?(fo?'#3a3a3a':'#1a1a1a'):fo?'#4d40a8':q.cleared?'#1c3a1c':'#2a2150';ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle=q.why?'#444444':fo?'#ffffff':q.cleared?'#9ad284':'#6c5eb5';ctx.fillRect(bx,by,bw,1);ctx.fillRect(bx,by+bh-1,bw,1);ctx.fillRect(bx,by,1,bh);ctx.fillRect(bx+bw-1,by,1,bh);
+    text('LEVEL '+q.L,bx+5,by+3,q.why?'#6c6c6c':'#ffffff',1);
+    textR(q.why?'LOCKED':q.cleared?'CLEARED':'GO',bx+bw-4,by+3,q.why?'#ff9966':q.cleared?'#9ad284':'#ffffaa',1)});
+  if(SMAP.wantLv){SMAP.wantLv=false;let b=LS.findIndex(q=>!q.why&&!q.cleared);if(b<0)b=LS.findIndex(q=>!q.why);if(b<0)b=0;UI.focus=SMAP.lvBase+b}
+  {const msg=hint?(hint.why||('LEVEL '+hint.L+'   POWER '+sysPower(sp,hint.L)+' (YOU HAVE '+pw+')')):(lockAll?lockMsg(sp):pl.d);
+   text(fitText(msg,270),22,169,(hint?hint.why:lockAll)?'#ff9966':'#70a4b2',1)}
   UI.list.push({x:288,y:19,w:16,h:13,fn:()=>{HUB.screen=null}});
   ctx.fillStyle=UI.focus===UI.list.length-1?'#ff7777':'#6c5eb5';ctx.fillRect(290,21,12,9);text('X',294,23,'#fff',1);
   UI.nrows=UI.list.length-1;
   if(UI.focus>=UI.list.length)UI.focus=0;
 }
-
+/* can this level be flown now with the ship on the launch pad? why = the reason it cannot */
+function levelState(i,L){
+  const p=PLANETS[i],cleared=(SAVE.prog[i]||0)>=L,sh=SHIPS[SAVE.ship]||{};let why='';
+  if(!planetOpen(i))why=lockMsg(i);
+  else if(L>maxLevel(i))why='LOCKED. CLEAR LEVEL '+(L-1)+' FIRST';
+  else if(p.small&&sh.yard)why='THIS STAGE NEEDS A SMALL SHIP ON THE LAUNCH PAD';
+  else if(p.big&&!isLux(sh))why='THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD';
+  return {L,cleared,why};
+}
 function drawScreen(){
   if(HUB.screen==='starmap'){drawStarMap();return}
   if(HUB.screen==='studio'&&window.drawStudio&&SAVE.studioOwned){drawStudio();return}
@@ -2971,7 +3011,17 @@ STORY.sunlark={t:'THE SUNLARK',p:[
     'THE SIX PIECES FIT TOGETHER: HULL, ENGINE, REACTOR, WINGS, COCKPIT AND WEAPON CORE.',
     'THE ALIEN MOTHERSHIP WAS NEVER A MOTHERSHIP. IT WAS THE SUNLARK, A LUXURY STARSHIP FROM A FAR AWAY WORLD.',
     'IT LIGHTS UP, LIFTS OFF AND FLIES HOME. IT WAITS IN YOUR HANGAR.'],when:()=>SAVE.ships.includes(18)};
-const STORYORDER=['sys1','sys3','surface','sys5','buddy','big1','big3','big5','swarm','swarm5','sunlark'];
+STORY.deep={t:'THE DEEP BEYOND',p:[
+    'THE ARMADA IS GONE, BUT THE ARTIFACT KEEPS TURNING TOWARD ONE EMPTY PART OF THE DARK.',
+    'IT SHOWS YOU FIVE PLACES PAST THE EDGE OF THE MAP: A SINGING CRYSTAL REEF, A MOON MADE OF GEARS, A GARDEN GROWING IN A WRECK, A FLEET OF GHOST SHIPS, AND AT THE END AN OLD GATE.',
+    'THEY ARE OLDER THAN THE BUDDY AND OLDER THAN THE SWARM. ONLY A LUXURY BIG SHIP, LIKE THE SUNLARK, CAN LIVE OUT THERE.',
+    'FIVE NEW SYSTEMS HAVE APPEARED ON THE STAR MAP, BELOW THE ARMADA.'],when:()=>(SAVE.prog[14]||0)>=3};
+STORY.gate={t:'THE LAST GATE',p:[
+    'THE GATE WARDEN FALLS. THE GATE STOPS HUMMING AND ITS DOORS SWING SHUT.',
+    'THE ARTIFACT EXPLAINS. THE BUDDY AND THE SWARM BOTH CAME THROUGH THIS GATE, LONG AGO, WHILE THE WARDEN SLEPT. NOTHING ELSE CAN COME THROUGH NOW.',
+    'THE STATION IS SAFE. THE CREW ARE SAFE. THE DRIFTER, THE SUNLARK AND EVERY OTHER SHIP IN THE HANGAR ARE SAFE.',
+    'THE WAR IS OVER. EVERY STAGE IS STILL ON THE STAR MAP IF YOU WANT TO FLY IT AGAIN.'],when:()=>(SAVE.prog[24]||0)>=3};
+const STORYORDER=['sys1','sys3','surface','sys5','buddy','big1','big3','big5','deep','swarm','swarm5','sunlark','gate'];
 let STY=null;
 function tellStory(id,back){
   const d=STORY[id];if(!d)return false;SAVE.story=SAVE.story||{};if(SAVE.story[id])return false;SAVE.story[id]=1;save();
@@ -3361,7 +3411,7 @@ function extraScreen(id,rows,info){
     L('ALIENS DEFEATED  '+(sf.kills||0));L('GREEN GOLD  '+sf.green,'#9ad284');L('');
     L('LUXURY SHIPS OWNED','#fff');
     for(const i of (SAVE.ships.includes(18)?[8,9,10,11,12,18]:[8,9,10,11,12]))L('  '+SHIPS[i].n+(SAVE.ships.includes(i)?'   OWNED':'   NOT YET'),SAVE.ships.includes(i)?'#9ad284':'#6c6c6c');
-    L('');L('SYSTEMS CLEARED  '+systemsDone()+' OF 10');L('BIGGER SHIP STAGES CLEARED  '+[10,11,12,13,14].filter(i=>(SAVE.prog[i]||0)>=3).length+' OF 5');
+    L('');L('SYSTEMS CLEARED  '+systemsDone()+' OF 10');L('BIGGER SHIP STAGES CLEARED  '+[10,11,12,13,14,20,21,22,23,24].filter(i=>(SAVE.prog[i]||0)>=3).length+' OF 10');
     return 'TROPHY HALL';
   }
   if(id==='shipstats'){
@@ -3546,7 +3596,7 @@ function extraScreen(id,rows,info){
     const pw=shipPower();
     L('SHIP POWER '+pw+'.  UPGRADES, CREW AND PARTS RAISE IT.','#b8c76f');L('POWER '+powerBarText(30)+' '+Math.round(powerFrac()*100)+'% TO '+(pw+1),'#70a4b2');L('A PLANET OPENS WHEN YOU CLEAR THE ONE BEFORE IT AND YOUR SHIP IS STRONG ENOUGH.');L('SYSTEMS CLEARED: '+systemsDone()+'. CLEARING SYSTEMS UNLOCKS FASTER GAME SPEEDS.');
     PLANETS.forEach((p,i)=>{const ok=planetOpen(i),cur=(SAVE.planet||0)===i,prevDone=prevOk(i);
-      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3'+(i?'  POWER '+sysPower(i,1)+'/'+sysPower(i,2)+'/'+sysPower(i,3):''):(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
+      rows.push({n:p.n+(cur?'  (NEXT)':''),d:ok?p.d+'  LEVELS '+(SAVE.prog[i]||0)+'/3'+(i?'  POWER '+sysPower(i,1)+'/'+sysPower(i,2)+'/'+sysPower(i,3):''):(prevDone?'LOCKED. NEEDS SHIP POWER '+p.pow+' (YOU HAVE '+pw+')':'LOCKED. CLEAR '+PLANETS[prevI(i)].n+' FIRST'),r:ok?(cur?'':'GO'):(prevDone?'POWER '+p.pow:'LOCKED'),ok:ok&&!cur,icon:ok?THEMES[i].pl[3]:'#444444',
         fn:()=>{setPlanet(i);toast('DESTINATION SET: '+p.n+' LEVEL '+SAVE.level);save()}})});
     return 'STAR MAP';
   }
@@ -3685,7 +3735,7 @@ function drawLoot(){
 function endSortie(result){
   SAVE.sorties++;if(result==='clear')SAVE.clears++;
   {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
-  if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);if(lv<3)SAVE.level=lv+1;const after=systemsDone();labApply();
+  if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);const after=systemsDone();labApply();
     if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={3:'SPEED X4 UNLOCKED',6:'SPEED X8 CAN NOW BE BOUGHT IN THE DESIGN SHOP',8:'SPEED X16 CAN NOW BE BOUGHT IN THE DESIGN SHOP'}[after];if(nu)toast(nu)}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
   if(G.score>SAVE.best)SAVE.best=G.score;
   LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
@@ -4208,6 +4258,7 @@ function handleKey(k){
     return;
   }
   if(AC&&AC.state==='suspended')AC.resume();
+  if(MODE==='game'&&G&&G.slot&&(G.slot.phase==='respin'||G.slot.phase==='win'||G.slot.phase==='lose')&&(k==='escape'||k==='backspace'||k==='x')){slotDismiss();return}   // dismiss the roulette: Esc, Backspace, X or the pad's B
   if(MODE==='game'&&G&&(k==='escape'||k==='o')){G.menuOpen=!G.menuOpen;G.mf=0;G.leaveAt=0;return}
   if(MODE==='game'&&G&&G.menuOpen&&G.menuRows){const n=G.menuRows.length;if(k==='arrowup'||k==='w')G.mf=(G.mf+n-1)%n;else if(k==='arrowdown'||k==='s')G.mf=(G.mf+1)%n;else if((k==='enter'||k===' '||k==='e')&&!INP.repeat)G.menuRows[G.mf][2]();return}
   if(MODE==='game'){if(G&&G.slot&&(k==='1'||k==='2'||k==='3')){slotRespin(+k-1);return}if(!INP.repeat&&(k===' '||k==='enter'||k==='z'||k==='x'||k==='e'))tapFire();return}
@@ -4217,6 +4268,12 @@ function handleKey(k){
   if(MODE==='loot'||(MODE==='hub'&&HUB.screen)){
     if(MODE==='hub'&&HUB.screen==='studio'&&window.studioKey&&studioKey(k))return;
     if(MODE==='hub'&&HUB.screen==='book'){if(k==='arrowright'||k==='d'){bookTurn(1);return}if(k==='arrowleft'||k==='a'){bookTurn(-1);return}}
+    if(MODE==='hub'&&HUB.screen==='starmap'){SMAP.follow=true;const lb=SMAP.lvBase;   // on the level buttons the d-pad stays among the three buttons; up or back returns to the planet
+      if(lb>=0&&UI.focus>=lb&&UI.focus<lb+3){
+        if(k==='arrowleft'||k==='a'){UI.focus=lb+(UI.focus-lb+2)%3;return}
+        if(k==='arrowright'||k==='d'||k==='tab'){UI.focus=lb+(UI.focus-lb+1)%3;return}
+        if(k==='arrowup'||k==='w'||k==='escape'||k==='backspace'||k==='q'){UI.focus=Math.max(0,SMORD.indexOf(Math.min(SMAP.sel,24)));SMAP.lastFoc=-2;return}
+        if(k==='arrowdown'||k==='s')return}}
     if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){if(k==='arrowdown'||k==='s'){HUB.iscroll+=3;return}if(k==='arrowup'||k==='w'){HUB.iscroll-=3;return}}
     if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){
       const last=Math.max(0,(UI.nrows||1)-1);
@@ -4275,7 +4332,7 @@ function padPoll(dt){
   hold('tl','arrowleft');hold('tr','arrowright');hold('tu','arrowup');hold('td','arrowdown');tap('ta','e');tap('tb','escape');tap('tm','m');tap('th','h');
 })();
 cv.addEventListener('wheel',e=>{if(((MODE==='hub'&&HUB.screen==='studio')||MODE==='studio')&&window.STU){STU.scroll=Math.max(0,Math.min(STU.maxScroll||0,STU.scroll+Math.sign(e.deltaY)*2));e.preventDefault();return}if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}else if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,(HUB.rscroll||0)+Math.sign(e.deltaY)));e.preventDefault()}},{passive:false});
-cv.addEventListener('pointermove',e=>{const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
+cv.addEventListener('pointermove',e=>{SMAP.follow=false;const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
 cv.addEventListener('pointerleave',()=>{MOUSE.x=-99;MOUSE.y=-99});
 /* manual flying: drag a finger (or the mouse) anywhere to steer the ship. a quick tap still counts as a tap */
 const DRAG={on:false,id:null,x:0,y:0,t:0,path:0,dx:0,dy:0,gx:0,gy:0};
@@ -4996,10 +5053,12 @@ window.__g.dev={
 <script src="packs/desert.js?v=2.47"></script>
 <script src="packs/cave.js?v=2.47"></script>
 <script src="packs/city.js?v=2.47"></script>
-<script src="packs/big.js?v=2.47"></script>
+<script src="packs/big.js?v=2.48"></script>
 <script src="packs/bigthemes1.js?v=2.10"></script>
 <script src="packs/bigthemes2.js?v=2.10"></script>
 <script src="packs/swarm1.js?v=2.32"></script>
+<script src="packs/bigthemes3.js?v=1.06"></script>
+<script src="packs/bigthemes4.js?v=1.06"></script>
 <script src="packs/swarm2.js?v=2.32"></script>
 <script src="surface.js?v=2.84"></script>
 </body>

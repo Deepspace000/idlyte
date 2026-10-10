@@ -319,5 +319,5 @@ function mkPack(T){
     script:T.script
   };
 }
-window.BIGKIT={scene,mkPack,px,cnv,mod,clamp,rng,mkNoise,ell,poly,thick,line,lineF,dithered,clouds,tile,darken,rampAt,fin,outline,KIT,frames,mkBullet,K,NV,VI,BL,PU,LP,LV,mg,MG,rd,BR,TN,OR,YG,YL,GR,GD,LG,PG,cy,CY,D,GM,LM,LL,WH,RD};
+window.BIGKIT={BOSS,muz,capital,scene,mkPack,px,cnv,mod,clamp,rng,mkNoise,ell,poly,thick,line,lineF,dithered,clouds,tile,darken,rampAt,fin,outline,KIT,frames,mkBullet,K,NV,VI,BL,PU,LP,LV,mg,MG,rd,BR,TN,OR,YG,YL,GR,GD,LG,PG,cy,CY,D,GM,LM,LL,WH,RD};
 })();
