@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.96</title>
+<title>Idlyte v2.99</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -206,6 +206,13 @@ const SHIP_ROWS=[
 };/*ENDSHIPDEF*/
 const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHIP_HW=SHIP_W>>1;
 /* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
+/* OBJECT SIZE: enemies (not bosses), pick-ups and bullets are drawn smaller around their centres, and their hit boxes shrink to match. Kept on this device. */
+let OBJK=.75;try{const k=parseFloat(localStorage.getItem('idlyte_objk'));if(k>=.5&&k<=1)OBJK=k}catch(e){}
+function setObjK(k){OBJK=k;try{localStorage.setItem('idlyte_objk',String(k))}catch(e){}}
+function cycleObjK(){const o=[1,.85,.75,.6],i=o.findIndex(v=>Math.abs(v-OBJK)<.01);setObjK(o[(i+1)%o.length])}
+function objSc(x,y,fn){if(OBJK>=.999){fn();return}ctx.save();ctx.translate(x,y);ctx.scale(OBJK,OBJK);ctx.translate(-x,-y);fn();ctx.restore()}
+function setShipZ(z){SHIPZ=Math.max(.5,Math.min(1,z));try{localStorage.setItem('idlyte_shipz',String(SHIPZ))}catch(e){}if(MODE==='game')SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ)}
+function cycleShipZ(){const o=[1,.9,.8,.7,.6,.5],i=o.findIndex(v=>Math.abs(v-SHIPZ)<.01);setShipZ(o[(i+1)%o.length])}
 let SHIPZ=1;try{const z=parseFloat(localStorage.getItem('idlyte_shipz'));if(z>=.5&&z<=1)SHIPZ=z}catch(e){}   /* mouse wheel in a mission: ship size 50% to 100% (the ship and its hit box) */
 let SHIPSC=1;   /* how much bigger than the standard ship the one being flown is (corvettes and bigger) */
 const SHIP_K=SHIP_W/48,shk=n=>Math.round(n*SHIP_K*SHIPSC);
@@ -1089,7 +1096,7 @@ function updateEntities(dt,live){
     if(e.dead)continue;
     for(const b of PB){
       if(b.dead)continue;
-      const hm=e.hitTest?e.hitTest(e,b.x,b.y):((Math.abs(b.x-e.x)<e.w/2+3&&Math.abs(b.y-e.y)<e.h/2+1)?1:0);
+      const ek=(e.type==='boss'||e.type==='mini')?1:OBJK,hm=e.hitTest?e.hitTest(e,e.x+(b.x-e.x)/ek,e.y+(b.y-e.y)/ek):((Math.abs(b.x-e.x)<e.w*ek/2+3&&Math.abs(b.y-e.y)<e.h*ek/2+1)?1:0);
       if(hm>0){
         if(b.wx&&b.hs&&b.hs.has(e))continue;
         if(b.wx&&!e.immune&&window.WX){WX.hit(b,e,hm);if(e.dead)break;continue}
@@ -1104,7 +1111,8 @@ function updateEntities(dt,live){
   E=E.filter(e=>!e.dead&&(e.type==='boss'||e.type==='mini'||(e.x>-40&&e.y>-30&&e.y<H+30)));   // a boss may leave the screen and come back
   if(live&&G.state==='play'){
     for(const e of E){
-      if(e.touch?e.touch(e,P.x,P.y):(Math.abs(e.x-P.x)<e.w/2+shk(12)&&Math.abs(e.y-P.y)<e.h/2+shk(6))){
+      const ek=(e.type==='boss'||e.type==='mini')?1:OBJK;
+      if(e.touch?e.touch(e,e.x+(P.x-e.x)/ek,e.y+(P.y-e.y)/ek):(Math.abs(e.x-P.x)<e.w*ek/2+shk(12)&&Math.abs(e.y-P.y)<e.h*ek/2+shk(6))){
         if(e.type!=='boss'&&P.inv<=0){e.hp-=3;e.flash=.1;if(e.hp<=0){e.dead=1;killEnemy(e)}}
         hurtPlayer();
       }
@@ -1217,7 +1225,8 @@ function zapReticle(e){
     for(const sx of [-1,1])for(const sy of [-1,1]){ctx.fillRect(sx>0?x+hw-2:x-hw,sy>0?y+hh:y-hh,3,1);ctx.fillRect(sx>0?x+hw:x-hw,sy>0?y+hh-2:y-hh,1,3)}
   }
 }
-function drawEnemy(e){
+function drawEnemy(e){if(e.type!=='boss'&&e.type!=='mini'&&OBJK<.999){objSc(e.x,e.y,()=>drawEnemy0(e));return}drawEnemy0(e)}
+function drawEnemy0(e){
   if(e.type==='mini'){drawMini(e);return}
   let spr;
   const f=e.flash>0;
@@ -1277,14 +1286,14 @@ function draw(){
   }
   ctx.save();ctx.translate(sx,sy);
   drawBackground();
-  for(const k of PK){
+  for(const k of PK){objSc(k.x,k.y,()=>{
     if(k.k==='coin')ctx.drawImage(SPR.coin[Math.floor(k.t*8)%4],(k.x-3)|0,(k.y-3)|0);
     else if(k.k==='token'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.token,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='chance'){glowDot((k.x)|0,(k.y)|0);ctx.drawImage(SPR.chance,(k.x-3)|0,(k.y-3+Math.sin(k.t*5)*1.5)|0)}
     else if(k.k==='item'){const iy=(k.y-3+Math.sin(k.t*5)*1)|0,ix=(k.x-3)|0;ctx.fillStyle='#000000';ctx.fillRect(ix-1,iy-1,8,8);ctx.drawImage(SPR.crate[ITEMS.findIndex(q=>q.id===k.id)],ix,iy);
       const sp=Math.floor(k.t*6)%4;if(sp<2){ctx.fillStyle=sp?'#ffffff':'#b8c76f';const sx=ix+(sp?5:0),sy=iy+(sp?0:5);ctx.fillRect(sx-1,sy,3,1);ctx.fillRect(sx,sy-1,1,3)}}
     else ctx.drawImage(SPR.pw[k.p],(k.x-5)|0,(k.y-4+Math.sin(k.t*4)*1.5)|0);
-  }
+  })}
   for(const e of E)drawEnemy(e);
   {const A=pk();if(A&&A.drawMidground)A.drawMidground(G.t+(G.loop*LEVEL_LEN))}
   drawShip();
@@ -1293,20 +1302,20 @@ function draw(){
   if(G.state==='play'&&P.guardT>0&&(P.guardT>2||blinkAt(P.guardT,8))){for(let k=1;k<=4;k++){const a=(P.gAng||0)-k*.28;ctx.fillStyle=k<3?'#ff7777':'#9a6759';ctx.fillRect((P.x+Math.cos(a)*shk(34))|0,(P.y+Math.sin(a)*shk(34))|0,2,2)}ctx.drawImage(SPR.guard,((P.gx||P.x)-4)|0,((P.gy||P.y)-4)|0);for(const so of [1.6,3.2]){const sa=(P.gAng||0)+so,sx=((P.gx||P.x)+Math.cos(sa*2)*7)|0,sy=((P.gy||P.y)+Math.sin(sa*2)*7)|0;ctx.fillStyle='#ffffff';ctx.fillRect(sx,sy,2,2)}}
   if(G.state==='play')for(let i=0;i<G.stats.opts;i++){const o=optPos(i);ctx.drawImage(SPR.opt,(o[0]-3)|0,(o[1]-3)|0)}
   // shots
-  for(const b of PB){
-    if(b.wx&&window.WX){WX.draw(b);continue}
-    if(b.hm){ctx.fillStyle='#9a6759';ctx.fillRect((b.x-5)|0,(b.y-1)|0,6,2);ctx.fillStyle='#ffffff';ctx.fillRect((b.x+1)|0,(b.y-1)|0,3,2);continue}
+  for(const b of PB){objSc(b.x,b.y,()=>{
+    if(b.wx&&window.WX){WX.draw(b);return}
+    if(b.hm){ctx.fillStyle='#9a6759';ctx.fillRect((b.x-5)|0,(b.y-1)|0,6,2);ctx.fillStyle='#ffffff';ctx.fillRect((b.x+1)|0,(b.y-1)|0,3,2);return}
     ctx.fillStyle=((b.lv||1)>=4?'#ff9966':(b.lv||1)===3?'#b8c76f':(b.lv||1)===2?'#9ad284':'#70a4b2');ctx.fillRect((b.x-4)|0,(b.y-1)|0,8,(b.lv||1)>=3?3:2);
     ctx.fillStyle='#fff';ctx.fillRect((b.x-1)|0,(b.y-1)|0,5,1);ctx.fillStyle=Math.floor(b.x/4)%2?'#ffffff':'#bbbbbb';ctx.fillRect((b.x+3)|0,(b.y-1)|0,1,(b.lv||1)>=3?3:2);ctx.fillStyle='#444444';ctx.fillRect((b.x-9)|0,b.y|0,4,1);ctx.fillStyle='#352879';ctx.fillRect((b.x-13)|0,b.y|0,4,1);
-  }
+  })}
   if(window.WX)WX.drawFx(1/60);
   // enemy bullets
-  for(const b of EB){
-    if(b.sty){const A=pk();if(A&&A.bullets&&A.bullets[b.sty]){A.bullets[b.sty](ctx,b);continue}}
+  for(const b of EB){objSc(b.x,b.y,()=>{
+    if(b.sty){const A=pk();if(A&&A.bullets&&A.bullets[b.sty]){A.bullets[b.sty](ctx,b);return}}
     const a=blinkAt(b.t,14);
     ctx.fillStyle='#9a3a3a';ctx.fillRect((b.x-2)|0,(b.y-3)|0,4,6);ctx.fillRect((b.x-3)|0,(b.y-2)|0,6,4);ctx.fillStyle=['#ff7777','#ffffff','#ff7777'][Math.floor(b.t*12)%3];ctx.fillRect((b.x-1)|0,(b.y-2)|0,2,4);ctx.fillRect((b.x-2)|0,(b.y-1)|0,4,2);
     ctx.fillStyle='#000000';ctx.fillRect((b.x-1)|0,(b.y-1)|0,1,1);ctx.fillStyle=a?'#ffffff':'#9a3a3a';ctx.fillRect(b.x|0,b.y|0,1,1);
-  }
+  })}
   for(const f of FX){
     if(f.burst){const t=1-f.life/f.l0,r=Math.round(f.max*Math.min(1,t*1.6));ctx.fillStyle=t<.25?'#ffffff':t<.5?'#b8c76f':t<.75?'#9a6759':'#68372b';for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(dx*dx+dy*dy<=r*r&&(((dx+dy)&1)||t<.4))ctx.fillRect((f.x|0)+dx,(f.y|0)+dy,1,1)}
     else if(f.ring){pixCircle(f.x|0,f.y|0,f.r,f.col||'#ffffff',Math.floor(f.life*20))}
@@ -1417,20 +1426,21 @@ function drawMissionMenu(){
     ['SAVE THIS PIECE','SEED '+ARP.seed,()=>{SAVE.studio={seed:ARP.seed,start:Math.max(0,ARP.bn-2)};save();toast('PIECE SAVED. OPEN THE MUSIC STUDIO IN SETTINGS AT THE STATION')}],
     ['VOLUME',['LOW','MEDIUM','HIGH'][SAVE.set.vol|0],()=>{SAVE.set.vol=((SAVE.set.vol|0)+1)%3;mus.vol=[.4,.7,1][SAVE.set.vol];save()}],
     ['FLASHING EFFECTS',fxReduced()?'REDUCED':'NORMAL',()=>setDisp('flash',fxReduced()?1:0)],
+    ['SHIP SIZE',Math.round(SHIPZ*100)+'%',()=>cycleShipZ()],
     ['LEAVE MISSION',G.leaveAt&&performance.now()-G.leaveAt<3000?'TAP AGAIN':'',()=>{if(G.leaveAt&&performance.now()-G.leaveAt<3000){G.leaveAt=0;leaveToTitle()}else G.leaveAt=performance.now()}],
     ['CLOSE MENU','',()=>{G.menuOpen=false}]];
   G.menuRows=rows;G.mf=Math.max(0,Math.min(rows.length-1,G.mf|0));
-  const x0=52,w=216,y0=24,h=14+rows.length*15+4;
+  const rh=rows.length>9?13:15,x0=52,w=216,h=14+rows.length*rh+4,y0=Math.max(15,Math.min(24,H-h-3));
   uiBtn(x0,y0,w,h,()=>{},()=>{});   // blocks taps from reaching the mission underneath
   ctx.fillStyle='#000';ctx.fillRect(x0,y0,w,h);ctx.fillStyle='#6c5eb5';ctx.fillRect(x0,y0,w,1);ctx.fillRect(x0,y0,1,h);ctx.fillRect(x0+w-1,y0,1,h);ctx.fillRect(x0,y0+h-1,w,1);
   ctx.fillStyle='#352879';ctx.fillRect(x0+1,y0+1,w-2,11);text('MISSION MENU. THE MISSION KEEPS RUNNING',x0+5,y0+4,'#ffffff',1);
-  rows.forEach((r,i)=>{const y=y0+14+i*15;
-    uiBtn(x0+3,y,w-6,13,()=>{G.mf=i;r[2]()},(f)=>{const fo=G.mf===i;ctx.fillStyle=fo?'#4d40a8':'#14102a';ctx.fillRect(x0+3,y,w-6,13);if(fo){ctx.fillStyle='#9a8fe0';ctx.fillRect(x0+3,y,2,13)}
+  rows.forEach((r,i)=>{const y=y0+14+i*rh;
+    uiBtn(x0+3,y,w-6,rh>13?13:12,()=>{G.mf=i;r[2]()},(f)=>{const fo=G.mf===i;ctx.fillStyle=fo?'#4d40a8':'#14102a';ctx.fillRect(x0+3,y,w-6,13);if(fo){ctx.fillStyle='#9a8fe0';ctx.fillRect(x0+3,y,2,13)}
       text(r[0],x0+9,y+4,r[0]==='LEAVE MISSION'?'#ff9966':'#ffffff',1);if(r[1])textR(r[1],x0+w-9,y+4,r[1]==='OFF'?'#ff9966':'#9ad284',1)})});
 }
 
 /* ===== title page ===== */
-const VERSION='2.96';
+const VERSION='2.99';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3460,6 +3470,8 @@ function extraScreen(id,rows,info){
      rows.push({n:'SHARP PIXELS',d:'WHOLE PIXEL SIZES FOR A CLEANER PICTURE. MAY LEAVE BORDERS',r:DISP.sharp?'ON':'OFF',ok:true,fn:()=>setDisp('sharp',DISP.sharp?0:1)})}
     rows.push({n:'CRT SCREEN',d:'SCANLINES, SOFT GLOW AND CURVED EDGES. OLD TV LOOK',r:DISP.scan?'ON':'OFF',ok:true,fn:()=>setDisp('scan',DISP.scan?0:1)});
     rows.push({n:'FLASHING EFFECTS',d:'REDUCED SOFTENS SCREEN FLASHES, SLOWS BLINKING AND CALMS LIGHTNING AND GLITCH EFFECTS. NORMAL IS THE ORIGINAL LOOK',r:fxReduced()?'REDUCED':'NORMAL',ok:true,fn:()=>setDisp('flash',fxReduced()?1:0)});
+    rows.push({n:'SHIP SIZE (ZOOM)',d:'HOW BIG YOUR SHIP IS ON A MISSION. SMALLER GIVES MORE ROOM TO SEE AND STEER A BIG SHIP. THE MOUSE WHEEL DOES THE SAME ON A COMPUTER',r:Math.round(SHIPZ*100)+'%',ok:true,fn:()=>cycleShipZ()});
+    rows.push({n:'OBJECT SIZE',d:'HOW BIG ENEMIES, POWER-UPS AND BULLETS ARE ON A MISSION. SMALLER MEANS MORE ROOM TO SEE AND STEER. BOSSES STAY THE SAME SIZE',r:Math.round(OBJK*100)+'%',ok:true,fn:()=>cycleObjK()});
     rows.push({n:'BACK',d:'BACK TO SETTINGS',r:'',ok:true,fn:()=>{HUB.screen='settings';UI.focus=0}});
     return 'DISPLAY';
   }
@@ -3477,6 +3489,8 @@ function extraScreen(id,rows,info){
     rows.push({n:'CLOCK',d:'SHOW STATION TIME OR YOUR REAL LOCAL TIME',r:S.clock?'REAL TIME':'STATION TIME',ok:true,fn:()=>{S.clock=S.clock?0:1;save()}});
     rows.push({n:'SHIP NAME',d:'CHANGE THE NAME OF YOUR SHIP',r:SAVE.shipName||'',ok:true,fn:()=>{SAVE.shipName=askShipName(SAVE.shipName||'DRIFTER');save()}});
     rows.push({n:'FLASHING EFFECTS',d:'REDUCED SOFTENS SCREEN FLASHES, SLOWS BLINKING AND CALMS LIGHTNING AND GLITCH EFFECTS. NORMAL IS THE ORIGINAL LOOK',r:fxReduced()?'REDUCED':'NORMAL',ok:true,fn:()=>setDisp('flash',fxReduced()?1:0)});
+    rows.push({n:'SHIP SIZE (ZOOM)',d:'HOW BIG YOUR SHIP IS ON A MISSION. SMALLER GIVES MORE ROOM TO SEE AND STEER A BIG SHIP. THE MOUSE WHEEL DOES THE SAME ON A COMPUTER',r:Math.round(SHIPZ*100)+'%',ok:true,fn:()=>cycleShipZ()});
+    rows.push({n:'OBJECT SIZE',d:'HOW BIG ENEMIES, POWER-UPS AND BULLETS ARE ON A MISSION. SMALLER MEANS MORE ROOM TO SEE AND STEER. BOSSES STAY THE SAME SIZE',r:Math.round(OBJK*100)+'%',ok:true,fn:()=>cycleObjK()});
     rows.push({n:'DISPLAY',d:'SCREEN SHAPE, SIZE, SHARP PIXELS AND THE CRT LOOK',r:'OPEN',ok:true,fn:()=>{HUB.screen='display';UI.focus=0}});
     rows.push({n:HUB.confirmReset?'PRESS AGAIN TO ERASE EVERYTHING':'RESET ALL PROGRESS',d:'STARTS A NEW GAME FROM THE BEGINNING',r:'',ok:true,fn:()=>{if(HUB.confirmReset){try{localStorage.removeItem('idlyte_slot_'+CURSLOT)}catch(e){}location.reload()}else HUB.confirmReset=1}});
     L('VERSION '+VERSION);L('KEYS: WASD OR ARROWS WALK, E USES, I INVENTORY, K SHIP, P PERSONNEL');L('ESC OR O SETTINGS, H GOALS, M MUSIC, N SOUND EFFECTS');
@@ -4336,8 +4350,8 @@ function padPoll(dt){
 })();
 cv.addEventListener('wheel',e=>{
   if(MODE==='game'&&G&&G.state!=='dead'&&!G.menuOpen&&!G.slot){   // zoom the ship out or in: its size and hit box change, so a big ship is easier to see and steer
-    e.preventDefault();const z0=SHIPZ;SHIPZ=Math.max(.5,Math.min(1,Math.round((SHIPZ-Math.sign(e.deltaY)*.1)*10)/10));
-    if(SHIPZ!==z0){try{localStorage.setItem('idlyte_shipz',String(SHIPZ))}catch(x){}SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ);toast('SHIP SIZE '+Math.round(SHIPZ*100)+'%')}
+    e.preventDefault();const z0=SHIPZ;setShipZ(Math.round((SHIPZ-Math.sign(e.deltaY)*.1)*10)/10);
+    if(SHIPZ!==z0)toast('SHIP SIZE '+Math.round(SHIPZ*100)+'%')
     return}
   if(((MODE==='hub'&&HUB.screen==='studio')||MODE==='studio')&&window.STU){STU.scroll=Math.max(0,Math.min(STU.maxScroll||0,STU.scroll+Math.sign(e.deltaY)*2));e.preventDefault();return}if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}else if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,(HUB.rscroll||0)+Math.sign(e.deltaY)));e.preventDefault()}},{passive:false});
 cv.addEventListener('pointermove',e=>{SMAP.follow=false;const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
@@ -4814,6 +4828,8 @@ function drawTSettings(){
    ['SHARP PIXELS',DISP.sharp?'ON':'OFF',()=>setDisp('sharp',DISP.sharp?0:1)],
    ['CRT SCREEN',DISP.scan?'ON':'OFF',()=>setDisp('scan',DISP.scan?0:1)],
    ['FLASHING EFFECTS',fxReduced()?'REDUCED':'NORMAL',()=>setDisp('flash',fxReduced()?1:0)],
+   ['SHIP SIZE (ZOOM)',Math.round(SHIPZ*100)+'%',()=>cycleShipZ()],
+   ['OBJECT SIZE',Math.round(OBJK*100)+'%',()=>cycleObjK()],
    ['MUSIC',mus.on?'ON':'OFF',()=>setMusic(!mus.on)],
    ['ARPEGGIO SOUND',ARPW[mus.wave|0].n,()=>setWave((mus.wave|0)+1)],
    ['SYNTH MORPH',mus.morph!==false?'ON':'OFF',()=>setMorph(mus.morph===false)],
