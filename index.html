@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.74</title>
+<title>Idlyte v2.75</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.74';
+const VERSION='2.75';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4177,7 +4177,7 @@ function setPad(on){mus.pad=!!on;try{localStorage.setItem('idlyte_pad3',mus.pad?
 function setMusic(on){mus.on=!!on;try{localStorage.setItem('idlyte_music',mus.on?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.music=mus.on?1:0;save()}if(AC&&mus.gain&&!mus.on)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.on?'MUSIC ON':'MUSIC OFF')}
 function setMute(m){mus.mute=!!m;try{localStorage.setItem('idlyte_mute',mus.mute?'1':'0')}catch(e){}if(SAVE&&SAVE.set){SAVE.set.mute=mus.mute?1:0;save()}if(AC&&mus.gain&&mus.mute)mus.gain.gain.setTargetAtTime(0,AC.currentTime,.05);toast(mus.mute?'SOUND EFFECTS OFF':'SOUND EFFECTS ON')}
 function handleKey(k){
-  if(MODE==='surface'&&k!=='m'&&k!=='n'){SURF.key(k);return}
+  if(MODE==='surface'&&k!=='n'){SURF.key(k);return}   // M opens the map in the sub game; music is switched in its pause menu
   if(k==='m'){if(!INP.repeat)setMusic(!mus.on);return}
   if(k==='n'&&MODE!=='slots'){if(!INP.repeat)setMute(!mus.mute);return}
   if(MODE==='studio'){if(studioKey(k))return;if(k==='escape'||k==='backspace'||k==='q'){studioStop();MODE='tset';UI.focus=0}return}
@@ -4975,6 +4975,6 @@ window.__g.dev={
 <script src="packs/bigthemes2.js?v=2.10"></script>
 <script src="packs/swarm1.js?v=2.32"></script>
 <script src="packs/swarm2.js?v=2.32"></script>
-<script src="surface.js?v=2.74"></script>
+<script src="surface.js?v=2.75"></script>
 </body>
 </html>

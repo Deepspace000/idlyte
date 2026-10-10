@@ -578,7 +578,7 @@ function featGen(c){
   for(let k=0;k<(idx===4?4:5);k++)placeLore(k,k===1||k===3?'surf':idx===1&&k===0?'room':RF()<.4?'surf':'room');
   if(idx===4)addIA({k:'lore',slot:4,x:0,y:0,final:1,hide:1});
   /* --- people */
-  if(idx===0||idx===2||idx===4){const s=takeSpot(idx===0?30:120,idx===0?140:LW*.5)||takeSpot(30,LW*.5);if(s)addIA({k:'npc',npc:'trader',x:s.x*TSZ+4,y:s.y*TSZ})}
+  {const s=takeSpot(idx===0?30:120,idx===0?140:LW*.5)||takeSpot(30,LW*.5);if(s)addIA({k:'npc',npc:'trader',x:s.x*TSZ+4,y:s.y*TSZ})}
   {const s=takeSpot(LW*.2,LW*.8);if(s)addIA({k:'npc',npc:'astro',x:s.x*TSZ+4,y:s.y*TSZ,qid:'q'+idx})}
   if(idx===1){const r=takeRoom(q=>q.w>=26,1);if(r){const p=roomSpot(r,8);addIA({k:'npc',npc:'hermit',x:p.x,y:p.y})}}
   if(idx===2||idx===4){const r=takeRoom(q=>q.w>=22,1);if(r){const p=roomSpot(r,6);addIA({k:'npc',npc:'ghost',x:p.x,y:p.y})}}
@@ -1479,7 +1479,10 @@ function genLevel(idx){
     if(pcs.length&&NP===3){const p=pcs[0],nm=NAMES[p.id];T.push('THE SUNLARK LOST ITS '+nm+' HERE. I SAW IT FALL INTO '+regionOf(p.x)+', '+heightOf(p.x,p.y)+'.'+(idx===0?' THIS ONE SHOULD BE THE EASIEST TO FIND.':''));T.push('IT LIES IN '+kindOf(p)+'. '+landOf(p)+'.');T.push(tipOf(p))}
     else if(pcs.length>=2){for(const p of pcs.slice(0,2)){const nm=NAMES[p.id];T.push('TWO PIECES OF THE SUNLARK FELL HERE. THE '+nm+' CAME DOWN IN '+regionOf(p.x)+', '+heightOf(p.x,p.y)+'. IT LIES IN '+kindOf(p)+'.');T.push(landOf(p)+'. '+tipOf(p))}}
     L.journal=[];chosen.forEach((c,k)=>{if(k>=T.length)return;const id='jp'+idx+'_'+k,o={k:'page',x:c[0]*TS+4,y:(c[1]+1)*TS,id,n:k,N:T.length,text:T[k]};L.ia.push(o);L.journal.push(o);L.secrets.push({id,name:'JOURNAL PAGE'});L.secretPts.push({x:c[0]*TS+4,y:c[1]*TS,sid:id})});
+
     L.secretTotal=L.secrets.length}
+  /* PIECE HINT circles: a big rough area that always contains the piece. Fixed by the level seed, so it is the same on every visit. */
+  L.hintC=L.shipPieces.slice().sort((a,b)=>a.id-b.id).filter(p=>p.id>=0).map((p,k)=>{const RH=rng(9700+idx*13+p.id*7),r=Math.min(Math.floor(LW/4),80+Math.floor(RH()*31)),d=r*(.2+RH()*.4),a=RH()*TAU;return{id:p.id,k,x:Math.round(p.x/TS+Math.cos(a)*d),y:Math.round(p.y/TS+Math.sin(a)*d*.8),r,px:p.x/TS,py:p.y/TS}});
   return L;
 }
 
@@ -1879,7 +1882,7 @@ function bakeChunk(L,idx,ci,cj){
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
 window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
-function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.jr=s.jr||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
+function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.hint=s.hint||{};s.jr=s.jr||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
   return s}
 SURF.state=sv;
 const PIECE_NAMES=['HULL','ENGINE','REACTOR','WINGS','COCKPIT','WEAPON CORE'];SURF.PIECE_NAMES=PIECE_NAMES;
@@ -2004,8 +2007,24 @@ function inp(){
   return{l,r,jump,jumpB,fire,up,down}
 }
 /* ---------------- update ---------------- */
+
+/* UNSTUCK: free the player without losing anything. Nearest safe standing spot within 12 tiles that the level graph says can be walked out of; else the last beam pad. */
+SURF.unstick=function(quiet){const L=SURF.L,p=SURF.p;if(!p||p.dead>0)return false;const LW=L.LW,LH=L.LH;let A=null;if(!quiet||!L.footA){try{A=analyzeLevel(L,{noUps:true});L.footA=A}catch(e){}}else A=L.footA;
+  const cx=Math.floor((p.x+5)/TS),cy=Math.floor((p.y+8)/TS),RR=quiet?7:12;let best=null,bd=1e9;
+  for(let dy=-RR;dy<=RR;dy++)for(let dx=-RR;dx<=RR;dx++){const tx=cx+dx,ty=cy+dy;if(tx<2||tx>=LW-2||ty<3||ty>=LH-3)continue;
+    const tb=L.g[(ty+1)*LW+tx],t0=L.g[ty*LW+tx],t1=L.g[(ty-1)*LW+tx];if(!(tb===1||tb===2||tb===6)||t0===7||t0===10||t1===10||t0===3||t0===4||tb===3)continue;
+    if(A&&!A.F[ty*LW+tx])continue;const x=tx*TS-1,y=(ty+1)*TS-16;if(hitsSolid(x,y,10,16))continue;
+    let d=Math.hypot(dx,dy*1.2);const lad=L.g[(ty+1)*LW+tx]===2&&false;if(L.g[(ty+1)*LW+tx-1]===7||L.g[(ty+1)*LW+tx+1]===7||L.g[(ty+2)*LW+tx]===7)d-=1.5;
+    if(d<bd){bd=d;best=[x,y]}}
+  if(!best&&quiet)return SURF.unstick(false);
+  let how='GROUND';
+  if(!best){const cp=sv().cp[SURF.idx];best=cp?[cp.x,cp.y-16]:[L.start.x,L.start.y];how='PAD'}
+  p.x=best[0];p.y=best[1];p.vx=p.vy=0;p.lad=false;p.ride=null;p.inv=1;p.thrust=false;p.drop=0;p.lgr=0;p.lj=0;p.noJump=.15;p.coy=0;p.on=true;p.safe={x:best[0],y:best[1]};SURF.cam.x=p.x-150;SURF.cam.y=p.y-110;
+  if(!quiet){SURF.modal=null;SURF.msg=['FREED. YOU ARE BACK ON SOLID GROUND.',2.2]}return true};
+function pauseBtnAct(m,i){if(i===0)closeModal();else if(i===1)SURF.unstick();else if(i===2){closeModal();SURF.beamUp()}else if(i===3){try{setMusic(!mus.on)}catch(e){}}else if(i===4){try{setMute(!mus.mute)}catch(e){}}}
 SURF.key=function(k){
   const rep=typeof INP!=='undefined'&&INP.repeat,pad=typeof INP!=='undefined'&&INP.last==='pad';
+  if(k==='m'){if(rep)return;if(SURF.modal){if(SURF.modal.type==='pause'){if(SURF.modal.tab===3)SURF.kBack=true;else{SURF.modal.tab=3;SURF.modal.focus=0}}}else if(!SURF.cut){openPause();if(SURF.modal)SURF.modal.tab=3}return}
   if(SURF.modal){if(rep)return;if(k==='enter'||k==='e'||k===' ')SURF.kOK=true;else if(k==='b'||k==='escape'||k==='p'||k==='t')SURF.kBack=true;return}
   if(k==='b'||k==='escape'||k==='t'||k==='p'){if(!rep&&!SURF.cut)openPause();return}
   if(k==='g'){const p=SURF.p;if(p&&p.dead<=0&&SURF.t-(SURF.rt||-9)>3){SURF.rt=SURF.t;const cp=sv().cp[SURF.idx];p.x=cp?cp.x:SURF.L.start.x;p.y=(cp?cp.y-16:SURF.L.start.y);p.vx=p.vy=0;p.ride=null;p.inv=1;SURF.msg=['BACK AT THE LAST BEAM PAD',1.6]}return}
@@ -2067,9 +2086,11 @@ SURF.tick=function(dt){
     if(!p.lad){if(!(p.lgr>0)&&((I.up&&onL)||(I.down&&(onL||(p.on&&belowL))))){p.lad=true;p.lcol=lcx;p.vx=0;p.vy=0;p.on=false;if(!onL)p.y+=5;p.jb=0;p.jumpHeld=true;p.lsd=0;p.lg=.12;p.x=clamp(p.x+(((lcx*TS+4-p.w/2)-p.x)*.6),2,L.LW*TS-p.w-2)}}
     else if(!onL&&!(I.down&&belowL)){
       const rt=Math.floor((p.y+p.h-1)/TS);
-      if(I.up&&tile(lcx,rt)===7&&tile(lcx,rt-1)!==7&&!hitsSolid(p.x,rt*TS-p.h,p.w,p.h)){p.y=rt*TS-p.h;p.vy=0;p.on=true;p.lad=false;p.coy=.09}   // climbed out onto the top rung (only if there is room to stand)
+      if(I.up&&tile(lcx,rt)===7&&tile(lcx,rt-1)!==7&&!hitsSolid(p.x+2,rt*TS-p.h,p.w-4,p.h)){p.y=rt*TS-p.h;p.vy=0;p.on=true;p.lad=false;p.coy=.09;if(hitsSolid(p.x,p.y,p.w,p.h)){for(const dx of [1,-1,2,-2,3,-3])if(!hitsSolid(p.x+dx,p.y,p.w,p.h)){p.x+=dx;break}}}   // climbed out onto the top rung (only if there is room to stand)
       else if((p.lg-=dt)<=0)p.lad=false}
     else p.lg=.12;
+    /* anti freeze: held input, on or in a ladder, and not moving for 1.5 s: push the player free */
+    {const mv=Math.abs(p.x-(p.fx||0))+Math.abs(p.y-(p.fy||0));p.fx=p.x;p.fy=p.y;if((p.lad||onL)&&(I.up||I.l||I.r||I.jumpB)&&mv<.05&&!p.inW)p.frz=(p.frz||0)+dt;else p.frz=0;if(p.frz>1.5){p.frz=0;SURF.unstick(true)}}
     if(p.lad){
       p.lcol=lcx;p.vx=0;if(ax)p.face=ax;
       p.vy=I.up?-70:I.down?70:0;p.lcl=(p.lcl||0)+(p.vy?dt*8:0);
@@ -2339,6 +2360,9 @@ function shopRows(){const s=sv(),p=SURF.p,rows=[];const buy=(cost,fn)=>()=>{if(s
   rows.push({t:'ROCKET FUEL TANK',c:600,no:s.jet?'MAX':'NO PACK',d:s.jet?'MORE FUEL. YOU HAVE '+(s.shop.fuel||0)+' OF 3.':'NEEDS THE ROCKET PACK FIRST.',ok:!!s.jet&&(s.shop.fuel||0)<3,fn:buy(600,()=>{s.shop.fuel=(s.shop.fuel||0)+1})});
   rows.push({t:'LASER UPGRADE',c:(s.shop.dmg||0)?2000:800,no:'MAX',d:'MORE DAMAGE. YOU HAVE '+(s.shop.dmg||0)+' OF 2.',ok:(s.shop.dmg||0)<2,fn:buy((s.shop.dmg||0)?2000:800,()=>{s.shop.dmg=(s.shop.dmg||0)+1})});
   rows.push({t:'GLOW LANTERN',c:500,no:'OWNED',d:'SEE FURTHER IN DARK ROOMS.',ok:!s.shop.lamp,fn:buy(500,()=>{s.shop.lamp=1})});
+  {const L=SURF.L,hc=(L.hintC||[]);hc.forEach((h,k)=>{const pr=hintPrice(SURF.idx,k),prevOK=k===0||s.pieces[hc[0].id]||s.hint[hc[0].id],nm=k?'PIECE HINT 2':'PIECE HINT';if(!prevOK)return;
+    const no=s.hint[h.id]?'ALREADY BOUGHT':s.pieces[h.id]?'PIECE FOUND':s.green<pr?'NOT ENOUGH GOLD':'';
+    rows.push({t:nm,c:pr,no:no||'DONE',d:'SHOWS THE AREA WHERE THIS LEVEL\'S SHIP PIECE IS HIDDEN.',ok:!no,fn:buy(pr,()=>{s.hint[h.id]=1;SURF.msg=['PIECE AREA MARKED ON YOUR MAP AND IN THE WORLD.',3]})})})}
   rows.push({t:'LEVEL MAP',c:300,no:'OWNED',d:'SHOWS THE WHOLE LEVEL ON THE MAP PAGE.',ok:!s.map[SURF.idx],fn:buy(300,()=>{s.map[SURF.idx]=1})});
   return rows}
 function openShop(){const rows=shopRows();openModal({type:'menu',title:'TRADER BOT: GREEN GOLD SHOP',rows,cur:Math.max(0,rows.findIndex(r=>r.ok)),refresh:shopRows})}
@@ -2505,7 +2529,7 @@ function pauseKeys(m,E){const NT=5;
   if(E.back){closeModal();return}
   if(m.focus===0){if(E.l)m.tab=(m.tab+NT-1)%NT;if(E.r)m.tab=(m.tab+1)%NT;if(E.d){if(m.tab===1||m.tab===2||m.tab===4)m.focus=2;else m.focus=1}}
   else if(m.focus===2){const n=m.tab===1?25:m.tab===4?16:SURF.W.en.length;if(E.d){if(m.cur[m.tab]<n-1)m.cur[m.tab]++;else m.focus=1}if(E.u){if(m.cur[m.tab]>0)m.cur[m.tab]--;else m.focus=0}if(E.ok&&m.tab===1){const q=m.cur[1],i=Math.floor(q/5),k=q%5;if(sv().lore[i*10+k]){const e=LORE[i][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill(e[1]),262),back:m})}}if(E.ok&&m.tab===4){const [w,k]=jpIdx(m.cur[4]),tx=sv().jr['jp'+w+'_'+k];if(tx)openModal({type:'text',title:'JOURNAL: WORLD '+(w+1)+' PAGE '+(k+1)+' OF '+JPN[w],lines:wrapT(tx,262),back:m})}}
-  else{if(E.u)m.focus=m.tab===1||m.tab===2||m.tab===4?2:0;if(E.l||E.r)m.btn=1-m.btn;if(E.ok){if(m.btn===0)closeModal();else{closeModal();SURF.beamUp()}}}}
+  else{if(E.u)m.focus=m.tab===1||m.tab===2||m.tab===4?2:0;if(E.l)m.btn=(m.btn+4)%5;if(E.r)m.btn=(m.btn+1)%5;if(E.ok)pauseBtnAct(m,m.btn)}}
 /* ---- drawing the modals */
 function panelBox(x,y,w,h,title){ctx.globalAlpha=.94;ctx.fillStyle='#05031a';ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;ctx.fillStyle=YL;ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillStyle='#352879';ctx.fillRect(x,y+1,w,9);if(title)textC2(title,x+w/2,y+2,YL)}
 function mhit(x,y,w,h,fn){SURF.mh.push({x,y,w,h,fn})}
@@ -2525,10 +2549,10 @@ function drawModal(){const m=SURF.modal;if(!m)return;SURF.mh=[];const s=sv(),A=S
 function drawPause(m){const s=sv(),L=SURF.L,idx=SURF.idx,Wd=SURF.W,A=SURF.A;panelBox(8,6,VW-16,VH-12,'PAUSED:  '+Wd.n);
   const tabs=['PROGRESS','LORE','CREATURES','MAP','JOURNAL'],tw=[58,44,62,40,58];let tx_=12;tabs.forEach((t,i)=>{const x=tx_,w_=tw[i],foc=m.tab===i;tx_+=w_+4;ctx.fillStyle=foc?(m.focus===0?'#6c5eb5':'#4a3f8a'):'#1c1840';ctx.fillRect(x,18,w_,11);textC2(t,x+w_/2,20,foc?WH:'#8888aa');mhit(x,18,w_,11,()=>{m.tab=i;m.focus=0})});
   const T=trk(),y0=34;
-  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['ROCKET BOOSTERS',SURF.boosters()+' OF 4'],['JOURNAL PAGES',Object.keys(s.jr).length+' OF 16'],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
+  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['ROCKET BOOSTERS',SURF.boosters()+' OF 4'],['JOURNAL PAGES',Object.keys(s.jr).length+' OF 16'],...(SURF.L.hintC&&SURF.L.hintC.some(h=>s.hint[h.id]&&!s.pieces[h.id])?[['PIECE AREA RING (TAP TO SWITCH)',s.hintOn===0?'OFF':'ON']]:[]),['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
     rows.forEach((r,i)=>{text(r[0],20,y0+i*10,'#bbbbdd',1);textR(r[1],VW-20,y0+i*10,i<3&&(i===0?T.sec>=T.tot:i===1?T.lr>=T.lt:T.met>=T.mt)?GREEN[3]:WH,1)});
-    const yy=y0+rows.length*10+2;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
-    text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: '+menuLabel(),20,yy+38,'#8888aa',1);}
+    if(rows.length>9)mhit(14,y0+9*10-1,VW-28,10,()=>{s.hintOn=s.hintOn===0?1:0});const yy=y0+rows.length*10+2;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
+    text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: '+menuLabel()+(devKind()==='key'?'   MAP: M':''),20,yy+38,'#8888aa',1);}
   else if(m.tab===1){const cur=m.cur[1],top0=Math.max(0,Math.min(cur-2,25-6));for(let i=0;i<6;i++){const q=top0+i;if(q>=25)break;const w=Math.floor(q/5),k=q%5,rd=s.lore[w*10+k],foc=m.focus===2&&q===cur;const y=y0+i*11;ctx.fillStyle=foc?'#3a2f7a':q===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,10);text('W'+(w+1)+'  '+(rd?LORE[w][k][0]:'???'),18,y+1,rd?WH:'#5a5a7a',1);mhit(14,y,VW-28,10,()=>{m.cur[1]=q;m.focus=2;if(rd){const e=LORE[w][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill?SURF.L.loreFill(e[1]):e[1],262),back:m})}})}
     {const q=cur,w=Math.floor(q/5),k=q%5,rd=s.lore[w*10+k],ty=y0+6*11+4;ctx.fillStyle='#0a0820';ctx.fillRect(14,ty-2,VW-28,56);ctx.fillStyle='#352879';ctx.fillRect(14,ty-2,VW-28,1);if(rd){const ls=wrapT(SURF.L.loreFill?SURF.L.loreFill(LORE[w][k][1]):LORE[w][k][1],262);ls.slice(0,5).forEach((l_,i)=>text(l_,20,ty+2+i*9,WH,1))}else text('NOT FOUND YET. LOOK FOR LORE OBJECTS IN WORLD '+(w+1)+'.',20,ty+2,'#8888aa',1)}}
   else if(m.tab===2){const n=Wd.en.length,cur=m.cur[2];for(let i=0;i<n;i++){const e=Wd.en[i],met=s.met[idx+'_'+i],kills=s.seen[idx+'_'+i]||0,foc=m.focus===2&&i===cur,y=y0+i*20;ctx.fillStyle=foc?'#3a2f7a':i===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,19);
@@ -2538,7 +2562,7 @@ function drawPause(m){const s=sv(),L=SURF.L,idx=SURF.idx,Wd=SURF.W,A=SURF.A;pane
   else if(m.tab===4){const cur=m.cur[4],top0=Math.max(0,Math.min(cur-2,16-6));for(let i=0;i<6;i++){const q=top0+i;if(q>=16)break;const [w,k]=jpIdx(q),tx=s.jr['jp'+w+'_'+k],foc=m.focus===2&&q===cur,y=y0+i*11;ctx.fillStyle=foc?'#3a2f7a':q===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,10);text('W'+(w+1)+'  PAGE '+(k+1)+' OF '+JPN[w]+(tx?'':'   ???'),18,y+1,tx?WH:'#5a5a7a',1);mhit(14,y,VW-28,10,()=>{m.cur[4]=q;m.focus=2;if(tx)openModal({type:'text',title:'JOURNAL: WORLD '+(w+1)+' PAGE '+(k+1)+' OF '+JPN[w],lines:wrapT(tx,262),back:m})})}
     {const q=cur,[w,k]=jpIdx(q),tx=s.jr['jp'+w+'_'+k],ty=y0+6*11+4;ctx.fillStyle='#0a0820';ctx.fillRect(14,ty-2,VW-28,56);ctx.fillStyle='#352879';ctx.fillRect(14,ty-2,VW-28,1);if(tx)wrapT(tx,262).slice(0,6).forEach((l_,i)=>text(l_,20,ty+2+i*9,WH,1));else{wrapT('NOT FOUND YET. TORN JOURNAL PAGES LIE OFF THE MAIN ROUTE IN WORLD '+(w+1)+'. TOGETHER THEY SAY WHERE THAT WORLD HIDES ITS SHIP PIECE.',262).forEach((l_,i)=>text(l_,20,ty+2+i*9,'#8888aa',1))}}}
   else{drawMapPage(y0)}
-  const by=VH-22;btnBox(VW/2-62,by,56,11,'CONTINUE',m.focus===1&&m.btn===0,()=>closeModal());btnBox(VW/2+6,by,56,11,'BEAM UP',m.focus===1&&m.btn===1,()=>{closeModal();SURF.beamUp()});
+  const by=VH-22,bl=['CONTINUE','UNSTUCK','BEAM UP','MUSIC '+(mus.on?'ON':'OFF'),'SOUND '+(mus.mute?'OFF':'ON')];bl.forEach((l_,i)=>btnBox(11+i*60,by,58,11,l_,m.focus===1&&m.btn===i,()=>pauseBtnAct(m,i)));
   if(m.focus!==1)text('DOWN: BUTTONS',16,by+2,'#6c6c8c',1)}
 function buildMapCanvas(L,idx,cs,seenFn,cv){const LW=L.LW,LH=L.LH,W=Math.ceil(LW/cs),H=Math.ceil(LH/cs);cv=cv||document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d'),id=g.createImageData(W,H),d=id.data;
   const RIM=['#ff77ff','#ffd7a0','#9ad2e0','#ff9966','#ffcc66'][idx],ROCK=[[78,52,110],[150,86,60],[62,82,118],[96,44,34],[40,110,84]][idx],AIR=[[16,8,30],[30,12,10],[8,12,26],[22,6,6],[6,24,20]][idx];
@@ -2571,11 +2595,12 @@ function drawMapPage(y0){const L=SURF.L,s=sv(),p=SURF.p,idx=SURF.idx;const cs=4;
   for(const c of L.checks)if(seenAt(c.x,c.y))dot(c.x,c.y,'#55ffff',2);
   for(const c of L.chests)if(!c.open&&seenAt(c.x,c.y))dot(c.x,c.y,GREEN[2],2);
   dot(L.exit.x,L.exit.y,'#55ff55',3);
-  for(const o of L.ia){if(o.hide||!seenAt(o.x,o.y))continue;if(o.k==='lore')dot(o.x,o.y,'#ffffff',2);else if(o.k==='npc')dot(o.x,o.y,'#55ddff',3);else if(o.k==='portal')dot(o.x,o.y,'#ff77ff',3);else if(o.k==='shrine')dot(o.x,o.y,'#ffffaa',3)}
+  for(const o of L.ia){if(o.hide||!seenAt(o.x,o.y))continue;if(o.k==='lore')dot(o.x,o.y,'#ffffff',2);else if(o.k==='npc')dot(o.x,o.y,o.npc==='trader'?'#ffcc44':'#55ddff',o.npc==='trader'?4:3);else if(o.k==='portal')dot(o.x,o.y,'#ff77ff',3);else if(o.k==='shrine')dot(o.x,o.y,'#ffffaa',3)}
   for(const d of L.doors){const c=d.cells[0];if(!seenAt(c[0]*TS,c[1]*TS))continue;dot(c[0]*TS,c[1]*TS,d.open?'#44aa44':'#ff9944',3)}
   for(const st of L.sets)if(seenAt(((st.x0+st.x1)>>1)*TS,st.y1*TS))dot(((st.x0+st.x1)>>1)*TS,(st.y1-4)*TS,'#ff9acb',4);
   for(const q of L.secretPts)if(q.sid&&s.sec[q.sid])dot(q.x,q.y,'#ffee33',3);
   if(s.map3[idx+'_all']&&L.buried&&!L.buried.got){dot(L.buried.x,L.buried.y,'#ffff55',4)}
+  if(s.hintOn!==0&&L.hintC){ctx.save();ctx.beginPath();ctx.rect(ox,oy,dw,dh);ctx.clip();for(const h of L.hintC){if(!s.hint[h.id]||s.pieces[h.id])continue;const col=h.k?'#66ffee':'#ffee66',X=ox+h.x/cs*sc,Y=oy+(h.y/cs-yo)*sc,R=h.r/cs*sc;ctx.globalAlpha=.18;ctx.fillStyle=col;ctx.beginPath();ctx.arc(X,Y,R,0,TAU);ctx.fill();ctx.globalAlpha=.9;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(X,Y,R,0,TAU);ctx.stroke()}ctx.restore();ctx.globalAlpha=1;for(const h of L.hintC){if(!s.hint[h.id]||s.pieces[h.id])continue;const lab=L.hintC.length>1?'PIECE AREA '+(h.k+1):'PIECE AREA';text(lab,clamp(Math.round(ox+h.x/cs*sc-textW(lab,1)/2),ox,ox+dw-textW(lab,1)),clamp(Math.round(oy+(h.y/cs-yo)*sc-3),oy,oy+dh-8),h.k?'#66ffee':'#ffee66',1)}}
   dot(p.x,p.y,'#ffffff',4);dot(p.x,p.y,'#ff3030',2);
   text(s.map[idx]?'MAP: FULL (BOUGHT)':'MAP: WHAT YOU HAVE SEEN. A LEVEL MAP IS SOLD BY THE TRADER BOT.',14,oy+dh+4,'#8888aa',1);text('WHITE: YOU  GREEN: BEACON  CYAN: BEAM PADS  LIME: CHESTS',14,oy+dh+14,'#bbbbdd',1);text('BLUE: PEOPLE  ORANGE: DOORS  PINK: PORTAL/BIG ROOM  YELLOW: FOUND',14,oy+dh+23,'#bbbbdd',1)}
 /* ---- world drawing: things you can use */
@@ -2705,7 +2730,7 @@ function featOverlay(){const L=SURF.L,p=SURF.p,cam=SURF.cam,s=sv(),idx=SURF.idx,
     g.globalCompositeOperation='source-over';ctx.globalAlpha=SURF.darkA;ctx.drawImage(SURF.dkCv,0,0);ctx.globalAlpha=1;
     for(const l of L.lights){const sx=l.x-cam.x,sy=l.y-cam.y;if(sx>-10&&sx<VW+10&&sy>-10&&sy<VH+10){ctx.globalAlpha=SURF.darkA*(.6+.4*Math.sin(t*3+l.ph));ctx.fillStyle='#ffffcc';ctx.fillRect(sx-1|0,sy|0,3,1);ctx.fillRect(sx|0,sy-1|0,1,3);ctx.globalAlpha=1}}
     for(const c of L.chests){if(c.open)continue;const sx=c.x-cam.x+7,sy=c.y-cam.y-4;if(sx>-10&&sx<VW+10&&sy>-10&&sy<VH+10){ctx.globalAlpha=SURF.darkA*(.5+.5*Math.sin(t*5));ctx.fillStyle=GREEN[3];ctx.fillRect(sx-1|0,sy-3|0,3,1);ctx.fillRect(sx|0,sy-4|0,1,3);ctx.globalAlpha=1}}}
-  drawBeams();
+  drawBeams();drawHintRings();
   /* the shield bubble */
   if(p.shield>0&&!p.hidden&&p.dead<=0){const X=p.x+5-cam.x,Y=p.y+8-cam.y;ctx.globalAlpha=.3+.1*Math.sin(t*8);ctx.strokeStyle=CY;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X,Y,12,0,TAU);ctx.stroke();ctx.globalAlpha=1}
   /* a giant shadow that sometimes crosses the sky */
@@ -2815,6 +2840,20 @@ function drawCritters(){
     else if(k==='spore'){ctx_.globalAlpha=al*.12;ctx_.fillRect(X-3,Y-3,7,7);ctx_.globalAlpha=al*.2;ctx_.fillRect(X-2,Y-2,5,5);ctx_.globalAlpha=al*(.55+.35*pl);ctx_.fillRect(X-1,Y-1,3,3)}
     else{ctx_.globalAlpha=al*.6;ctx_.fillStyle='#ffffcc';ctx_.fillRect(X,Y,1,1)}}
   ctx_.globalAlpha=1}
+
+const HINT_PRICE=[2000,3000,4000,5000,6000];
+function hintPrice(idx,k){return idx===4&&k===1?7000:HINT_PRICE[idx]}
+function hintDir(dx,dy){return Math.abs(dx)>=Math.abs(dy)*1.3?(dx<0?'WEST':'EAST'):(dy<0?'UP':'DOWN')}
+function drawHintRings(){const L=SURF.L,s=sv(),cam=SURF.cam,p=SURF.p,t=L.tick;if(!L.hintC||s.hintOn===0)return;let row=0;
+  for(const h of L.hintC){if(!s.hint[h.id]||s.pieces[h.id])continue;const col=h.k?'#66ffee':'#ffee66',lab=L.hintC.length>1?'PIECE AREA '+(h.k+1):'PIECE AREA',cx=h.x*TS-cam.x,cy=h.y*TS-cam.y,R=h.r*TS;
+    const dxp=h.x*TS-(p.x+5),dyp=h.y*TS-(p.y+8),inside=Math.hypot(dxp,dyp)<R,on=cx+R>0&&cx-R<VW&&cy+R>0&&cy-R<VH;
+    if(on){ctx.save();ctx.globalAlpha=.05+.02*Math.sin(t*.8);ctx.fillStyle=col;ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.fill();ctx.globalAlpha=.4+.12*Math.sin(t*.8);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([8,8]);ctx.lineDashOffset=-t*6;ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.stroke();ctx.restore();ctx.globalAlpha=1;
+      if(cy-R>26&&cy-R<VH-8&&cx>20&&cx<VW-20){ctx.fillStyle='#000000aa';const w=textW(lab,1)+6;ctx.fillRect(Math.round(cx-w/2),Math.round(cy-R)-4,w,10);text(lab,Math.round(cx-w/2)+3,Math.round(cy-R)-3,col,1)}}
+    const y=30+row*10;row++;
+    if(inside){const q=lab+': YOU ARE INSIDE IT',w=textW(q,1)+8;ctx.fillStyle='#000000aa';ctx.fillRect(Math.round((VW-w)/2),y-1,w,10);textC(q,y,col,1)}
+    else{const steps=Math.round(Math.hypot(dxp,dyp)/TS/5)*5,q=lab+' '+steps+' STEPS '+hintDir(dxp,dyp),w=textW(q,1)+8;ctx.fillStyle='#000000aa';ctx.fillRect(Math.round((VW-w)/2),y-1,w,10);textC(q,y,col,1);
+      if(!(cx>8&&cx<VW-8&&cy>24&&cy<VH-8)){const an=Math.atan2(dyp,dxp),ca=Math.cos(an),sa=Math.sin(an),k=Math.min(Math.abs(ca)>.001?(VW/2-12)/Math.abs(ca):1e9,Math.abs(sa)>.001?(VH/2-26)/Math.abs(sa):1e9),ex=VW/2+ca*k,ey=VH/2+sa*k;
+        ctx.globalAlpha=.8;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(ex+ca*7,ey+sa*7);ctx.lineTo(ex-ca*4-sa*5,ey-sa*4+ca*5);ctx.lineTo(ex-ca*4+sa*5,ey-sa*4-ca*5);ctx.closePath();ctx.fill();ctx.globalAlpha=1}}}}
 /* ---------------- drawing ---------------- */
 SURF.draw=function(){
   const L=SURF.L,A=SURF.A,Wd=SURF.W,p=SURF.p,cam=SURF.cam;
@@ -3001,7 +3040,8 @@ function hud(){
     let lines=[];if(it.first&&SURF.idx===0)lines=lines.concat(wrap('SIX PIECES OF A LUXURY SPACESHIP ARE HIDDEN IN THE SURFACE WORLDS. FIND ALL SIX TO WIN THE SHIP.',58),['']);
     lines=lines.concat(wrap('SHIP PIECES FOUND: '+n+' OF 6. '+hidden+' '+status,58));
     if(bst)lines=lines.concat([''],wrap(bst,58));
-    lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS '+useLabel()+' TO USE THINGS. PRESS '+menuLabel()+' FOR THE MENU AND MAP.',58));
+    {const L_=SURF.L;lines=lines.concat([''],wrap('A TRADER SELLS PIECE HINTS FOR '+(SURF.idx===4?hintPrice(4,0)+' AND '+hintPrice(4,1):hintPrice(SURF.idx,0))+' GREEN GOLD.',58))}
+    lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS '+useLabel()+' TO USE THINGS. '+(devKind()==='key'?'PRESS B FOR THE MENU AND M FOR THE MAP.':'PRESS '+menuLabel()+' FOR THE MENU AND MAP.'),58));
     const h=lines.length*9+50,y0=Math.max(18,Math.round((VH-h)/2)-8),al=Math.min(1,it.t*3,(9-it.t)*2);
     ctx.globalAlpha=.9*al;ctx.fillStyle='#05031a';ctx.fillRect(16,y0,VW-32,h);ctx.globalAlpha=al;ctx.fillStyle=YL;ctx.fillRect(16,y0,VW-32,1);ctx.fillRect(16,y0+h-1,VW-32,1);ctx.fillStyle='#352879';ctx.fillRect(16,y0+1,VW-32,9);
     textC('THE SHIP PIECE HUNT',y0+3,YL,1);
@@ -3013,8 +3053,8 @@ function hud(){
   if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
     if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('MENU AND BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
     else if(devKind()==='pad'){textC('MOVE: STICK OR D-PAD   JUMP: A   FIRE: X, B OR RB',VH-37,WH,1);textC('USE: Y   MENU: START   STUCK: BACK',VH-27,YL,1);textC('LADDERS: UP AND DOWN   DROP: DOWN + A',VH-17,'#9ad2e0',1)}
-    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP   Y USE   X, B OR RB FIRE   START MENU   BACK STUCK',VH-17,'#9ad2e0',1)}}
-  else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: '+fireLabel()+'   USE: '+useLabel()+'   MENU: '+menuLabel(),VH-9,'#bbbbdd',1)}
+    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   MAP: M   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP   Y USE   X, B OR RB FIRE   START MENU   BACK STUCK',VH-17,'#9ad2e0',1)}}
+  else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: '+fireLabel()+'   USE: '+useLabel()+'   MENU: '+menuLabel()+(devKind()==='key'?'   MAP: M':''),VH-9,'#bbbbdd',1)}
   if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78+(SURF.boosters()?30:0),9);text('ROCKET',6,17,YL,1);if(SURF.boosters())text('X'+(1+.15*SURF.boosters()).toFixed(2),84,17,GREEN[3],1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
