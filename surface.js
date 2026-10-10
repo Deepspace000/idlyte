@@ -3062,12 +3062,32 @@ function hud(){
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
   const btn=(id,x,y,w,h,label)=>{tb.push({id,x,y,w,h});ctx.fillStyle=SURF.touch[id]?'#ffffff88':'#00000066';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffffff55';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);textC2(label,x+w/2,y+h/2-2,WH)};
-  if(typeof isTouch!=='undefined'&&isTouch){btn('u',31,119,28,26,'UP');btn('l',3,145,28,26,'<');btn('r',59,145,28,26,'>');btn('d',31,171,28,26,'DOWN');btn('j',278,150,38,44,'JUMP');btn('f',236,150,38,44,'FIRE')}   // a proper d-pad on the left, JUMP and FIRE on the right
+  if(typeof isTouch!=='undefined'&&isTouch){drawDpad();btn('j',278,150,38,44,'JUMP');btn('f',236,150,38,44,'FIRE')}   // a proper d-pad on the left, JUMP and FIRE on the right
   if(typeof isTouch!=='undefined'&&isTouch)btn('b',VW-52,16,48,14,'MENU');else tb.push({id:'b',x:VW-80,y:0,w:80,h:14});if(typeof isTouch!=='undefined'&&isTouch&&SURF.near&&!SURF.modal)btn('e',204,152,36,40,'USE');
   featHud();
 }
 /* touch input: pointers can hold several buttons at once */
 function ptIn(e){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*VW,y=(e.clientY-r.top)/r.height*VH;return[x,y]}
+/* one joined d-pad: slide a thumb around it for left, right, up, down and the diagonals */
+const DPAD={x:3,y:116,w:84,h:82};
+function drawDpad(){
+  const x=DPAD.x,y=DPAD.y,w=DPAD.w,h=DPAD.h,cx=x+w/2,cy=y+h/2,t=SURF.touch,arm=28;
+  SURF.touchBtns.push({id:'dp',x,y,w,h});
+  /* one solid plus shape: a single outline, nothing drawn across the middle */
+  const a2=arm/2;ctx.beginPath();
+  ctx.moveTo(cx-a2,y);ctx.lineTo(cx+a2,y);ctx.lineTo(cx+a2,cy-a2);ctx.lineTo(x+w,cy-a2);ctx.lineTo(x+w,cy+a2);ctx.lineTo(cx+a2,cy+a2);ctx.lineTo(cx+a2,y+h);ctx.lineTo(cx-a2,y+h);ctx.lineTo(cx-a2,cy+a2);ctx.lineTo(x,cy+a2);ctx.lineTo(x,cy-a2);ctx.lineTo(cx-a2,cy-a2);ctx.closePath();
+  ctx.fillStyle='#000000777';ctx.fillStyle='#00000077';ctx.fill();ctx.strokeStyle='#ffffff66';ctx.lineWidth=1;ctx.stroke();
+  const tri=(ax,ay,dx,dy,on)=>{ctx.fillStyle=on?'#ffffff':'#ffffff99';ctx.beginPath();ctx.moveTo(ax+dx*5,ay+dy*5);ctx.lineTo(ax-dy*5-dx*3,ay+dx*5-dy*3);ctx.lineTo(ax+dy*5-dx*3,ay-dx*5-dy*3);ctx.closePath();ctx.fill()};
+  tri(x+11,cy,-1,0,t.l);tri(x+w-11,cy,1,0,t.r);tri(cx,y+11,0,-1,t.u);tri(cx,y+h-11,0,1,t.d);
+  ctx.fillStyle='#ffffff2a';if(t.l)ctx.fillRect(x,cy-a2,a2+arm/2+4,arm);if(t.r)ctx.fillRect(x+w-arm-4,cy-a2,arm+4,arm);if(t.u)ctx.fillRect(cx-a2,y,arm,arm+4);if(t.d)ctx.fillRect(cx-a2,y+h-arm-4,arm,arm+4);
+}
+function setDpad(x,y){
+  const t=SURF.touch,cx=DPAD.x+DPAD.w/2,cy=DPAD.y+DPAD.h/2,dx=x-cx,dy=y-cy,dz=7;
+  t.l=t.r=t.u=t.d=0;
+  const ax=Math.abs(dx),ay=Math.abs(dy);if(ax<dz&&ay<dz)return;
+  if(ax>=ay*.55&&ax>=dz)dx<0?t.l=1:t.r=1;
+  if(ay>=ax*.55&&ay>=dz)dy<0?t.u=1:t.d=1;
+}
 function setTouch(e,down){
   if(MODE!=='surface')return false;
   if(down&&SURF.intro&&SURF.intro.t>.6){SURF.intro=null;return true}
@@ -3075,16 +3095,16 @@ function setTouch(e,down){
   const [x,y]=ptIn(e);let hit=null;
   for(const b of (SURF.touchBtns||[]))if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){hit=b.id;break}
   SURF.tp=SURF.tp||{};
-  if(down){if(hit){SURF.tp[e.pointerId]=hit;SURF.touch[hit]=1;if(hit==='b'){delete SURF.touch.b;delete SURF.tp[e.pointerId];if(!SURF.cut)openPause()}else if(hit==='e'){SURF.useReq=true;delete SURF.touch.e;delete SURF.tp[e.pointerId]}}
+  if(down){if(hit==='dp'){SURF.tp[e.pointerId]='dp';setDpad(x,y)}else if(hit){SURF.tp[e.pointerId]=hit;SURF.touch[hit]=1;if(hit==='b'){delete SURF.touch.b;delete SURF.tp[e.pointerId];if(!SURF.cut)openPause()}else if(hit==='e'){SURF.useReq=true;delete SURF.touch.e;delete SURF.tp[e.pointerId]}}
     else{/* a tap on the beacon completes the level */const L=SURF.L,p=SURF.p;if(L&&L.exit&&Math.abs(p.x-L.exit.x)<26)tryExit();const pr=SURF.promptRect;if(pr&&x>=pr.x&&x<=pr.x+pr.w&&y>=pr.y&&y<=pr.y+pr.h)SURF.useReq=true}}
-  else{const id=SURF.tp[e.pointerId];if(id){delete SURF.touch[id];delete SURF.tp[e.pointerId]}}
+  else{const id=SURF.tp[e.pointerId];if(id==='dp'){const t=SURF.touch;t.l=t.r=t.u=t.d=0;delete SURF.tp[e.pointerId]}else if(id){delete SURF.touch[id];delete SURF.tp[e.pointerId]}}
   return true;
 }
 cv.addEventListener('pointerdown',e=>{if(MODE==='surface'){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}if(e.pointerType==='mouse'&&e.button===0)SURF.mouseFire=true;setTouch(e,true)}},true);
 cv.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')SURF.mouseFire=false;if(MODE==='surface')setTouch(e,false)},true);
 addEventListener('blur',()=>{SURF.mouseFire=false});
 cv.addEventListener('pointercancel',e=>{SURF.mouseFire=false;if(MODE==='surface')setTouch(e,false)},true);
-cv.addEventListener('pointermove',e=>{if(MODE!=='surface')return;const [x,y]=ptIn(e);const id=SURF.tp&&SURF.tp[e.pointerId];if(!id)return;const b=(SURF.touchBtns||[]).find(q=>q.id===id);if(b&&!(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)){delete SURF.touch[id];delete SURF.tp[e.pointerId]}},true);
+cv.addEventListener('pointermove',e=>{if(MODE!=='surface')return;const [x,y]=ptIn(e);const id=SURF.tp&&SURF.tp[e.pointerId];if(!id)return;if(id==='dp'){setDpad(x,y);return}const b=(SURF.touchBtns||[]).find(q=>q.id===id);if(b&&!(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h)){delete SURF.touch[id];delete SURF.tp[e.pointerId]}},true);
 SURF.WORLDS=WORLDS;SURF.traceBeam=traceBeam;
 /* build the pictures for each world while the player is on the hub screens, one world every few seconds, so a visit starts quickly */
 {let pk=0;const pw=()=>{if(pk>=5)return;if(MODE==='surface'||document.hidden){setTimeout(pw,4000);return}try{SURF.assets_(pk)}catch(e){}pk++;setTimeout(pw,3500)};setTimeout(pw,9000)}

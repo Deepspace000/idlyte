@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.77</title>
+<title>Idlyte v2.80</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -663,7 +663,7 @@ function prevOk(i){return i===0||(i===10?planetOpen(9):i===15?(SAVE.prog[9]||0)>
 function bigTierOpen(){return planetOpen(9)||(SAVE.prog[9]||0)>=1}
 function planetOpen(i){return i===0||(!(PLANETS[i].elite&&!PACKS[i])&&prevOk(i)&&shipPower()>=PLANETS[i].pow&&(!PLANETS[i].big||ownsLux()))}
 function surfReq(k){
-  const sf=SURF.state(),tr=roomById('transporter'),built=!!(tr&&tr.built),sys=systemsDone()>=4,prev=k===0||!!sf.done[k-1],done=!!sf.done[k];
+  const sf=SURF.state(),tr=roomById('transporter'),built=!!(tr&&tr.built),sys=systemsDone()>=4,prev=true,done=!!sf.done[k];
   const need=!built?'THE SURFACE TRANSPORTER. BUY IT IN THE BUILD MENU':!sys?'4 SYSTEMS CLEARED. YOU HAVE '+systemsDone():!prev?'CLEAR '+SURF.WORLDS[k-1].n+' FIRST':'NOTHING MORE. USE THE TRANSPORTER';
   return {built,done,ok:built&&sys&&prev,need,msg:'LOCKED. NEEDS '+need}}
 function lockMsg(i){const p=PLANETS[i];if(!prevOk(i))return i===10?'LOCKED. UNLOCK THE BURNING CITY FIRST':i===15?'LOCKED. BEAT THE BURNING CITY BOSS FIRST':'LOCKED. CLEAR '+PLANETS[i-1].n+' FIRST';
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.77';
+const VERSION='2.80';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3321,7 +3321,8 @@ function extraScreen(id,rows,info){
     L('GREEN GOLD IS FOUND ONLY DOWN THERE. FARM AS MUCH AS YOU LIKE.');
     L('BEAM BACK UP AT ANY TIME. CLEAR ALL FIVE TO WIN A LUXURY SHIP.',ready?G_:'#ff9966');
     if(!ready)L('NEEDS 4 SYSTEMS CLEARED FIRST. YOU HAVE '+systemsDone()+'.','#ff9966');
-    SURF.WORLDS.forEach((w,i)=>{const un=SURF.unlocked(i),dn=!!sf.done[i];
+    SURF.WORLDS.forEach((w,i)=>{const un=true,dn=!!sf.done[i];   // any world can be chosen once the transporter works
+     
       rows.push({n:'WORLD '+(i+1)+': '+w.n,d:un?w.sub:'CLEAR THE WORLD BEFORE IT FIRST',r:dn?'CLEARED':un?'GO':'LOCKED',ok:ready&&un,
         fn:()=>{HUB.screen=null;SURF.start(i)}})});
     L('SHIP PIECES FOUND: '+SURF.piecesFound()+' OF 6. FIND ALL SIX TO WIN THE SHIP.',SURF.piecesFound()>=6?G_:'#ffffaa');
@@ -4868,9 +4869,17 @@ window.__g={ARP,arpBar,musMode,tellStory,checkStory,get STY(){return STY},storyN
 /* ===== boss viewer: open index.html?bosses. Left/right change boss, Tab (or B/M) swaps boss and mini boss, up/down or 1 to 4 change damage, space shows the hit flash ===== */
 /* ?surf=N opens ground level N straight away. Extras: &pack=1 gives the rocket pack, &gold=2000 gives green gold, &vendor=1 starts you beside the trader. Nothing is saved, and beaming up restarts the level. */
 if(/[?&]surf\b/.test(location.search)){const q=new URLSearchParams(location.search),n=Math.max(0,Math.min(4,(+q.get('surf')||1)-1));
-  const go=()=>{CURSLOT=0;const sv=SURF.state();if(q.get('pack'))sv.jet=1;if(q.get('gold'))sv.green=+q.get('gold')||0;SURF.start(n);
-    if(q.get('vendor')){const t=SURF.L.ia.find(i=>i.k==='npc'&&i.npc==='trader');if(t){const p=SURF.p;p.x=t.x-16;p.y=t.y-16;p.vx=p.vy=0;SURF.cut=null;p.hidden=false;SURF.cam.x=Math.max(0,p.x-140);SURF.cam.y=Math.max(0,p.y-110);sv.cp[n]=null}}}
-  setTimeout(()=>{try{go();setInterval(()=>{if(MODE==='hub'||MODE==='title'){go()}},400)}catch(e){console.error(e)}},900)}
+  let first=1;
+  const go=i=>{CURSLOT=0;const sv=SURF.state();if(q.get('pack'))sv.jet=1;if(first&&q.get('gold'))sv.green=+q.get('gold')||0;
+    SURF.start(i);
+    if(first&&q.get('vendor')){const t=SURF.L.ia.find(i=>i.k==='npc'&&i.npc==='trader');if(t){const p=SURF.p;p.x=t.x-16;p.y=t.y-16;p.vx=p.vy=0;SURF.cut=null;p.hidden=false;SURF.cam.x=Math.max(0,p.x-140);SURF.cam.y=Math.max(0,p.y-110);sv.cp[i]=null}}
+    first=0};
+  /* after beaming up from a level, choose which level to go to next */
+  const picker=()=>{if(document.getElementById('surfpick'))return;const sv=SURF.state(),d=document.createElement('div');d.id='surfpick';
+    d.style.cssText='position:fixed;inset:0;z-index:99999;background:#000c;display:flex;align-items:center;justify-content:center;font:14px/1.4 monospace;color:#fff;padding:12px';
+    d.innerHTML='<div style="max-width:420px;width:100%;background:#0a0a1a;border:2px solid #6c5eb5;padding:14px"><b>CHOOSE A LEVEL</b><br>'+SURF.WORLDS.map((w,i)=>'<button data-i="'+i+'" style="display:block;width:100%;margin:6px 0;padding:12px;font:bold 14px monospace;color:#fff;background:#352879;border:1px solid #9a8fe0">LEVEL '+(i+1)+': '+w.n+(sv.done[i]?'  (CLEARED)':'')+'</button>').join('')+'</div>';
+    d.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{const i=+bt.dataset.i;d.remove();go(i)});document.body.appendChild(d)};
+  setTimeout(()=>{try{go(n);setInterval(()=>{if(MODE==='hub'||MODE==='title')picker()},400)}catch(e){console.error(e)}},900)}
 if(/[?&]bosses\b/.test(location.search)){setTimeout(()=>{
   let pl=1,mini=false,hf=1,fl=0,b=null,t0=performance.now();
   const has=(p,m)=>{SAVE.planet=p;const A=pk();return !!(A&&(m?true:A.boss))};
@@ -4977,6 +4986,6 @@ window.__g.dev={
 <script src="packs/bigthemes2.js?v=2.10"></script>
 <script src="packs/swarm1.js?v=2.32"></script>
 <script src="packs/swarm2.js?v=2.32"></script>
-<script src="surface.js?v=2.77"></script>
+<script src="surface.js?v=2.80"></script>
 </body>
 </html>
