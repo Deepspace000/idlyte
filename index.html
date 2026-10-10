@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.91</title>
+<title>Idlyte v2.93</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -540,21 +540,21 @@ const SHIPS=[
  {n:'WASP',price:60000,hp:-1,sp:1.25,fr:1.2,dm:1,opt:0,d:'FAST AND FRAGILE. -1 HULL'},
  {n:'BULWARK',price:100000,hp:3,sp:.85,fr:1,dm:1.2,opt:0,d:'SLOW AND TOUGH. +3 HULL'},
  {n:'ECLIPSE',price:200000,hp:1,sp:1.15,fr:1.15,dm:1.15,opt:1,d:'BEST ALL ROUND. 1 FREE DRONE'},
- {n:'CORVETTE',price:600000,hp:4,sp:.95,fr:1.2,dm:1.3,opt:1,sc:1.4,yard:1,d:'SMALL WARSHIP. +4 HULL, 1 DRONE, BIGGER'},
- {n:'FRIGATE',price:1800000,hp:8,sp:.85,fr:1.3,dm:1.6,opt:2,sc:1.8,yard:1,d:'ESCORT SHIP. +8 HULL, 2 DRONES, MUCH BIGGER'},
- {n:'CRUISER',price:4500000,hp:14,sp:.75,fr:1.4,dm:2,opt:3,sc:2.2,yard:1,d:'HEAVY SHIP. +14 HULL, 3 DRONES, HUGE'},
- {n:'DREADNOUGHT',price:10000000,hp:22,sp:.65,fr:1.5,dm:2.6,opt:3,sc:2.6,yard:1,d:'THE BIGGEST. +22 HULL, 3 DRONES, FILLS THE SKY'},
- {n:'LEVIATHAN',price:25000000,hp:30,sp:.7,fr:1.6,dm:3.2,opt:3,sc:2.5,yard:1,d:'DEEP SEA GIANT. +30 HULL, HEAVY GUNS'},
- {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:2.6,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
- {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:2.75,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
- {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:2.9,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
- {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.05,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'},
+ {n:'CORVETTE',price:600000,hp:4,sp:.95,fr:1.2,dm:1.3,opt:1,sc:0.98,yard:1,d:'SMALL WARSHIP. +4 HULL, 1 DRONE, BIGGER'},
+ {n:'FRIGATE',price:1800000,hp:8,sp:.85,fr:1.3,dm:1.6,opt:2,sc:1.26,yard:1,d:'ESCORT SHIP. +8 HULL, 2 DRONES, MUCH BIGGER'},
+ {n:'CRUISER',price:4500000,hp:14,sp:.75,fr:1.4,dm:2,opt:3,sc:1.54,yard:1,d:'HEAVY SHIP. +14 HULL, 3 DRONES, HUGE'},
+ {n:'DREADNOUGHT',price:10000000,hp:22,sp:.65,fr:1.5,dm:2.6,opt:3,sc:1.82,yard:1,d:'THE BIGGEST. +22 HULL, 3 DRONES, FILLS THE SKY'},
+ {n:'LEVIATHAN',price:25000000,hp:30,sp:.7,fr:1.6,dm:3.2,opt:3,sc:1.75,yard:1,d:'DEEP SEA GIANT. +30 HULL, HEAVY GUNS'},
+ {n:'SOVEREIGN',price:100000000,hp:40,sp:.75,fr:1.7,dm:4,opt:3,sc:1.82,yard:1,d:'GOLD FLAGSHIP. +40 HULL, 4X GUNS'},
+ {n:'PEARL ARK',price:400000000,hp:50,sp:.8,fr:1.8,dm:5,opt:3,sc:1.925,yard:1,d:'WHITE LUXURY SHIP. +50 HULL, 5X GUNS'},
+ {n:'STARFORGE',price:1500000000,hp:65,sp:.85,fr:2,dm:6.5,opt:3,sc:2.03,yard:1,d:'MOLTEN WARSHIP. +65 HULL, 6.5X GUNS'},
+ {n:'THE LAST HORIZON',price:9999999999,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:2.135,yard:1,d:'THE ULTIMATE SHIP. +90 HULL, 9X GUNS'},
  {n:'SPARROW',price:84000,hp:0,sp:1.04,fr:1.04,dm:1.04,opt:0,mag:10,d:'SWEPT WINGS. +4% SPEED AND GUNS, WIDER COIN PICKUP'},
  {n:'KESTREL',price:126000,hp:1,sp:1.06,fr:1.06,dm:1.06,opt:0,shd:3,d:'FORWARD WINGS. +1 HULL, +6% SPEED, 3 SECOND START SHIELD'},
  {n:'MERLIN',price:175000,hp:1,sp:1.1,fr:1.1,dm:1.1,opt:0,gold:.1,d:'A NEEDLE WITH TAIL FINS. +1 HULL, +10% SPEED, 10% MORE GOLD'},
  {n:'HARRIER',price:231000,hp:2,sp:1.05,fr:1.06,dm:1.12,opt:0,dmp:.3,d:'A WIDE DELTA. +2 HULL, +12% DAMAGE, LONGER SAFE TIME'},
  {n:'NIGHTHAWK',price:294000,hp:2,sp:1.12,fr:1.15,dm:1.12,opt:0,sk:.04,mag:8,d:'A DARK STEALTH WING. +12% SPEED, +15% FIRE RATE, BETTER DODGING'},
- {n:'THE SUNLARK',price:9999999999,reward:1,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:3.05,yard:1,d:'THE LEGENDARY STARSHIP, REBUILT FROM SIX PIECES. +90 HULL, 9X GUNS'}];
+ {n:'THE SUNLARK',price:9999999999,reward:1,hp:90,sp:1,fr:2.4,dm:9,opt:3,sc:2.135,yard:1,d:'THE LEGENDARY STARSHIP, REBUILT FROM SIX PIECES. +90 HULL, 9X GUNS'}];
 const MISSIONS=[
  {n:'STANDARD',diff:0,gold:1,price:0},
  {n:'HARD CONTRACT',diff:1,gold:1.6,price:3000},
@@ -612,11 +612,11 @@ const PLANETS=[
  {n:'THE DYSON FORGE',pow:2700,diff:13,gold:38,loot:.29,hit:6,big:1,d:'BIGGER SHIP STAGE. A STAR CAGED IN MACHINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'EVENT HORIZON',pow:3600,diff:14,gold:52,loot:.31,hit:8,big:1,d:'BIGGER SHIP STAGE. THE EDGE OF A BLACK HOLE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE ARMADA',pow:4800,diff:15,gold:70,loot:.33,hit:10,big:1,d:'BIGGER SHIP STAGE. THE ENEMY FLEET. THE HARDEST STAGE.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
- {n:'ION STORM BELT',pow:900,flat:[1100,1210,1331],hard:3,diff:10.5,gold:24,loot:0.26,small:1,d:'SMALL SHIP STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'SPORE CLOUD',pow:1300,flat:[1730, 1903, 2093],hard:3.4,diff:11,gold:30,loot:0.28,small:1,d:'SMALL SHIP STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'MIRROR MAZE',pow:1550,flat:[2060, 2266, 2493],hard:3.4,diff:11.5,gold:38,loot:0.3,small:1,d:'SMALL SHIP STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'DEAD STAR YARD',pow:1850,flat:[2460, 2706, 2977],hard:3.4,diff:12,gold:48,loot:0.32,small:1,d:'SMALL SHIP STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
- {n:'THE HIVE QUEEN',pow:2150,flat:[2860, 3146, 3461],hard:3.4,diff:12.5,gold:60,loot:0.34,small:1,d:'SMALL SHIP STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'ION STORM BELT',pow:900,flat:[1100,1210,1331],hard:3,diff:10.5,gold:24,loot:0.26,small:1,d:'SWARM STAGE. THE SWARM ARRIVES IN A STORM OF LIGHTNING.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'SPORE CLOUD',pow:1300,flat:[1730, 1903, 2093],hard:3.4,diff:11,gold:30,loot:0.28,small:1,d:'SWARM STAGE. THE SWARM SEEDS A TOXIC CLOUD.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'MIRROR MAZE',pow:1550,flat:[2060, 2266, 2493],hard:3.4,diff:11.5,gold:38,loot:0.3,small:1,d:'SWARM STAGE. A MAZE OF SHARDS AND MIRRORED SHIPS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'DEAD STAR YARD',pow:1850,flat:[2460, 2706, 2977],hard:3.4,diff:12,gold:48,loot:0.32,small:1,d:'SWARM STAGE. THE SWARM STRIPS A GRAVEYARD OF DEAD STARS.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
+ {n:'THE HIVE QUEEN',pow:2150,flat:[2860, 3146, 3461],hard:3.4,diff:12.5,gold:60,loot:0.34,small:1,d:'SWARM STAGE. THE SWARM QUEEN AND HER HIVE.',every:4,elite:1,waves:[['ring',7,.3],['dart',7,.28],['cross',4,.6],['pod',2,1]]},
  {n:'THE CRYSTAL CHOIR',pow:6000,diff:16,gold:80,loot:0.35,hit:12,big:1,d:'BIGGER SHIP STAGE. A SINGING REEF OF LIVING CRYSTAL.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE CLOCKWORK ABYSS',pow:7500,diff:17,gold:95,loot:0.37,hit:14,big:1,d:'BIGGER SHIP STAGE. A MOON OF GIANT GEARS AND PISTONS.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
  {n:'THE VOID GARDEN',pow:9500,diff:18,gold:115,loot:0.39,hit:16,big:1,d:'BIGGER SHIP STAGE. A WRECK OVERGROWN WITH ALIEN VINES.',every:4,elite:1,waves:[['ring',6,.3],['dart',6,.3],['cross',4,.6],['pod',2,1]]},
@@ -1429,7 +1429,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.91';
+const VERSION='2.93';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -2519,7 +2519,7 @@ function drawChanceMeter(){
   const n=SAVE.chance||0;text('CHANCE',4,BOT-19,'#cc99ff',1);
   for(let i=0;i<5;i++){const x=30+i*8;ctx.fillStyle='#000';ctx.fillRect(x,BOT-20,7,7);if(i<n)ctx.drawImage(SPR.chance,x,BOT-20);else{ctx.fillStyle='#352879';ctx.fillRect(x+2,BOT-18,3,3)}}
 }
-function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].small&&(SHIPS[SAVE.ship]||{}).yard){toast('THE SWARM STAGES ARE TOO TIGHT FOR BIG SHIPS. FLY A SMALL SHIP');return}if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
+function launch(){if(!planetOpen(SAVE.planet||0))setPlanet(0);if(PLANETS[SAVE.planet||0].big&&!isLux(SHIPS[SAVE.ship])){toast('THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD');return}if(!SAVE.level||SAVE.level>maxLevel(SAVE.planet||0))SAVE.level=maxLevel(SAVE.planet||0);if(speedLocked(SPEED)){SPEED=1;document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'))}refreshSpeedBtns();if(SAVE.planet>0)SAVE.visited=1;HUB.screen=null;MODE='game';newRun(false);last=performance.now();acc=0;UI.focus=0}
 
 /* ===== star map: the system laid out with a planet for every stage ===== */
 const SMAP={pl:{},t:0};const clamp01=v=>v<0?0:v>1?1:v;
@@ -2553,7 +2553,7 @@ function drawStarMap(){
   ctx.save();ctx.beginPath();ctx.rect(15,33,290,122);ctx.clip();ctx.translate(0,-sy);
   // stars
   for(let i=0;i<150;i++){const sx=16+((i*53+7)%288),sy0=34+((i*97+11)%230),tw=Math.floor(t*2+i)%5===0;ctx.fillStyle=tw?'#ffffff':(i%3?'#444444':'#6c6c6c');ctx.fillRect(sx,sy0,1,1)}
-  {const sm=(SAVE.prog[9]||0)>=3,by=160;ctx.fillStyle=sm?'#9a3a3a':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('THE SWARM',160,by,sm?'#ff9966':'#6c6c6c');textC2('SMALL SHIPS ONLY. BEAT THE BURNING CITY BOSS',160,by+8,sm?'#ff7777':'#444444')}
+  {const sm=(SAVE.prog[9]||0)>=3,by=160;ctx.fillStyle=sm?'#9a3a3a':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('THE SWARM',160,by,sm?'#ff9966':'#6c6c6c');textC2('ANY SHIP. BEAT THE BURNING CITY BOSS',160,by+8,sm?'#ff7777':'#444444')}
   {const bo=bigTierOpen(),by=270;ctx.fillStyle=bo?'#6c5eb5':'#2a2a2a';ctx.fillRect(22,by+3,70,1);ctx.fillRect(228,by+3,70,1);textC2('WE NEED A BIGGER SHIP',160,by,bo?'#ffffaa':'#6c6c6c');textC2('LUXURY BIG SHIPS ONLY',160,by+8,bo?'#9a8fe0':'#444444')}
   {const sw=surfReq(0).built,by=492;ctx.fillStyle=sw?'#2c5a2c':'#2a2a2a';ctx.fillRect(22,by+3,64,1);ctx.fillRect(234,by+3,64,1);textC2('THE SURFACE WORLDS',160,by,sw?'#9ad284':'#6c6c6c');textC2('BEAM DOWN FROM THE SURFACE TRANSPORTER',160,by+8,sw?'#70a4b2':'#444444')}
   // route between the planets
@@ -2615,7 +2615,7 @@ function drawStarMap(){
   const sp=(SMAP.sel>=0&&SMAP.sel<25)?SMAP.sel:cur,pl=PLANETS[sp],LS=[1,2,3].map(L=>levelState(sp,L)),lockAll=!planetOpen(sp);
   ctx.fillStyle='#0d0b1e';ctx.fillRect(15,156,290,34);ctx.fillStyle='#352879';ctx.fillRect(15,156,290,1);
   text(pl.n+(sp===cur?'   (LAST FLIGHT: LEVEL '+(SAVE.level||1)+')':''),22,160,'#ffffff',1);
-  textR(pl.big?'BIG SHIPS ONLY':pl.small?'SMALL SHIPS ONLY':'',298,160,'#9a8fe0',1);
+  textR(pl.big?'BIG SHIPS ONLY':pl.small?'ANY SHIP':'',298,160,'#9a8fe0',1);
   SMAP.lvBase=UI.list.length;let hint=null;
   LS.forEach((q,i)=>{const bx=22+i*94,by=177,bw=90,bh=12,idx=UI.list.length,fo=UI.focus===idx;
     UI.list.push({x:bx,y:by,w:bw,h:bh,fn:()=>{if(q.why){toast(q.why);return}setPlanet(sp,q.L);save();launch()}});
@@ -2637,7 +2637,6 @@ function levelState(i,L){
   const p=PLANETS[i],cleared=(SAVE.prog[i]||0)>=L,sh=SHIPS[SAVE.ship]||{};let why='';
   if(!planetOpen(i))why=lockMsg(i);
   else if(L>maxLevel(i))why='LOCKED. CLEAR LEVEL '+(L-1)+' FIRST';
-  else if(p.small&&sh.yard)why='THIS STAGE NEEDS A SMALL SHIP ON THE LAUNCH PAD';
   else if(p.big&&!isLux(sh))why='THIS STAGE NEEDS A LUXURY BIG SHIP ON THE LAUNCH PAD';
   return {L,cleared,why};
 }
@@ -2997,7 +2996,7 @@ STORY.big5={t:'THE ARMADA FALLS',p:[
 STORY.swarm={t:'THE SECOND THREAT',p:[
     'THE BURNING CITY BOSS IS DEAD. THE SILENCE DOES NOT LAST.',
     'A NEW SIGNAL APPEARS: THE SWARM. IT WAS NEVER PART OF THE FIRST ENEMY. IT WAS HIDING BEHIND IT.',
-    'THE SWARM MOVES TOO FAST AND TOO CLOSE FOR BIG SHIPS. ONLY SMALL, QUICK SHIPS CAN FIGHT IT. THE DRIFTER, OR ANY SHIP FROM THE SMALL SHIP SHOP.',
+    'THE SWARM MOVES FAST AND FLIES CLOSE. ANY SHIP CAN FIGHT IT, BUT SMALL, QUICK SHIPS DODGE IT BEST.',
     'FIVE NEW SYSTEMS HAVE APPEARED ON THE STAR MAP, BEYOND THE BIGGER SHIP STAGES.'],when:()=>(SAVE.prog[9]||0)>=3};
 STORY.swarm5={t:'THE QUEEN FALLS',p:[
     'THE HIVE QUEEN BREAKS APART AND THE SWARM SCATTERS INTO THE DARK.',
@@ -4830,7 +4829,7 @@ function openTransfer(){
    +'<textarea id="xo" rows="4" readonly '+st+'></textarea><button id="xc" '+bt+'>COPY CODE</button><span id="xm" style="color:#9ad284"></span>'
    +'<hr style="border-color:#352879;margin:12px 0"><b style="color:#b8c76f">PASTE IN</b><br>Paste a code from another device, pick the slot to put it in. A save already in that slot is kept as a backup copy.<br>'
    +'<textarea id="xi" rows="4" placeholder="PASTE THE CODE HERE" '+st+'></textarea><select id="xd" '+st+'>'+slots.join('')+'</select>'
-   +'<button id="xl" '+bt+'>PUT IT IN THIS SLOT</button><span id="xn" style="color:#ff9966"></span><br><button id="xt" '+bt+'>PUT IN A TEST SAVE: POWER 800, 1 MILLION GOLD</button><br><button id="xx" '+bt+'>CLOSE</button></div>';
+   +'<button id="xl" '+bt+'>PUT IT IN THIS SLOT</button><span id="xn" style="color:#ff9966"></span><br><button id="xt" '+bt+'>PUT IN A TEST SAVE: POWER 800, 1 MILLION GOLD</button><br><button id="xt2" '+bt+'>PUT IN A TEST SAVE: THE SUNLARK, GROUND WORLDS DONE, POWER FOR THE FIRST BIG STAGE</button><br><button id="xx" '+bt+'>CLOSE</button></div>';
   document.body.appendChild(d);
   for(const t of ['keydown','keyup','keypress'])d.addEventListener(t,e=>e.stopPropagation());
   const $=id=>d.querySelector('#'+id),enc=o=>'IDLYTE1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
@@ -4842,6 +4841,7 @@ function openTransfer(){
       const n=+$('xd').value,raw=localStorage.getItem('idlyte_slot_'+n);if(raw){localStorage.setItem('idlyte_bak_'+n,raw);localStorage.setItem('idlyte_bak_'+n+'_ver','before-import')}
       localStorage.setItem('idlyte_slot_'+n,JSON.stringify(o));$('xn').style.color='#9ad284';$('xn').textContent=' DONE. IT IS IN SLOT '+n+'. CLOSE THIS AND LOAD IT.';$('xi').value=''}catch(e){$('xn').style.color='#ff9966';$('xn').textContent=' THAT CODE DID NOT WORK. COPY IT AGAIN, ALL OF IT.'}};
   $('xt').onclick=()=>{$('xi').value='IDLYTE1:eyJjb2lucyI6IDEwMDAwMDAsICJ1cCI6IHsiZG1nIjogMjAsICJndW5zIjogMTgsICJodWxsIjogOCwgInNoaWVsZCI6IDUsICJkYW1wZXIiOiAyLCAiZW5naW5lIjogMywgIm1hZ25ldCI6IDMsICJzdGFydGd1biI6IDEsICJjb2luIjogMSwgImNhcmdvIjogMiwgIm1pc3NpbGUiOiAxLCAib3B0IjogMX0sICJzaGlwcyI6IFswXSwgInNoaXAiOiAwLCAicHJvZyI6IHsiMCI6IDMsICIxIjogMywgIjIiOiAzLCAiMyI6IDMsICI0IjogMywgIjUiOiAzLCAiNiI6IDMsICI3IjogMywgIjgiOiAzLCAiOSI6IDN9LCAic2hpcE5hbWUiOiAiRFJJRlRFUiJ9';$('xl').onclick()};
+  $('xt2').onclick=()=>{$('xi').value='IDLYTE1:eyJjb2lucyI6IDEwMDAwMDAwLCAidXAiOiB7ImRtZyI6IDMsICJndW5zIjogNCwgImh1bGwiOiA0LCAic2hpZWxkIjogMywgInN0YXJ0Z3VuIjogMSwgImVuZ2luZSI6IDJ9LCAic2hpcHMiOiBbMCwgMThdLCAic2hpcCI6IDE4LCAic2hpcE5hbWUiOiAiVEhFIFNVTkxBUksiLCAicHJvZyI6IHsiMCI6IDMsICIxIjogMywgIjIiOiAzLCAiMyI6IDMsICI0IjogMywgIjUiOiAzLCAiNiI6IDMsICI3IjogMywgIjgiOiAzLCAiOSI6IDN9LCAiY3JldyI6IHsibmF2IjogMCwgIndlYXAiOiAwLCAidGVjaCI6IDAsICJlbmciOiAwfSwgInN1cmYiOiB7ImRvbmUiOiBbMSwgMSwgMSwgMSwgMV0sICJncmVlbiI6IDUwMDAsICJqZXQiOiAxLCAiYm9vc3QiOiBbMCwgMSwgMSwgMSwgMV0sICJwaWVjZXMiOiBbMSwgMSwgMSwgMSwgMSwgMV0sICJyZXdhcmQiOiAxOCwgImxheSI6IDN9LCAic3RvcnkiOiB7ImludHJvIjogMX19';$('xl').onclick()};
   $('xx').onclick=()=>d.remove();
 }
 function drawSlots(){
