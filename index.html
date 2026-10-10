@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.94</title>
+<title>Idlyte v2.95</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1429,7 +1429,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.94';
+const VERSION='2.95';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -3735,6 +3735,9 @@ function endSortie(result){
   SAVE.sorties++;if(result==='clear')SAVE.clears++;
   {const bk=G.planet+'-'+G.level,pc=runPct();if(pc>(SAVE.bestPct[bk]||0))SAVE.bestPct[bk]=pc}
   if(result==='clear'){const p0=G.planet,lv=G.level||1,before=systemsDone();SAVE.prog[p0]=Math.max(SAVE.prog[p0]||0,lv);const after=systemsDone();labApply();
+    /* after a clear, the destination moves on to the next level, or to the first level of the next open planet on the map, so you never have to pick the same one again */
+    if(lv<3){SAVE.planet=p0;SAVE.level=lv+1}
+    else{const i0=SMORD.indexOf(p0),nx=i0>=0?SMORD[i0+1]:null;if(nx!=null&&planetOpen(nx)){SAVE.planet=nx;SAVE.level=1}else{SAVE.planet=p0;SAVE.level=3}}
     if(after>before){toast('SYSTEM CLEARED: '+PLANETS[p0].n);const nu={3:'SPEED X4 UNLOCKED',6:'SPEED X8 CAN NOW BE BOUGHT IN THE DESIGN SHOP',8:'SPEED X16 CAN NOW BE BOUGHT IN THE DESIGN SHOP'}[after];if(nu)toast(nu)}else if(lv<3)toast('LEVEL '+(lv+1)+' UNLOCKED')}
   if(G.score>SAVE.best)SAVE.best=G.score;
   LOOT={result,gold:G.coinsRun,items:Object.assign({},G.loot),score:G.score,pct:runPct(),mission:SAVE.mission,planet:G.planet,level:G.level};
