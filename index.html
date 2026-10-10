@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.95</title>
+<title>Idlyte v2.96</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -206,6 +206,7 @@ const SHIP_ROWS=[
 };/*ENDSHIPDEF*/
 const SHIP_W=SHIP_ROWS[0].length,SHIP_N=SHIP_ROWS.length-1,SHIP_H=2*SHIP_N+1,SHIP_HW=SHIP_W>>1;
 /* offsets around the ship were set for the 48 pixel wide design; shk() scales them to the real sprite size */
+let SHIPZ=1;try{const z=parseFloat(localStorage.getItem('idlyte_shipz'));if(z>=.5&&z<=1)SHIPZ=z}catch(e){}   /* mouse wheel in a mission: ship size 50% to 100% (the ship and its hit box) */
 let SHIPSC=1;   /* how much bigger than the standard ship the one being flown is (corvettes and bigger) */
 const SHIP_K=SHIP_W/48,shk=n=>Math.round(n*SHIP_K*SHIPSC);
 /* ramps for the parts that keep their own colours (bright to dark) */
@@ -785,7 +786,7 @@ function sysPower(i,lvl){
 function sysScale(i,lvl){const p=PLANETS[i];if(i===0||!p.pow)return 1;if(p.flat&&p.small)return 1.625*p.flat[Math.min(p.flat.length,lvl||1)-1]/p.flat[0];   // the Swarm stages have a fixed power for each level, rising 10% a level, and never follow your ship
   return Math.max(1,Math.min(p.big?8:3,sysPower(i,lvl)/p.pow))}   // the bigger ship stages keep climbing with your power, up to eight times their listed power
 function newRun(){
-  SHIPSC=(SHIPS[SAVE.ship]||SHIPS[0]).sc||1;
+  SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ);
   const pl=PLANETS[SAVE.planet||0],lvl=SAVE.level||1,sc=sysScale(SAVE.planet||0,lvl),loop=(MISSIONS[SAVE.mission].diff+pl.diff+(lvl-1)*.6)*sc;
   const st=baseStats(),fedB=SAVE.fed>0;st.coinMul*=1+(sc-1)*.5;if(fedB)st.speed*=1.15;if(SAVE.fresh>0){st.speed*=1.1;st.fire*=1.1}if(SAVE.refresh>0)st.startShield=(st.startShield||0)+3;
   G={fedB,t:0,state:'play',timer:0,score:0,loop,loot:{},script:buildScript(pl,lvl),planet:SAVE.planet||0,level:lvl,salv:[],fg:[],fgT:5,flashT:0,tapArm:true,tapCd:0,si:0,boss:null,msg:pl.n+' LEVEL '+lvl+(SAVE.planet?'  POWER '+sysPower(SAVE.planet||0,lvl):''),msgT:3.2,coinsRun:0,warp:0,stats:st,ai:{tx:60,ty:100,next:0}};
@@ -1429,7 +1430,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.95';
+const VERSION='2.96';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4333,7 +4334,12 @@ function padPoll(dt){
     el.addEventListener('pointerdown',e=>{e.preventDefault();INP.last='touch';handleKey(key)})};
   hold('tl','arrowleft');hold('tr','arrowright');hold('tu','arrowup');hold('td','arrowdown');tap('ta','e');tap('tb','escape');tap('tm','m');tap('th','h');
 })();
-cv.addEventListener('wheel',e=>{if(((MODE==='hub'&&HUB.screen==='studio')||MODE==='studio')&&window.STU){STU.scroll=Math.max(0,Math.min(STU.maxScroll||0,STU.scroll+Math.sign(e.deltaY)*2));e.preventDefault();return}if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}else if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,(HUB.rscroll||0)+Math.sign(e.deltaY)));e.preventDefault()}},{passive:false});
+cv.addEventListener('wheel',e=>{
+  if(MODE==='game'&&G&&G.state!=='dead'&&!G.menuOpen&&!G.slot){   // zoom the ship out or in: its size and hit box change, so a big ship is easier to see and steer
+    e.preventDefault();const z0=SHIPZ;SHIPZ=Math.max(.5,Math.min(1,Math.round((SHIPZ-Math.sign(e.deltaY)*.1)*10)/10));
+    if(SHIPZ!==z0){try{localStorage.setItem('idlyte_shipz',String(SHIPZ))}catch(x){}SHIPSC=Math.max(.6,((SHIPS[SAVE.ship]||SHIPS[0]).sc||1)*SHIPZ);toast('SHIP SIZE '+Math.round(SHIPZ*100)+'%')}
+    return}
+  if(((MODE==='hub'&&HUB.screen==='studio')||MODE==='studio')&&window.STU){STU.scroll=Math.max(0,Math.min(STU.maxScroll||0,STU.scroll+Math.sign(e.deltaY)*2));e.preventDefault();return}if(MODE==='hub'&&HUB.screen&&HUB.infoMax>0){HUB.iscroll+=Math.sign(e.deltaY)*3;e.preventDefault()}else if(MODE==='hub'&&HUB.screen&&HUB.rowsMax>0){HUB.rscroll=Math.max(0,Math.min(HUB.rowsMax,(HUB.rscroll||0)+Math.sign(e.deltaY)));e.preventDefault()}},{passive:false});
 cv.addEventListener('pointermove',e=>{SMAP.follow=false;const [x,y]=toCanvas(e),i=uiAt(x,y);MOUSE.x=x;MOUSE.y=y;if(i>=0)UI.focus=i});
 cv.addEventListener('pointerleave',()=>{MOUSE.x=-99;MOUSE.y=-99});
 /* manual flying: drag a finger (or the mouse) anywhere to steer the ship. a quick tap still counts as a tap */
