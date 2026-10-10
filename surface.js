@@ -2976,7 +2976,12 @@ SURF.draw=function(){
     ctx.fillStyle=WH;for(let k=0;k<3;k++){const u=((L.tick*.5+k/3)%1);ctx.globalAlpha=(1-u)*.7;ctx.fillRect(X-6+k*5,Math.round(Y-8-u*16+bob),1,1)}ctx.globalAlpha=1}}}
   /* ship pieces glow where they lie */
   for(const sp of (L.shipPieces||[])){if(sv().pieces[sp.id])continue;const X=Math.floor(sp.x-cam.x),Y=Math.floor(sp.y-cam.y);if(X<-30||X>VW+30||Y<-30||Y>VH+30)continue;const ic=A.pieceIcons[sp.id],pu=.5+.5*Math.sin(L.tick*3.2),bob=Math.round(Math.sin(L.tick*2.4)*1.5);
-    ctx.globalAlpha=.1+.07*pu;ctx.fillStyle='#ffffcc';ctx.fillRect(X-2,Y-60,4,60);ctx.globalAlpha=.08+.06*pu;ctx.fillRect(X-5,Y-60,10,60);
+    /* a bright slow glow around the ship piece so it can be seen from far away (no flashing, just a gentle pulse) */
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const [r,a,c] of [[60,.22,'255,215,90'],[40,.34,'255,235,140'],[22,.55,'255,250,200']]){const rr=r+pu*6,g=ctx.createRadialGradient(X,Y,0,X,Y,rr);g.addColorStop(0,'rgba('+c+','+Math.min(1,a+.12*pu)+')');g.addColorStop(1,'rgba('+c+',0)');ctx.fillStyle=g;ctx.fillRect(X-rr-2,Y-rr-2,2*rr+4,2*rr+4)}
+    ctx.fillStyle='#ffffdd';for(let k=0;k<6;k++){const an=L.tick*.9+k*TAU/6,rr=15+4*Math.sin(L.tick*1.7+k*2);ctx.globalAlpha=.55+.3*Math.sin(L.tick*2.2+k);ctx.fillRect(Math.round(X+Math.cos(an)*rr),Math.round(Y+Math.sin(an)*rr*.8),2,2)}
+    ctx.restore();
+    ctx.globalAlpha=.16+.1*pu;ctx.fillStyle='#ffffcc';ctx.fillRect(X-2,Y-60,4,60);ctx.globalAlpha=.12+.08*pu;ctx.fillRect(X-5,Y-60,10,60);
     ctx.globalAlpha=.2+.16*pu;ctx.fillStyle='#ffffaa';ctx.beginPath();ctx.arc(X,Y,22+pu*4,0,TAU);ctx.fill();ctx.globalAlpha=.9;ctx.fillStyle=WH;for(const [ox,oy] of [[-1,0],[1,0],[0,-1],[0,1]])ctx.drawImage(ic.off,X-7+ox,Y-6+bob+oy);ctx.globalAlpha=1;ctx.globalAlpha=.2+.12*pu;ctx.fillStyle=WH;ctx.beginPath();ctx.arc(X,Y,9,0,TAU);ctx.fill();ctx.globalAlpha=1;
     ctx.drawImage(ic.on,X-11,Y-9+bob,ic.w*1.6,ic.h*1.6);const a=L.tick*2.2;for(let k=0;k<4;k++){const aa=a+k*1.57,r=11+3*Math.sin(L.tick*4+k);ctx.fillStyle=k&1?YL:WH;ctx.fillRect(Math.round(X+Math.cos(aa)*r),Math.round(Y+Math.sin(aa)*r*.8),1,1)}
     if(((L.tick*5)|0)%6===0){ctx.fillStyle=WH;ctx.fillRect(X+6,Y-8,1,3);ctx.fillRect(X+5,Y-7,3,1)}}
