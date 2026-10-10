@@ -2038,8 +2038,8 @@ function tryExit(){
   const L=SURF.L,s=sv();
   if(SURF.done)return;
   if(SURF.guard&&SURF.guard.hp>0){SURF.msg=['THE GUARDIAN BLOCKS THE BEACON',2.2];return}
-  SURF.done=1;L.exit.open=1;s.done[SURF.idx]=1;const bonus=Math.round((400+SURF.idx*300)*GOLD_MUL.bonus);s.green+=bonus;SURF.visit+=bonus;
-  SURF.msg=['LEVEL CLEAR  +'+bonus+' GREEN GOLD',3.5];delete s.cp[SURF.idx];
+  SURF.done=1;L.exit.open=1;s.done[SURF.idx]=1;s.paid=s.paid||{};const bonus=s.paid[SURF.idx]?0:Math.round((400+SURF.idx*300)*GOLD_MUL.bonus);s.paid[SURF.idx]=1;s.green+=bonus;SURF.visit+=bonus;   // the clear bonus is paid once per world
+  SURF.msg=[bonus?'LEVEL CLEAR  +'+bonus+' GREEN GOLD':'BACK AT THE BEACON',3.5];delete s.cp[SURF.idx];
   for(let i=0;i<30;i++)SURF.fx.push({x:L.exit.x+9,y:L.exit.y-14,vx:rnd(-60,60),vy:rnd(-110,-20),life:1.2,c:GREEN[i%5],s:2});
   SURF.endT=3.2;
   if(s.done.every(v=>v)&&SURF.piecesFound()<6){const n=SURF.piecesFound();SURF.banner={t:8,lines:['YOU ARE MISSING SHIP PIECES:',n+' OF 6 FOUND.','SEARCH THE LEVELS FOR THE REST.']};SURF.endT=7}
@@ -2194,7 +2194,7 @@ SURF.tick=function(dt){
         if(!on){sp.once=1;const e=addEnemy(sp.type,sp.x,sp.y+TS-SURF.W.en[sp.type].h*(sp.elite?1.7:1),!!sp.elite);if(sp.elite){e.hp=e.mhp=e.hp/2.4;e.lair=1}if(sp.shiny){e.shiny=1;e.hp=e.mhp=e.hp*1.6}sp.e=e;e.sp_=sp}}}
   }
   /* the guardian shows up when you get near the end */
-  if(!SURF.guard&&Math.abs(p.x-L.exit.x)<300&&Math.abs(p.y-L.exit.y)<200){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;{const oh=e.h;e.sc=2.1;e.w=Math.round(SURF.W.en[4].w*2.1)-2;e.h=Math.round(SURF.W.en[4].h*2.1)-1;e.y-=e.h-oh;e.y0=e.y}e.k=SURF.W.en.length+1;e.hp=e.mhp=e.hp*[.9,.7,.6,.55,.5][SURF.idx];SURF.guard=e;SURF.msg=[BOSSNAME[SURF.idx],2.8];shakeS=Math.max(shakeS,.25)}
+  if(!SURF.guard&&!s.done[SURF.idx]&&Math.abs(p.x-L.exit.x)<300&&Math.abs(p.y-L.exit.y)<200){const e=addEnemy(4,L.guardian.x,L.guardian.y-SURF.W.en[4].h*1.7,true);e.guardian=1;{const oh=e.h;e.sc=2.1;e.w=Math.round(SURF.W.en[4].w*2.1)-2;e.h=Math.round(SURF.W.en[4].h*2.1)-1;e.y-=e.h-oh;e.y0=e.y}e.k=SURF.W.en.length+1;e.hp=e.mhp=e.hp*[.9,.7,.6,.55,.5][SURF.idx];SURF.guard=e;SURF.msg=[BOSSNAME[SURF.idx],2.8];shakeS=Math.max(shakeS,.25)}
   /* enemies */
   for(const e of SURF.en){updateEnemy(e,dt)}
   SURF.en=SURF.en.filter(e=>{if(e.hp>0&&Math.abs(e.x-p.x)<520)return true;if(e.hp<=0)return false;if(e.sp_){e.sp_.e=null;e.sp_.t=0}return false});
