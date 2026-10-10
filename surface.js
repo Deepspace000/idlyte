@@ -2002,15 +2002,16 @@ SURF.tick=function(dt){
     if(!p.lad){if(!(p.lgr>0)&&((I.up&&onL)||(I.down&&(onL||(p.on&&belowL))))){p.lad=true;p.lcol=lcx;p.vx=0;p.vy=0;p.on=false;if(!onL)p.y+=5;p.jb=0;p.jumpHeld=true;p.lsd=0;p.lg=.12;p.x=clamp(p.x+(((lcx*TS+4-p.w/2)-p.x)*.6),2,L.LW*TS-p.w-2)}}
     else if(!onL&&!(I.down&&belowL)){
       const rt=Math.floor((p.y+p.h-1)/TS);
-      if(I.up&&tile(lcx,rt)===7&&tile(lcx,rt-1)!==7){p.y=rt*TS-p.h;p.vy=0;p.on=true;p.lad=false;p.coy=.09}   // climbed out onto the top rung
+      if(I.up&&tile(lcx,rt)===7&&tile(lcx,rt-1)!==7&&!hitsSolid(p.x,rt*TS-p.h,p.w,p.h)){p.y=rt*TS-p.h;p.vy=0;p.on=true;p.lad=false;p.coy=.09}   // climbed out onto the top rung (only if there is room to stand)
       else if((p.lg-=dt)<=0)p.lad=false}
     else p.lg=.12;
     if(p.lad){
       p.lcol=lcx;p.vx=0;if(ax)p.face=ax;
       p.vy=I.up?-70:I.down?70:0;p.lcl=(p.lcl||0)+(p.vy?dt*8:0);
       p.x+=((lcx*TS+4-p.w/2)-p.x)*Math.min(1,dt*22);   // always pulled to the middle of the ladder
-      p.lsd=ax?(p.lsd||0)+dt:0;   // sideways has to be held for a moment to step off, so a bump does not drop you
-      if(p.lsd>.4){p.lad=false;p.lgr=.3;p.vx=ax*70;p.vy=0}
+      p.lsd=ax?(p.lsd||0)+dt:0;   // sideways has to be held for a moment to step off mid ladder, so a bump does not drop you; at the top or bottom end it lets go at once
+      const cr=Math.floor((p.y+8)/TS),atEnd=tile(lcx,cr-2)!==7||tile(lcx,Math.floor((p.y+p.h)/TS))!==7;
+      if(p.lsd>(atEnd?.05:.4)){p.lad=false;p.lgr=.3;p.vx=ax*70;p.vy=atEnd&&I.up?-90:0}
       if(I.jumpB&&!p.lj){p.lad=false;p.lgr=.25;p.vy=-175;p.jb=0;p.jumpHeld=true;p.vx=ax*80;try{sfxTone(260,520,.1,'square',.02,{att:.002})}catch(e){}}
       p.lj=I.jumpB;
     }else{p.vx+=((ax*sp)-p.vx)*Math.min(1,dt*(p.on?14:7));if(ax)p.face=ax;p.lj=I.jumpB}
