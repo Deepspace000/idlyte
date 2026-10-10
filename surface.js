@@ -1417,12 +1417,13 @@ function genLevel(idx){
   for(const c of L.chests.slice()){if(!c.setc)continue;const tx=Math.floor((c.x+7)/TS),ty=Math.floor((c.y+9)/TS);let ok=false;for(let dy=-3;dy<=1&&!ok;dy++)for(let dx=-2;dx<=2;dx++)if(AP.F[(ty+dy)*LW+tx+dx]){ok=true;break}
     if(!ok){L.chests.splice(L.chests.indexOf(c),1);const si=L.secrets.findIndex(q=>q.id===c.sec);if(si>=0){L.secrets.splice(si,1);L.secretTotal=L.secrets.length}L.secretPts=L.secretPts.filter(q=>q.sid!==c.sec)}}
 
+  let A0f=null;const foot=()=>A0f||(A0f=analyzeLevel(L,{noUps:true}));
   /* ROCKET PACK BOOSTER: one on each of worlds 2 to 5, in a different kind of place each time; a bonus, never needed to finish */
   if(idx>=1&&idx<=4){
     const RB=rng(9300+idx*29),rb=(a,b)=>a+Math.floor(RB()*(b-a+1)),sid=idx+'_boost';
     const farOK=(tx,ty)=>{for(const sp of L.shipPieces)if(Math.hypot(sp.x/TS-tx,sp.y/TS-ty)<16)return false;for(const c of L.chests)if(Math.hypot((c.x+7)/TS-tx,(c.y+5)/TS-ty)<7)return false;for(const o of (L.ia||[]))if(Math.hypot(o.x/TS-tx,o.y/TS-ty)<7)return false;return Math.hypot(L.start.x/TS-tx,L.start.y/TS-ty)>40&&Math.hypot(L.exit.x/TS-tx,L.exit.y/TS-ty)>25};
     const clear=(tx,ty,w,h)=>{for(let y=ty-h+1;y<=ty;y++)for(let x=tx-(w>>1);x<=tx+(w>>1);x++)if(G(x,y)!==0)return false;return true};
-    let cells=null;const getCells=()=>{if(cells)return cells;cells=[];const A0=analyzeLevel(L,{noUps:true});for(let y=L.skyRow+20;y<LH-12;y+=1)for(let x=14;x<LW-14;x++){const q=y*LW+x;if(A0.F[q]&&A0.st[q]&&G(x,y)===0&&G(x,y+1)===1&&farOK(x,y))cells.push([x,y])}return cells};
+    let cells=null;const getCells=()=>{if(cells)return cells;cells=[];const A0=foot();for(let y=L.skyRow+20;y<LH-12;y+=1)for(let x=14;x<LW-14;x++){const q=y*LW+x;if(A0.F[q]&&A0.st[q]&&G(x,y)===0&&G(x,y+1)===1&&farOK(x,y))cells.push([x,y])}return cells};
     const pick=(f,sortf)=>{const c=getCells().filter(f);if(!c.length)return null;if(sortf)c.sort(sortf);else return c[Math.floor(RB()*c.length)];return c[0]};
     const reach=(tx,ty)=>{const A2=analyzeLevel(L,{pack:true});for(let dy=-3;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(A2.F[(ty+dy)*LW+tx+dx])return true;return false};
     let spot=null,how='';
@@ -1441,6 +1442,44 @@ function genLevel(idx){
       const c=pick(()=>true,(a,b)=>b[1]-a[1]);if(c){spot=c;how=how||'deep'}}
     if(spot){const [tx,ty]=spot;L.boost={x:tx*TS+4,y:(ty+1)*TS,sid,how,got:false};L.secrets.push({id:sid,name:'ROCKET BOOSTER'});L.secretTotal=L.secrets.length;L.secretPts.push({x:tx*TS+4,y:ty*TS,sid});L.glows.push({x:tx-2,y:ty-5,w:4,h:6,c:'#ffffcc',hint:1})}
   }
+
+  /* EXPLORER'S JOURNAL: torn pages, found off the main route, that say where this level's ship piece is. The words are worked out from the real piece positions. */
+  {const RJ=rng(9500+idx*41),rj=(a,b)=>a+Math.floor(RJ()*(b-a+1)),NP=idx===4?4:3,NAMES=['HULL','ENGINE','REACTOR','WINGS','COCKPIT','WEAPON CORE'],ORD=['FIRST','SECOND','THIRD','FOURTH','FIFTH','SIXTH','SEVENTH','EIGHTH'];
+    const A=foot(),pcs=L.shipPieces.map(p=>({x:p.x/TS,y:p.y/TS,id:p.id,how:p.how})).sort((a,b)=>a.id-b.id),bo=L.boost,sx=L.start.x/TS,sy=L.start.y/TS;
+    const surfAt=x=>{const v=L.surf[Math.max(0,Math.min(LW-1,Math.round(x)))];return v>=0?v:L.skyRow};
+    const okc=(x,y)=>{for(const p of pcs)if(Math.hypot(p.x-x,p.y-y)<16)return false;if(bo&&Math.hypot(bo.x/TS-x,bo.y/TS-y)<10)return false;for(const c of L.chests)if(Math.hypot((c.x+7)/TS-x,(c.y+5)/TS-y)<4)return false;for(const o of (L.ia||[]))if(Math.hypot(o.x/TS-x,o.y/TS-y)<3)return false;return Math.abs(x-sx)>14&&Math.hypot(L.exit.x/TS-x,L.exit.y/TS-y)>15};
+    const cells=[];for(let y=8;y<LH-12;y++)for(let x=15;x<LW-14;x+=3){const q=y*LW+x;if(A.F[q]&&A.st[q]&&G(x,y)===0&&(G(x,y+1)===1||G(x,y+1)===2)&&G(x,y-1)===0&&G(x,y-2)===0&&G(x,y-3)===0&&okc(x,y))cells.push([x,y])}
+    const anchors=[];for(const st of L.sets||[])anchors.push([(st.x0+st.x1)>>1,st.y1]);
+    for(const o of L.ia)if(o.k==='npc'||o.k==='shrine'||o.k==='lore')anchors.push([Math.round(o.x/TS),Math.round(o.y/TS)]);
+    for(const a of L.abyss)anchors.push([a.gx+(a.n>>1),a.fl-2]);for(const q of L.sideCaves)anchors.push([q.x,q.y]);
+    anchors.sort((a,b)=>Math.abs(a[0]-sx)-Math.abs(b[0]-sx));
+    const QS=NP===4?[.1,.38,.62,.88]:[.12,.5,.85],chosen=[],far=(x,y)=>chosen.every(c=>Math.hypot(c[0]-x,c[1]-y)>=28);
+    for(let k=0;k<NP&&cells.length;k++){let pos=null;const ai=Math.min(anchors.length-1,Math.floor(QS[k]*anchors.length));
+      for(let off=0;off<anchors.length&&!pos;off++){const a=anchors[Math.max(0,Math.min(anchors.length-1,ai+(off&1?(off+1)>>1:-(off>>1))))];if(!a)continue;let bd=1e9,bc=null;for(const c of cells){const d=Math.abs(c[0]-a[0])+Math.abs(c[1]-a[1])*.8;if(d<14&&d<bd&&far(c[0],c[1])){bd=d;bc=c}}if(bc)pos=bc}
+      if(!pos){const f=cells.filter(c=>far(c[0],c[1]));if(f.length)pos=f[rj(0,f.length-1)]}
+      if(pos)chosen.push(pos)}
+    /* the words */
+    const regionOf=x=>{const f=x/LW;return f<.2?'THE FAR WEST OF THE WORLD':f<.38?'THE WESTERN PART OF THE WORLD':f<.62?'THE MIDDLE OF THE WORLD':f<.8?'THE EASTERN PART OF THE WORLD':'THE FAR EAST OF THE WORLD'};
+    const heightOf=(x,y)=>{const s=surfAt(x),d=y-s;if(d<-8)return 'HIGH IN THE AIR, ABOVE THE GROUND';if(d<=4)return 'ON THE SURFACE';const u=d/Math.max(20,LH-s);return u>.8?'AT THE VERY BOTTOM OF THE WORLD':u>.45?'DEEP UNDERGROUND':'UNDERGROUND, NOT VERY DEEP'};
+    const kindOf=p=>{const d=p.y-surfAt(p.x);const k=p.how==='maze'?'THE DEAD END OF A TWISTING MAZE OF TUNNELS':p.how==='abyss floor'?'THE FLOOR OF A VERY DEEP ABYSS':p.how==='side cave'?'A SIDE CAVE OFF THE WALL OF AN ABYSS':d<-6?'A SMALL FLOATING ISLAND':'A SMALL ISLAND OF ROCK OVER A CHASM';
+      const cr=L.doors.find(z=>z.lock==='crack'&&z.cells&&Math.hypot(z.cells[0][0]-p.x,z.cells[0][1]-p.y)<14);return cr?k+', BEHIND A CRACKED WALL':k};
+    const landOf=p=>{const cand=[],npcN={astro:'STRANDED ASTRONAUT',hermit:'HERMIT',ghost:'PILOT GHOST',trader:'TRADER BOT'};
+      for(const st of L.sets||[])cand.push(['THE '+st.name,(st.x0+st.x1)/2,st.y1]);
+      L.abyss.slice().sort((a,b)=>a.gx-b.gx).forEach((a,i)=>cand.push([(p.x>=a.gx&&p.x<=a.gx+a.n?'INSIDE':'BESIDE')+' THE '+ORD[i]+' ABYSS',a.gx+a.n/2,a.fl,1]));
+      for(const o of L.ia){if(o.k==='npc'&&npcN[o.npc])cand.push(['THE '+npcN[o.npc],o.x/TS,o.y/TS]);else if(o.k==='shrine')cand.push(['THE SHRINE',o.x/TS,o.y/TS])}
+      L.checks.slice().sort((a,b)=>a.x-b.x).forEach((c,i)=>cand.push([i<8?'THE '+ORD[i]+' BEAM PAD':'BEAM PAD NUMBER '+(i+1),c.x/TS,c.y/TS]));
+      cand.push(['THE BEACON AT THE END OF THE WORLD',L.exit.x/TS,L.exit.y/TS]);
+      let best=null,bd=1e9;for(const c of cand){const d=Math.hypot(c[1]-p.x,(c[2]-p.y)*1.3);if(d<bd){bd=d;best=c}}
+      return best[3]?'IT IS '+best[0]:'IT IS '+(bd<10?'RIGHT NEXT TO ':bd<30?'NEAR ':'NOT FAR FROM ')+best[0]};
+    const footOK=p=>{const px=Math.round(p.x),py=Math.round(p.y);for(let dy=-3;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(A.F[(py+dy)*LW+px+dx])return true;return false};
+    const tipOf=p=>{const refs=L.checks.map(c=>[c.x/TS,c.y/TS,1]);refs.push([sx,sy,0]);let r=null,bd=1e9;for(const q of refs){const d=Math.hypot(q[0]-p.x,q[1]-p.y);if(d<bd){bd=d;r=q}}
+      const dx=Math.round((p.x-r[0])/5)*5,dy=Math.round((p.y-r[1])/5)*5,parts=[];if(Math.abs(dx)>=5)parts.push(Math.abs(dx)+' STEPS '+(dx>0?'EAST':'WEST'));if(Math.abs(dy)>=5)parts.push(Math.abs(dy)+' STEPS '+(dy>0?'DOWN':'UP'));
+      return 'FROM '+(r[2]?'THE NEAREST BEAM PAD':'THE PLACE WHERE I LANDED')+(parts.length?' IT IS ABOUT '+parts.join(' AND ')+'.':' IT IS VERY CLOSE.')+' '+(footOK(p)?'YOU CAN WALK AND CLIMB THERE WITHOUT THE ROCKET PACK.':'YOU NEED THE ROCKET PACK TO REACH IT.')+' THE PIECE GLOWS WITH A SOFT YELLOW LIGHT.'};
+    const T=[];
+    if(pcs.length&&NP===3){const p=pcs[0],nm=NAMES[p.id];T.push('THE SUNLARK LOST ITS '+nm+' HERE. I SAW IT FALL INTO '+regionOf(p.x)+', '+heightOf(p.x,p.y)+'.'+(idx===0?' THIS ONE SHOULD BE THE EASIEST TO FIND.':''));T.push('IT LIES IN '+kindOf(p)+'. '+landOf(p)+'.');T.push(tipOf(p))}
+    else if(pcs.length>=2){for(const p of pcs.slice(0,2)){const nm=NAMES[p.id];T.push('TWO PIECES OF THE SUNLARK FELL HERE. THE '+nm+' CAME DOWN IN '+regionOf(p.x)+', '+heightOf(p.x,p.y)+'. IT LIES IN '+kindOf(p)+'.');T.push(landOf(p)+'. '+tipOf(p))}}
+    L.journal=[];chosen.forEach((c,k)=>{if(k>=T.length)return;const id='jp'+idx+'_'+k,o={k:'page',x:c[0]*TS+4,y:(c[1]+1)*TS,id,n:k,N:T.length,text:T[k]};L.ia.push(o);L.journal.push(o);L.secrets.push({id,name:'JOURNAL PAGE'});L.secretPts.push({x:c[0]*TS+4,y:c[1]*TS,sid:id})});
+    L.secretTotal=L.secrets.length}
   return L;
 }
 
@@ -1840,7 +1879,7 @@ function bakeChunk(L,idx,ci,cj){
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
 window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
-function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
+function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.jr=s.jr||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
   return s}
 SURF.state=sv;
 const PIECE_NAMES=['HULL','ENGINE','REACTOR','WINGS','COCKPIT','WEAPON CORE'];SURF.PIECE_NAMES=PIECE_NAMES;
@@ -2265,7 +2304,12 @@ const EVT=[
  [{id:'meteor',warn:'WARNING: A METEOR SHOWER IS COMING.',on:'METEORS ARE FALLING. WATCH THE RED MARKS.'},{id:'quake',warn:'WARNING: AN EARTHQUAKE IS COMING.',on:'THE GROUND SHAKES. ROCKS FALL FROM ABOVE.'}],
  [{id:'pulse',warn:'WARNING: THE HIVE IS ABOUT TO PULSE.',on:'THE HIVE PULSES. YOU FLOAT, GRAVITY IS LOW.'}]];
 function wrapT(str,w){const words=str.split(' '),out=[];let cur='';for(const wd of words){const t=cur?cur+' '+wd:wd;if(textW(t,1)>w&&cur){out.push(cur);cur=wd}else cur=t}if(cur)out.push(cur);return out}
-function useLabel(){return(typeof INP!=='undefined'&&INP.last==='pad')?'A':(typeof INP!=='undefined'&&INP.last==='touch')||(typeof isTouch!=='undefined'&&isTouch)?'USE':'E'}
+function devKind(){return(typeof INP!=='undefined'&&INP.last==='pad')?'pad':((typeof INP!=='undefined'&&INP.last==='touch')||(typeof isTouch!=='undefined'&&isTouch))?'touch':'key'}
+function useLabel(){const d=devKind();return d==='pad'?'Y':d==='touch'?'USE':'E'}
+function menuLabel(){const d=devKind();return d==='pad'?'START':d==='touch'?'MENU':'B'}
+function fireLabel(){const d=devKind();return d==='pad'?'X':d==='touch'?'FIRE':'X, R OR MOUSE'}
+function stuckLabel(){const d=devKind();return d==='pad'?'BACK':d==='touch'?'MENU':'G'}
+function okLabel(){return devKind()==='pad'?'A':useLabel()}
 function foundSecret(id,name){const s=sv();if(!id||s.sec[id])return;s.sec[id]=1;const L=SURF.L,sc=L.secrets.find(q=>q.id===id);SURF.msg=['SECRET FOUND: '+(name||(sc&&sc.name)||''),3];try{sfxTone(500,1500,.5,'triangle',.05,{att:.005})}catch(e){}save()}
 function trk(){const s=sv(),L=SURF.L,idx=SURF.idx;const sec=L.secrets.filter(q=>s.sec[q.id]).length,tot=L.secrets.length;
   let lr=0;for(let k=0;k<LORE[idx].length;k++)if(s.lore[idx*10+k])lr++;const W=SURF.W;let met=0;for(let k=0;k<W.en.length;k++)if(s.met[idx+'_'+k])met++;
@@ -2281,8 +2325,10 @@ function nearestSecret(){const L=SURF.L,p=SURF.p,s=sv();let best=null,bd=1e9;for
 function openModal(m){m.t=0;SURF.modal=m;SURF.pv=null;SURF.mh=[]}
 function openText(title,body,opt){openModal(Object.assign({type:'text',title,lines:wrapT(body,262)},opt||{}))}
 function openTalk(name,pages,done,choices){openModal({type:'talk',name,pages:pages.map(t=>wrapT(t,262)),page:0,done,choices})}
-function openPause(){if(SURF.modal)return;openModal({type:'pause',tab:0,focus:0,btn:0,cur:[0,SURF.idx*5,0,0]})}
+function openPause(){if(SURF.modal)return;openModal({type:'pause',tab:0,focus:0,btn:0,cur:[0,SURF.idx*5,0,0,SURF.idx*3]})}
 function closeModal(){const m=SURF.modal;SURF.modal=null;SURF.pv=null;SURF.mh=[];SURF.noJump=.25;if(m&&m.onClose)m.onClose()}
+function readPage(o){const s=sv(),first=!s.sec[o.id];if(first){s.jr[o.id]=o.text;foundSecret(o.id,'JOURNAL PAGE');try{sfxTone(500,1200,.35,'triangle',.05,{att:.004})}catch(e){}}openText('EXPLORER JOURNAL: PAGE '+(o.n+1)+' OF '+o.N+(first?'  (NEW)':''),o.text,{})}
+const JPN=[3,3,3,3,4];function jpIdx(q){let w=0;while(q>=JPN[w]){q-=JPN[w];w++}return[w,q]}
 function readLore(ia){const L=SURF.L,s=sv(),idx=SURF.idx,k=ia.slot,e=LORE[idx][k];if(!e)return;const first=!s.lore[idx*10+k];s.lore[idx*10+k]=1;if(first)save();
   const o={lore:1};if(first&&ia.final)o.onClose=()=>{SURF.banner={t:8,lines:['THE ALIEN MOTHERSHIP WAS THE SUNLARK ALL ALONG.','FIND ALL SIX PIECES AND IT WILL FLY HOME.']};shakeS=.6;try{sfxTone(200,900,.8,'triangle',.06,{att:.01})}catch(e){}for(let i=0;i<40;i++)SURF.fx.push({x:SURF.p.x+5,y:SURF.p.y,vx:rnd(-120,120),vy:rnd(-160,-20),life:1.2,c:[WH,PG,MG,CY][i%4],s:2})};
   openText(e[0]+(first?'  (NEW)':''),L.loreFill(e[1]),o);}
@@ -2407,6 +2453,7 @@ function traceBeam(d){const L=SURF.L,m=d.mir,src=L.ia.find(q=>q.id===m.src),gem=
 function useIA(o){const L=SURF.L,s=sv(),idx=SURF.idx,p=SURF.p;
   if(o.k==='nest'){const h=L.hatch;if(h.state===0){h.state=1;h.wave=0;h.t=.6;SURF.msg=['YOU DISTURBED THE NEST. DEFEAT THREE WAVES.',3]}else if(h.state===1)SURF.msg=['FIGHT THE BROOD.',1.5];else SURF.msg=['THE NEST IS EMPTY.',1.5];return}
   if(o.k==='mirror'){o.st=o.st?0:1;try{sfxTone(480+o.st*160,620,.15,'triangle',.04,{att:.003})}catch(e){}return}
+  if(o.k==='page'){readPage(o);return}
   if(o.k==='lore')readLore(o);
   else if(o.k==='npc')npcTalk(o);
   else if(o.k==='lever'){if(o.forge){const ch=L.chase;if(ch&&ch.state===0){ch.state=1;ch.t=4;ch.row=ch.yb;o.on=1;SURF.msg=['THE FORGE WAKES. LAVA IS RISING. CLIMB!',3.5];shakeS=.4;try{sfxBoom(12,true)}catch(e){}}return}
@@ -2454,18 +2501,18 @@ function modalTick(dt,I){const m=SURF.modal;m.t+=dt;const cur={l:I.l,r:I.r,u:I.u
     if(E.ok)codeTry(m)}
   else if(m.type==='pause'){pauseKeys(m,E)}}
 function codeTry(m){const L=SURF.L;const okc=m.digits[0]+1===m.code[0]&&m.digits[1]+1===m.code[1]&&m.digits[2]+1===m.code[2];if(okc){closeModal();doorOpen(m.door,'THE CODE IS RIGHT. THE VAULT OPENS')}else{SURF.msg=['WRONG CODE',1.6];try{sfxTone(120,60,.3,'sawtooth',.05,{att:.005})}catch(e){}}}
-function pauseKeys(m,E){const NT=4;
+function pauseKeys(m,E){const NT=5;
   if(E.back){closeModal();return}
-  if(m.focus===0){if(E.l)m.tab=(m.tab+NT-1)%NT;if(E.r)m.tab=(m.tab+1)%NT;if(E.d){if(m.tab===1||m.tab===2)m.focus=2;else m.focus=1}}
-  else if(m.focus===2){const n=m.tab===1?25:SURF.W.en.length;if(E.d){if(m.cur[m.tab]<n-1)m.cur[m.tab]++;else m.focus=1}if(E.u){if(m.cur[m.tab]>0)m.cur[m.tab]--;else m.focus=0}if(E.ok&&m.tab===1){const q=m.cur[1],i=Math.floor(q/5),k=q%5;if(sv().lore[i*10+k]){const e=LORE[i][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill(e[1]),262),back:m})}}}
-  else{if(E.u)m.focus=m.tab===1||m.tab===2?2:0;if(E.l||E.r)m.btn=1-m.btn;if(E.ok){if(m.btn===0)closeModal();else{closeModal();SURF.beamUp()}}}}
+  if(m.focus===0){if(E.l)m.tab=(m.tab+NT-1)%NT;if(E.r)m.tab=(m.tab+1)%NT;if(E.d){if(m.tab===1||m.tab===2||m.tab===4)m.focus=2;else m.focus=1}}
+  else if(m.focus===2){const n=m.tab===1?25:m.tab===4?16:SURF.W.en.length;if(E.d){if(m.cur[m.tab]<n-1)m.cur[m.tab]++;else m.focus=1}if(E.u){if(m.cur[m.tab]>0)m.cur[m.tab]--;else m.focus=0}if(E.ok&&m.tab===1){const q=m.cur[1],i=Math.floor(q/5),k=q%5;if(sv().lore[i*10+k]){const e=LORE[i][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill(e[1]),262),back:m})}}if(E.ok&&m.tab===4){const [w,k]=jpIdx(m.cur[4]),tx=sv().jr['jp'+w+'_'+k];if(tx)openModal({type:'text',title:'JOURNAL: WORLD '+(w+1)+' PAGE '+(k+1)+' OF '+JPN[w],lines:wrapT(tx,262),back:m})}}
+  else{if(E.u)m.focus=m.tab===1||m.tab===2||m.tab===4?2:0;if(E.l||E.r)m.btn=1-m.btn;if(E.ok){if(m.btn===0)closeModal();else{closeModal();SURF.beamUp()}}}}
 /* ---- drawing the modals */
 function panelBox(x,y,w,h,title){ctx.globalAlpha=.94;ctx.fillStyle='#05031a';ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;ctx.fillStyle=YL;ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillStyle='#352879';ctx.fillRect(x,y+1,w,9);if(title)textC2(title,x+w/2,y+2,YL)}
 function mhit(x,y,w,h,fn){SURF.mh.push({x,y,w,h,fn})}
 function btnBox(x,y,w,h,label,focus,fn){ctx.fillStyle=focus?'#8a7ae0':'#2a2150';ctx.fillRect(x,y,w,h);ctx.fillStyle=focus?WH:'#6c5eb5';ctx.fillRect(x,y,w,1);textC2(label,x+w/2,y+h/2-3,focus?WH:'#bbbbdd');if(fn)mhit(x,y,w,h,fn)}
 function drawModal(){const m=SURF.modal;if(!m)return;SURF.mh=[];const s=sv(),A=SURF.A;
   if(m.type==='text'){const h=m.lines.length*9+34,y0=Math.max(14,Math.round((VH-h)/2)-6);panelBox(18,y0,VW-36,h,m.title);m.lines.forEach((ln,i)=>text(ln,26,y0+14+i*9,i>-1?WH:WH,1));
-    btnBox(VW/2-26,y0+h-14,52,11,'OK  ('+useLabel()+')',true,()=>{if(m.back){SURF.modal=m.back;m.back.t=0}else closeModal()});mhit(0,0,VW,VH,()=>{if(m.back){SURF.modal=m.back}else closeModal()})}
+    btnBox(VW/2-26,y0+h-14,52,11,'OK  ('+okLabel()+')',true,()=>{if(m.back){SURF.modal=m.back;m.back.t=0}else closeModal()});mhit(0,0,VW,VH,()=>{if(m.back){SURF.modal=m.back}else closeModal()})}
   else if(m.type==='talk'){const ln=m.pages[m.page],h=ln.length*9+36,y0=VH-h-12;panelBox(10,y0,VW-20,h,m.name);ln.forEach((t,i)=>text(t,18,y0+14+i*9,WH,1));
     textR(m.page<m.pages.length-1?'NEXT':'OK',VW-16,y0+h-10,YL,1);mhit(0,0,VW,VH,()=>{if(m.page<m.pages.length-1)m.page++;else{const f=m.done;closeModal();if(f)f()}})}
   else if(m.type==='menu'){const n=m.rows.length,h=n*14+44,y0=Math.max(10,Math.round((VH-h)/2));panelBox(20,y0,VW-40,h,m.title);textR('GREEN GOLD '+s.green,VW-26,y0+12,GREEN[3],1);
@@ -2476,18 +2523,20 @@ function drawModal(){const m=SURF.modal;if(!m)return;SURF.mh=[];const s=sv(),A=S
     btnBox(VW/2-30,y0+h-14,28,10,'ENTER',true,()=>codeTry(m));btnBox(VW/2+4,y0+h-14,28,10,'CLOSE',false,()=>closeModal())}
   else if(m.type==='pause')drawPause(m)}
 function drawPause(m){const s=sv(),L=SURF.L,idx=SURF.idx,Wd=SURF.W,A=SURF.A;panelBox(8,6,VW-16,VH-12,'PAUSED:  '+Wd.n);
-  const tabs=['PROGRESS','LORE','CREATURES','MAP'];tabs.forEach((t,i)=>{const x=14+i*76,foc=m.tab===i;ctx.fillStyle=foc?(m.focus===0?'#6c5eb5':'#4a3f8a'):'#1c1840';ctx.fillRect(x,18,72,11);textC2(t,x+36,20,foc?WH:'#8888aa');mhit(x,18,72,11,()=>{m.tab=i;m.focus=0})});
+  const tabs=['PROGRESS','LORE','CREATURES','MAP','JOURNAL'],tw=[58,44,62,40,58];let tx_=12;tabs.forEach((t,i)=>{const x=tx_,w_=tw[i],foc=m.tab===i;tx_+=w_+4;ctx.fillStyle=foc?(m.focus===0?'#6c5eb5':'#4a3f8a'):'#1c1840';ctx.fillRect(x,18,w_,11);textC2(t,x+w_/2,20,foc?WH:'#8888aa');mhit(x,18,w_,11,()=>{m.tab=i;m.focus=0})});
   const T=trk(),y0=34;
-  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['ROCKET BOOSTERS',SURF.boosters()+' OF 4'],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
-    rows.forEach((r,i)=>{text(r[0],20,y0+i*11,'#bbbbdd',1);textR(r[1],VW-20,y0+i*11,i<3&&(i===0?T.sec>=T.tot:i===1?T.lr>=T.lt:T.met>=T.mt)?GREEN[3]:WH,1)});
-    const yy=y0+rows.length*11+4;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
-    text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: B',20,yy+38,'#8888aa',1);text('A SECRET IS A HIDDEN VAULT, PUZZLE OR TREASURE.',20,yy+48,'#8888aa',1)}
+  if(m.tab===0){const rows=[['SECRETS FOUND',T.sec+' OF '+T.tot],['LORE READ',T.lr+' OF '+T.lt],['CREATURES LOGGED',T.met+' OF '+T.mt],['SHIP PIECE',SURF.pieceStatus(idx).replace('PIECE: ','').replace('PIECES: ','')],['ROCKET BOOSTERS',SURF.boosters()+' OF 4'],['JOURNAL PAGES',Object.keys(s.jr).length+' OF 16'],['GREEN GOLD THIS VISIT','+'+SURF.visit],['KEYS',(SURF.keys.red?'RED ':'')+(SURF.keys.blue?'BLUE':'')||'NONE'],['BONUS FOR 100 PERCENT',s.full[idx]?'CLAIMED':T.full?'READY':'+'+FULLR(idx)+' GREEN GOLD']];
+    rows.forEach((r,i)=>{text(r[0],20,y0+i*10,'#bbbbdd',1);textR(r[1],VW-20,y0+i*10,i<3&&(i===0?T.sec>=T.tot:i===1?T.lr>=T.lt:T.met>=T.mt)?GREEN[3]:WH,1)});
+    const yy=y0+rows.length*10+2;text('ALL WORLDS',20,yy,YL,1);for(let w=0;w<5;w++){let lr=0;for(let k=0;k<5;k++)if(s.lore[w*10+k])lr++;let sc=0,st=0;const x=20+w*56;text('W'+(w+1)+(s.done[w]?' CLEARED':' OPEN'),x,yy+10,s.done[w]?GREEN[3]:'#6c6c8c',1);text('LORE '+lr+'/5',x,yy+19,lr>=5?GREEN[3]:'#9ad2e0',1);text(s.full[w]?'100%':'',x,yy+28,YL,1)}
+    text('SHIP PIECES '+SURF.piecesFound()+' OF 6.   USE: '+useLabel()+'   PAUSE: '+menuLabel(),20,yy+38,'#8888aa',1);}
   else if(m.tab===1){const cur=m.cur[1],top0=Math.max(0,Math.min(cur-2,25-6));for(let i=0;i<6;i++){const q=top0+i;if(q>=25)break;const w=Math.floor(q/5),k=q%5,rd=s.lore[w*10+k],foc=m.focus===2&&q===cur;const y=y0+i*11;ctx.fillStyle=foc?'#3a2f7a':q===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,10);text('W'+(w+1)+'  '+(rd?LORE[w][k][0]:'???'),18,y+1,rd?WH:'#5a5a7a',1);mhit(14,y,VW-28,10,()=>{m.cur[1]=q;m.focus=2;if(rd){const e=LORE[w][k];openModal({type:'text',title:e[0],lines:wrapT(SURF.L.loreFill?SURF.L.loreFill(e[1]):e[1],262),back:m})}})}
     {const q=cur,w=Math.floor(q/5),k=q%5,rd=s.lore[w*10+k],ty=y0+6*11+4;ctx.fillStyle='#0a0820';ctx.fillRect(14,ty-2,VW-28,56);ctx.fillStyle='#352879';ctx.fillRect(14,ty-2,VW-28,1);if(rd){const ls=wrapT(SURF.L.loreFill?SURF.L.loreFill(LORE[w][k][1]):LORE[w][k][1],262);ls.slice(0,5).forEach((l_,i)=>text(l_,20,ty+2+i*9,WH,1))}else text('NOT FOUND YET. LOOK FOR LORE OBJECTS IN WORLD '+(w+1)+'.',20,ty+2,'#8888aa',1)}}
   else if(m.tab===2){const n=Wd.en.length,cur=m.cur[2];for(let i=0;i<n;i++){const e=Wd.en[i],met=s.met[idx+'_'+i],kills=s.seen[idx+'_'+i]||0,foc=m.focus===2&&i===cur,y=y0+i*20;ctx.fillStyle=foc?'#3a2f7a':i===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,19);
       if(met){const fr=A.en[i].fr[0],sc=Math.min(1,16/Math.max(fr.width,fr.height));ctx.drawImage(fr,22,y+9-fr.height*sc/2,fr.width*sc,fr.height*sc)}else text('?',26,y+6,'#5a5a7a',1);
       text(met?e.n:'???',44,y+2,met?WH:'#5a5a7a',1);text(met?wrapT(ENDESC[e.ai]||'',200)[0]||'':'NOT MET YET',44,y+10,'#9ad2e0',1);textR(met?'DEFEATED '+kills+(s.shiny[idx+'_'+i]?'  GOLD':''):'',VW-18,y+2,kills?GREEN[3]:'#8888aa',1);mhit(14,y,VW-28,19,()=>{m.cur[2]=i;m.focus=2})}
     let oth=0;for(const k in s.met)if(!k.startsWith(idx+'_'))oth++;text('CREATURES LOGGED ON OTHER WORLDS: '+oth,18,y0+n*20+4,'#8888aa',1)}
+  else if(m.tab===4){const cur=m.cur[4],top0=Math.max(0,Math.min(cur-2,16-6));for(let i=0;i<6;i++){const q=top0+i;if(q>=16)break;const [w,k]=jpIdx(q),tx=s.jr['jp'+w+'_'+k],foc=m.focus===2&&q===cur,y=y0+i*11;ctx.fillStyle=foc?'#3a2f7a':q===cur?'#201a48':'#0a0820';ctx.fillRect(14,y,VW-28,10);text('W'+(w+1)+'  PAGE '+(k+1)+' OF '+JPN[w]+(tx?'':'   ???'),18,y+1,tx?WH:'#5a5a7a',1);mhit(14,y,VW-28,10,()=>{m.cur[4]=q;m.focus=2;if(tx)openModal({type:'text',title:'JOURNAL: WORLD '+(w+1)+' PAGE '+(k+1)+' OF '+JPN[w],lines:wrapT(tx,262),back:m})})}
+    {const q=cur,[w,k]=jpIdx(q),tx=s.jr['jp'+w+'_'+k],ty=y0+6*11+4;ctx.fillStyle='#0a0820';ctx.fillRect(14,ty-2,VW-28,56);ctx.fillStyle='#352879';ctx.fillRect(14,ty-2,VW-28,1);if(tx)wrapT(tx,262).slice(0,6).forEach((l_,i)=>text(l_,20,ty+2+i*9,WH,1));else{wrapT('NOT FOUND YET. TORN JOURNAL PAGES LIE OFF THE MAIN ROUTE IN WORLD '+(w+1)+'. TOGETHER THEY SAY WHERE THAT WORLD HIDES ITS SHIP PIECE.',262).forEach((l_,i)=>text(l_,20,ty+2+i*9,'#8888aa',1))}}}
   else{drawMapPage(y0)}
   const by=VH-22;btnBox(VW/2-62,by,56,11,'CONTINUE',m.focus===1&&m.btn===0,()=>closeModal());btnBox(VW/2+6,by,56,11,'BEAM UP',m.focus===1&&m.btn===1,()=>{closeModal();SURF.beamUp()});
   if(m.focus!==1)text('DOWN: BUTTONS',16,by+2,'#6c6c8c',1)}
@@ -2575,6 +2624,8 @@ function featWorld(){const L=SURF.L,A=SURF.A,F=A.fx,cam=SURF.cam,p=SURF.p,s=sv()
     if(o.k==='lore'){const rd=s.lore[idx*10+o.slot];const im=F.lore;ctx.drawImage(im,X-im.width/2|0,Y-im.height+1);if(!rd){const pu=.5+.5*Math.sin(t*3+o.x);ctx.globalAlpha=.07+.05*pu;ctx.fillStyle=F.glow;ctx.fillRect(X-1,Y-im.height-30,3,30);ctx.globalAlpha=.16+.14*pu;ctx.fillStyle=F.glow;ctx.beginPath();ctx.arc(X,Y-im.height/2,11+pu*2,0,TAU);ctx.fill();ctx.globalAlpha=.8;ctx.fillRect(X-1,Y-im.height-4,3,2);ctx.globalAlpha=1}}
     else if(o.k==='npc'){const im=F.npc[o.npc];const fl=px_=>0;const face=(p.x+5)<o.x?-1:1;ctx.save();if(o.npc==='ghost'){ctx.globalAlpha=.55+.2*Math.sin(t*2)}if(face<0){ctx.translate(X+im.width/2,0);ctx.scale(-1,1);ctx.drawImage(im,0,Y-im.height+(o.npc==='ghost'?bob*3-6:0))}else ctx.drawImage(im,X-im.width/2|0,Y-im.height+(o.npc==='ghost'?bob*3-6:0));ctx.restore()}
     else if(o.k==='lever'){ctx.drawImage(F.lever[o.on?1:0],X-8,Y-14)}
+    else if(o.k==='page'){const fd=!!s.sec[o.id],pu=.5+.5*Math.sin(t*1.8+o.x);if(!fd){ctx.globalAlpha=.14+.1*pu;ctx.fillStyle='#ffe9a0';ctx.beginPath();ctx.arc(X,Y-6+bob,10+pu*2,0,TAU);ctx.fill();ctx.globalAlpha=1}
+      ctx.fillStyle=K;ctx.fillRect(X-4,Y-11+bob,9,11);ctx.fillStyle=fd?'#9a8a60':'#f0dc9c';ctx.fillRect(X-3,Y-10+bob,7,9);ctx.fillStyle=fd?'#7a6a48':'#d0b878';ctx.fillRect(X-3,Y-10+bob,1,9);ctx.fillStyle='#5a4020';ctx.fillRect(X-1,Y-8+bob,3,1);ctx.fillRect(X-2,Y-6+bob,4,1);ctx.fillRect(X-1,Y-4+bob,2,1);ctx.fillStyle='#8a3a2a';ctx.fillRect(X+1,Y-3+bob,2,1)}
     else if(o.k==='plate'){ctx.drawImage(F.plate[o.down?1:0],X-11,Y-(o.down?3:5))}
     else if(o.k==='key'&&!o.got){ctx.drawImage(F.key[o.col==='red'?0:1],X-7,Y-12+bob);ctx.globalAlpha=.3+.2*Math.sin(t*4);ctx.fillStyle=o.col==='red'?'#ff8888':'#88ccff';ctx.beginPath();ctx.arc(X,Y-6+bob,8,0,TAU);ctx.fill();ctx.globalAlpha=1}
     else if(o.k==='frag'&&!o.got&&!s.map3[idx+'_'+o.n]){ctx.drawImage(F.frag,X-6,Y-12+bob);ctx.globalAlpha=.25+.2*Math.sin(t*4);ctx.fillStyle=YL;ctx.beginPath();ctx.arc(X,Y-5+bob,7,0,TAU);ctx.fill();ctx.globalAlpha=1}
@@ -2668,7 +2719,7 @@ function featHud(){const L=SURF.L,p=SURF.p,cam=SURF.cam,s=sv();
   {let bo=null;const g=SURF.guard;if(g&&g.hp>0&&g.engaged)bo=g;else for(const e of SURF.en)if(e.lair&&e.hp>0&&e.engaged){bo=e;break}
    if(bo){const w=150,x=(VW-w)/2,y=27;ctx.fillStyle='#000000cc';ctx.fillRect(x-4,y-11,w+8,19);textC2(bo.guardian?BOSSNAME[SURF.idx]:'MINI BOSS',VW/2,y-9,bo.vent>0?OR:YL);ctx.fillStyle=K;ctx.fillRect(x,y+1,w,5);ctx.fillStyle=bo.vent>0?OR:RD;ctx.fillRect(x+1,y+2,Math.round((w-2)*clamp(bo.hp/bo.mhp,0,1)),3)}}
   if(L.chase&&L.chase.state===1){const ch=L.chase,u=clamp((ch.yb-ch.row)/Math.max(1,ch.yb-ch.top),0,1);ctx.fillStyle='#000000cc';ctx.fillRect(VW/2-50,17,100,11);textC2('LAVA RISING',VW/2,18,OR);ctx.fillStyle=K;ctx.fillRect(VW/2-46,25,92,2);ctx.fillStyle=RD;ctx.fillRect(VW/2-46,25,Math.round(92*u),2)}
-  const n=SURF.near;if(n){const X=Math.round(n.x-cam.x),Y=Math.round(n.y-cam.y)-28;const lbl={lore:'READ',npc:(n.npc==='trader'?'SHOP':'TALK'),lever:'PULL LEVER',mirror:'TURN MIRROR',nest:'DISTURB NEST',portal:'ENTER',shrine:'PRAY',panel:'TYPE CODE',pod:'TOUCH',echo:'LISTEN',console:n.state===1?'GO':'START',dig:'DIG'}[n.k]||'USE';
+  const n=SURF.near;if(n){const X=Math.round(n.x-cam.x),Y=Math.round(n.y-cam.y)-28;const lbl={lore:'READ',npc:(n.npc==='trader'?'SHOP':'TALK'),lever:'PULL LEVER',mirror:'TURN MIRROR',nest:'DISTURB NEST',portal:'ENTER',shrine:'PRAY',panel:'TYPE CODE',pod:'TOUCH',page:'READ PAGE',echo:'LISTEN',console:n.state===1?'GO':'START',dig:'DIG'}[n.k]||'USE';
     const t=useLabel()+': '+lbl;const w=textW(t,1)+8,bx=clamp(X-w/2|0,2,VW-w-2),by=clamp(Y,16,VH-14);ctx.fillStyle='#000000cc';ctx.fillRect(bx,by-2,w,11);ctx.fillStyle=YL;ctx.fillRect(bx,by-2,w,1);textC2(t,bx+w/2,by,WH);SURF.promptRect={x:bx-4,y:by-6,w:w+8,h:19}}else SURF.promptRect=null;
   const tb=SURF.touchBtns;
   /* keys held */
@@ -2873,7 +2924,7 @@ SURF.draw=function(){
   for(const c of L.checks){if(c.x<cam.x-20||c.x>cam.x+VW+20||c.y<cam.y-40||c.y>cam.y+VH+40)continue;const X=Math.floor(c.x-cam.x),Y=Math.floor(c.y-cam.y);ctx.fillStyle=K;ctx.fillRect(X-8,Y-2,16,3);ctx.fillStyle=c.on?CY:GM;ctx.fillRect(X-7,Y-2,14,2);if(c.on){ctx.fillStyle='#9ad2e044';ctx.fillRect(X-5,Y-30,10,28);ctx.fillStyle=WH;for(let i=0;i<4;i++)ctx.fillRect(X-4+((L.tick*30+i*9)%9),Y-4-((L.tick*40+i*11)%26),1,2)}}
   /* the beacon */
   {const e=L.exit,X=Math.floor(e.x-cam.x),Y=Math.floor(e.y-cam.y);ctx.drawImage(A.beacon,X,Y-28);const open=!(SURF.guard&&SURF.guard.hp>0);ctx.fillStyle=open?GREEN[3]:RD;ctx.fillRect(X+8,Y-24+((L.tick*8|0)%2),2,2);
-    if(open&&!SURF.done&&Math.abs(p.x-e.x)<24){textC2('PRESS ENTER OR TAP THE BEACON',X+9,Y-38,YL)}}
+    if(open&&!SURF.done&&Math.abs(p.x-e.x)<24){textC2(devKind()==='pad'?'PRESS Y AT THE BEACON':devKind()==='touch'?'TAP THE BEACON':'PRESS E OR ENTER AT THE BEACON',X+9,Y-38,YL)}}
   /* chests */
   for(const c of L.chests){if(c.gone||c.x<cam.x-16||c.x>cam.x+VW+16||c.y<cam.y-12||c.y>cam.y+VH+12)continue;const im=A.chest[c.open?1:0],cw_=Math.round(im.width*1.3),ch_=Math.round(im.height*1.3);ctx.drawImage(im,Math.floor(c.x-cam.x+7-cw_/2),Math.floor(c.y-cam.y+11-ch_),cw_,ch_)}
   /* the rocket booster: a small fuel cell that glows softly */
@@ -2950,19 +3001,20 @@ function hud(){
     let lines=[];if(it.first&&SURF.idx===0)lines=lines.concat(wrap('SIX PIECES OF A LUXURY SPACESHIP ARE HIDDEN IN THE SURFACE WORLDS. FIND ALL SIX TO WIN THE SHIP.',58),['']);
     lines=lines.concat(wrap('SHIP PIECES FOUND: '+n+' OF 6. '+hidden+' '+status,58));
     if(bst)lines=lines.concat([''],wrap(bst,58));
-    lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS E TO USE THINGS. PRESS B FOR THE MENU AND MAP.',58));
+    lines=lines.concat([''],wrap('THIS WORLD ALSO HIDES '+SURF.L.secrets.length+' SECRETS: VAULTS, PUZZLES, LORE AND TREASURE. PRESS '+useLabel()+' TO USE THINGS. PRESS '+menuLabel()+' FOR THE MENU AND MAP.',58));
     const h=lines.length*9+50,y0=Math.max(18,Math.round((VH-h)/2)-8),al=Math.min(1,it.t*3,(9-it.t)*2);
     ctx.globalAlpha=.9*al;ctx.fillStyle='#05031a';ctx.fillRect(16,y0,VW-32,h);ctx.globalAlpha=al;ctx.fillStyle=YL;ctx.fillRect(16,y0,VW-32,1);ctx.fillRect(16,y0+h-1,VW-32,1);ctx.fillStyle='#352879';ctx.fillRect(16,y0+1,VW-32,9);
     textC('THE SHIP PIECE HUNT',y0+3,YL,1);
     lines.forEach((ln,i)=>textC(ln,y0+14+i*9,i===0||ln.startsWith('SHIP PIECES')?WH:'#ccccee',1));
     const iy=y0+14+lines.length*9+3;for(let k=0;k<6;k++){const ic=A.pieceIcons[k],X=Math.round(VW/2-3*44+k*44+15),got=s.pieces[k],here=ids.includes(k);ctx.drawImage(got?ic.on:ic.off,X,iy);
       textC2(PIECE_NAMES[k],X+7,iy+13,got?GREEN[3]:here?YL:'#6c6c8c');if(here&&!got){ctx.fillStyle=YL;ctx.fillRect(X-1,iy-2,16,1);ctx.fillRect(X-1,iy+12,16,1)}}
-    textC('PRESS ANY KEY OR TAP TO CLOSE',y0+h-9,'#8888aa',1);ctx.globalAlpha=1}
+    textC(devKind()==='pad'?'PRESS ANY BUTTON TO CLOSE':'PRESS ANY KEY OR TAP TO CLOSE',y0+h-9,'#8888aa',1);ctx.globalAlpha=1}
   if(SURF.banner){const b=SURF.banner,a=Math.min(1,b.t*2),h=b.lines.length*11+12,y0=54;ctx.globalAlpha=.85*a;ctx.fillStyle=K;ctx.fillRect(20,y0,VW-40,h);ctx.globalAlpha=a;ctx.fillStyle=YL;ctx.fillRect(20,y0,VW-40,1);ctx.fillRect(20,y0+h-1,VW-40,1);b.lines.forEach((ln,i)=>textC(ln,y0+7+i*11,i?WH:YL,1));ctx.globalAlpha=1}
   if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
     if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('MENU AND BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
+    else if(devKind()==='pad'){textC('MOVE: STICK OR D-PAD   JUMP: A   FIRE: X, B OR RB',VH-37,WH,1);textC('USE: Y   MENU: START   STUCK: BACK',VH-27,YL,1);textC('LADDERS: UP AND DOWN   DROP: DOWN + A',VH-17,'#9ad2e0',1)}
     else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP   Y USE   X, B OR RB FIRE   START MENU   BACK STUCK',VH-17,'#9ad2e0',1)}}
-  else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: X, R OR MOUSE   USE: E   MENU: B',VH-9,'#bbbbdd',1)}
+  else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: '+fireLabel()+'   USE: '+useLabel()+'   MENU: '+menuLabel(),VH-9,'#bbbbdd',1)}
   if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78+(SURF.boosters()?30:0),9);text('ROCKET',6,17,YL,1);if(SURF.boosters())text('X'+(1+.15*SURF.boosters()).toFixed(2),84,17,GREEN[3],1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
   const tb=SURF.touchBtns=[];
