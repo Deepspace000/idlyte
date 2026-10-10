@@ -1882,6 +1882,9 @@ function bakeChunk(L,idx,ci,cj){
 /* ---------------- state ---------------- */
 const SURF={on:false,L:null,W:null,assets:{}};
 window.SURF=SURF;SURF.gen=genLevel;SURF.bake=(L,i,ci,cj)=>bakeChunk(L,i,ci,cj);SURF.analyze=analyzeLevel;
+/* GREEN GOLD TUNING: one multiplier per source. Shop prices are not scaled. */
+const GOLD_MUL={coin:1.3,chest:1.8,kill:1.3,bonus:2};
+function goldVal(c){const m=c.src===1?GOLD_MUL.chest:c.src===2?GOLD_MUL.kill:GOLD_MUL.coin;return Math.max(1,Math.round(c.v*m))}
 function sv(){SAVE.surf=SAVE.surf||{};const s=SAVE.surf;s.done=s.done||[0,0,0,0,0];s.green=s.green||0;s.seen=s.seen||{};s.reward=s.reward||0;s.kills=s.kills||0;s.cp=s.cp||{};s.pieces=s.pieces||[0,0,0,0,0,0];s.intro=s.intro||{};s.lore=s.lore||{};s.met=s.met||{};s.sec=s.sec||{};s.q=s.q||{};s.perk=s.perk||[0,0,0,0,0];s.shop=s.shop||{};s.hint=s.hint||{};s.jr=s.jr||{};s.boost=s.boost||[0,0,0,0,0];s.map=s.map||{};s.map3=s.map3||{};s.full=s.full||{};s.shiny=s.shiny||{};if(s.lay!==3){s.cp={};s.lay=3}   // the levels were rebuilt much bigger, so old beam pad positions no longer fit
   return s}
 SURF.state=sv;
@@ -2035,7 +2038,7 @@ function tryExit(){
   const L=SURF.L,s=sv();
   if(SURF.done)return;
   if(SURF.guard&&SURF.guard.hp>0){SURF.msg=['THE GUARDIAN BLOCKS THE BEACON',2.2];return}
-  SURF.done=1;L.exit.open=1;s.done[SURF.idx]=1;const bonus=400+SURF.idx*300;s.green+=bonus;SURF.visit+=bonus;
+  SURF.done=1;L.exit.open=1;s.done[SURF.idx]=1;const bonus=Math.round((400+SURF.idx*300)*GOLD_MUL.bonus);s.green+=bonus;SURF.visit+=bonus;
   SURF.msg=['LEVEL CLEAR  +'+bonus+' GREEN GOLD',3.5];delete s.cp[SURF.idx];
   for(let i=0;i<30;i++)SURF.fx.push({x:L.exit.x+9,y:L.exit.y-14,vx:rnd(-60,60),vy:rnd(-110,-20),life:1.2,c:GREEN[i%5],s:2});
   SURF.endT=3.2;
@@ -2173,12 +2176,12 @@ SURF.tick=function(dt){
       for(let i=0;i<40;i++)SURF.fx.push({x:sp.x,y:sp.y,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,CY,MG][i%4],s:2});save()}
     for(const c of L.checks)if(!c.on&&Math.abs(p.x+5-c.x)<16&&Math.abs(p.y+16-c.y)<18){c.on=1;s.cp[SURF.idx]={x:c.x,y:c.y};SURF.msg=['BEAM PAD SAVED',1.6];for(let i=0;i<10;i++)SURF.fx.push({x:c.x,y:c.y-4,vx:rnd(-30,30),vy:rnd(-90,-20),life:.7,c:CY,s:2});p.safe={x:p.x,y:p.y}}
     for(const c of L.chests)if(!c.open&&Math.abs(p.x+5-(c.x+7))<14&&Math.abs(p.y+8-(c.y+5))<18){c.open=1;if(c.sec)foundSecret(c.sec);if(c.mimic){c.gone=1;spawnMimic(c.x,c.y);SURF.msg=['IT WAS A CURSED CHEST!',2];shakeS=.2;try{sfxBoom(8,false)}catch(e){}continue}try{sfxTone(500,1200,.3,'triangle',.04,{att:.005})}catch(e){}
-      const cv=c.v*((c.sec||c.big)?6:1);for(let i=0;i<Math.min(12,cv);i++)L.coins.push({x:c.x+7,y:c.y,v:Math.ceil(cv/Math.min(12,cv)),vx:rnd(-50,50),vy:rnd(-130,-60),loose:1})}
+      const cv=c.v*((c.sec||c.big)?6:1);for(let i=0;i<Math.min(12,cv);i++)L.coins.push({x:c.x+7,y:c.y,v:Math.ceil(cv/Math.min(12,cv)),src:1,vx:rnd(-50,50),vy:rnd(-130,-60),loose:1})}
     let anyGone=false;
     for(const c of L.coins){
       if(!c.loose&&(Math.abs(p.x+5-c.x)>(s.perk[4]?38:24)||Math.abs(p.y+8-c.y)>(s.perk[4]?38:24)))continue;
       if(c.loose){c.vy+=300*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;if(hitsSolid(c.x-2,c.y,4,4)){c.vy=-c.vy*.3;c.vx*=.6;c.y-=2}}
-      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(c.heart&&p.hp>=p.mhp)continue;if(!c.gone&&dx*dx+dy*dy<(s.perk[4]?340:150)){c.gone=1;anyGone=true;if(c.heart){p.hp=Math.min(p.mhp,p.hp+1);SURF.txt.push({x:c.x,y:c.y,t:1,s:'+1 HEART'})}else{s.green+=c.v;SURF.visit+=c.v;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+c.v})}try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
+      const dx=p.x+5-c.x,dy=p.y+8-c.y;if(c.heart&&p.hp>=p.mhp)continue;if(!c.gone&&dx*dx+dy*dy<(s.perk[4]?340:150)){c.gone=1;anyGone=true;if(c.heart){p.hp=Math.min(p.mhp,p.hp+1);SURF.txt.push({x:c.x,y:c.y,t:1,s:'+1 HEART'})}else{const gv=goldVal(c);s.green+=gv;SURF.visit+=gv;SURF.txt.push({x:c.x,y:c.y,t:.8,s:'+'+gv})}try{beep(900+Math.random()*200,.05,'square',.03)}catch(e){}}}
     if(anyGone)L.coins=L.coins.filter(c=>!c.gone);
   }
   /* spawners: enemies in view and farm respawns */
@@ -2231,7 +2234,7 @@ function killEnemy(e){
     for(let i=0;i<40;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,OR,CY][i%4],s:2});save()}
   const key=SURF.idx+'_'+e.k;s.seen[key]=(s.seen[key]||0)+1;
   const n=Math.max(1,Math.round(sp.gold*(e.elite?4:1)*(e.shiny?5:1)*(e.hunter?3:1)));
-  for(let i=0;i<Math.min(8,n);i++)SURF.L.coins.push({x:e.x+e.w/2,y:e.y+e.h/2,v:Math.ceil(n/Math.min(8,n)),vx:rnd(-60,60),vy:rnd(-120,-40),loose:1});
+  for(let i=0;i<Math.min(8,n);i++)SURF.L.coins.push({x:e.x+e.w/2,y:e.y+e.h/2,v:Math.ceil(n/Math.min(8,n)),src:2,vx:rnd(-60,60),vy:rnd(-120,-40),loose:1});
   for(let i=0;i<14;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-80,80),vy:rnd(-100,20),life:.5,c:sp.pal[(i%3)+2],s:2});
   {const pl=SURF.p,low=pl.hp<=2?.3:pl.hp<=3?.12:0,big=e.guardian||e.lair,nh=big?2:(Math.random()<.05+low?1:0);for(let q=0;q<nh;q++)SURF.L.coins.push({x:e.x+e.w/2+q*8,y:e.y+e.h/2,v:0,heart:1,vx:rnd(-40,40),vy:rnd(-130,-70),loose:1})}
 }
@@ -2369,7 +2372,7 @@ function openShop(){const rows=shopRows();openModal({type:'menu',title:'TRADER B
 /* ---- people */
 function npcTalk(ia){const s=sv(),L=SURF.L,idx=SURF.idx;
   if(ia.npc==='trader'){openTalk('TRADER BOT',['BEEP. I BUY NOTHING AND SELL EVERYTHING. PAY IN GREEN GOLD ONLY. SHIP GOLD IS NOT ACCEPTED HERE.'],()=>openShop());return}
-  if(ia.npc==='astro'){const q=s.q[ia.qid]||0,N=300+idx*150,qi=L.questItem;
+  if(ia.npc==='astro'){const q=s.q[ia.qid]||0,N=Math.round((300+idx*150)*GOLD_MUL.bonus),qi=L.questItem;
     if(q===0&&qi){openTalk('STRANDED ASTRONAUT',['I AM STUCK HERE. MY DATA CRYSTAL FELL INTO THE ROOMS UNDER THE GROUND. IT GLOWS BLUE.','BRING IT BACK AND I WILL PAY YOU '+N+' GREEN GOLD.'],()=>{s.q[ia.qid]=1;SURF.msg=['QUEST: FIND THE DATA CRYSTAL',3];save()});return}
     if(q===1||q===2){if(q===2||(L.questItem&&L.questItem.got)){openTalk('STRANDED ASTRONAUT',['YOU FOUND MY DATA CRYSTAL! THANK YOU. HERE IS YOUR PAY: '+N+' GREEN GOLD.'],()=>{s.q[ia.qid]=3;s.green+=N;SURF.visit+=N;SURF.msg=['QUEST DONE  +'+N+' GREEN GOLD',3];save()});return}
       openTalk('STRANDED ASTRONAUT',['HAVE YOU FOUND MY DATA CRYSTAL YET? IT IS IN ONE OF THE ROOMS UNDER THE GROUND. LOOK FOR A BLUE GLOW.']);return}
@@ -2461,7 +2464,7 @@ function featTick(dt,I){const L=SURF.L,p=SURF.p,s=sv(),idx=SURF.idx;
   if(!s.full[idx]&&((SURF.gt=(SURF.gt||0)+dt)>2)){SURF.gt=0;const t=trk();if(t.full){s.full[idx]=1;const R=FULLR(idx);s.green+=R;SURF.visit+=R;SURF.banner={t:6,lines:['LEVEL 100 PERCENT COMPLETE','ALL SECRETS, LORE AND CREATURES FOUND','+'+R+' GREEN GOLD']};try{sfxTone(400,1800,.8,'triangle',.06,{att:.005})}catch(e){}save()}}
 }
 const rn_=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const FULLR=i=>600*(i+1);
+const FULLR=i=>Math.round(600*(i+1)*GOLD_MUL.bonus);
 function chaseFail(){const L=SURF.L,ch=L.chase;for(let q=0;q<6000&&ch.set.length;q++){const k=ch.set.pop();if(L.g[k]===4)L.g[k]=0}ch.state=0;for(const o of L.ia)if(o.forge)o.on=0;SURF.msg=null;SURF.banner={t:4,lines:['THE LAVA REACHED YOU.','THE FORGE COOLS. PULL THE LEVER TO TRY AGAIN.']};hurt(1,true)}
 function rtChest(tx,ty,v){const c={x:tx*TS,y:ty*TS-10,open:0,v};SURF.L.chests.push(c);return c}
 function gravK(){const e=SURF.ev;if(SURF.bossLow>0)return .45;return e&&e.phase===2&&e.cur&&e.cur.id==='pulse'?.45:1}
