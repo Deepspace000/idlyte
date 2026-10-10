@@ -2927,7 +2927,7 @@ function hud(){
   if(SURF.banner){const b=SURF.banner,a=Math.min(1,b.t*2),h=b.lines.length*11+12,y0=54;ctx.globalAlpha=.85*a;ctx.fillStyle=K;ctx.fillRect(20,y0,VW-40,h);ctx.globalAlpha=a;ctx.fillStyle=YL;ctx.fillRect(20,y0,VW-40,1);ctx.fillRect(20,y0+h-1,VW-40,1);b.lines.forEach((ln,i)=>textC(ln,y0+7+i*11,i?WH:YL,1));ctx.globalAlpha=1}
   if(SURF.help>0){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-40,VW,33);const tch=typeof isTouch!=='undefined'&&isTouch;
     if(tch){textC('TOUCH: < > MOVE   JUMP   FIRE   UP AND DOWN FOR LADDERS',VH-37,WH,1);textC('TAP DOWN ON A THIN PLATFORM TO DROP THROUGH',VH-27,YL,1);textC('MENU AND BEAM UP: TOP RIGHT BUTTON',VH-17,'#9ad2e0',1)}
-    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP AND USE   X, B OR RB FIRE   START MENU',VH-17,'#9ad2e0',1)}}
+    else{textC('MOVE: ARROWS OR WASD   JUMP: SPACE   FIRE: X, R OR MOUSE',VH-37,WH,1);textC('MENU: B   USE: E   STUCK: G   LADDERS: W/S   DROP: S+SPACE',VH-27,YL,1);textC('GAMEPAD: A JUMP   Y USE   X, B OR RB FIRE   START MENU   BACK STUCK',VH-17,'#9ad2e0',1)}}
   else if(!(typeof isTouch!=='undefined'&&isTouch)&&SURF.t<7){ctx.fillStyle='#000000cc';ctx.fillRect(0,VH-12,VW,12);textC('FIRE: X, R OR MOUSE   USE: E   MENU: B',VH-9,'#bbbbdd',1)}
   if(s.jet){const f=p.fuel==null?1:p.fuel;ctx.fillStyle='#000000aa';ctx.fillRect(4,16,78,9);text('ROCKET',6,17,YL,1);ctx.fillStyle=K;ctx.fillRect(48,17,32,6);ctx.fillStyle=f>.25?CY:RD;ctx.fillRect(49,18,Math.round(30*f),4);ctx.fillStyle=WH;ctx.fillRect(49,18,Math.round(30*f),1)}
   /* on screen buttons */
