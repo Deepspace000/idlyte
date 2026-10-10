@@ -2230,6 +2230,7 @@ function killEnemy(e){
   if(e.shiny){s.shiny[SURF.idx+'_'+e.k]=1;foundSecret(SURF.idx+'_shiny','SHINY CREATURE')}
   if(e.sp_&&e.sp_.lair)e.sp_.killed=1;if(e.hunter)SURF.hunterDead=SURF.t;
   if(e.guardian&&SURF.idx===4){const f=SURF.L.ia.find(o=>o.final);if(f){f.hide=0;f.x=e.x+e.w/2;f.y=e.y+e.h;SURF.msg=['SOMETHING GLOWS WHERE THE GUARDIAN FELL',4]}}
+  if(e.guardian&&!s.done[SURF.idx]){s.done[SURF.idx]=1;if(SURF.idx<4)SURF.msg=['GUARDIAN DEFEATED. THE NEXT WORLD IS NOW OPEN.',4.5];save()}   // beating the guardian is what clears a world and opens the next
   if(e.guardian&&SURF.idx===0&&!s.jet){s.jet=1;SURF.p.fuel=1;SURF.banner={t:8,lines:['YOU GOT A ROCKET PACK!','PRESS JUMP AGAIN IN THE AIR','AND HOLD IT TO FLY.','NOW YOU CAN EXPLORE FURTHER.']};shakeS=.3;try{sfxTone(300,1400,.6,'triangle',.05,{att:.005})}catch(e3){}
     for(let i=0;i<40;i++)SURF.fx.push({x:e.x+e.w/2,y:e.y+e.h/2,vx:rnd(-110,110),vy:rnd(-150,-10),life:1.1,c:[WH,YL,OR,CY][i%4],s:2});save()}
   const key=SURF.idx+'_'+e.k;s.seen[key]=(s.seen[key]||0)+1;
