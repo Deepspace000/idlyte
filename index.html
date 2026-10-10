@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Idlyte v2.69</title>
+<title>Idlyte v2.70</title>
 <meta name="apple-mobile-web-app-title" content="Idlyte">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
@@ -1406,7 +1406,7 @@ function drawMissionMenu(){
 }
 
 /* ===== title page ===== */
-const VERSION='2.69';
+const VERSION='2.70';
 let MODE='title',titleT=0;
 const LOGO=(function(){
   const G6={I:['111111','001100','001100','001100','001100','001100','111111'],
@@ -4820,7 +4820,7 @@ function frame(now){
   }else if(MODE==='loot'){lootTick(dt);musVol(lostPage?.5:.2);drawLoot()}
   else if(MODE==='hub'){hubUpdate(dt);drawHub()}
   else if(MODE==='arcade'){arcadeTick(dt);musVol(.1);drawArcade()}
-  else if(MODE==='surface'){SURF.tick(dt);musVol(.25);SURF.draw();drawToast(150)}
+  else if(MODE==='surface'){if(TOASTS.length){TOASTS[0].t-=dt;if(TOASTS[0].t<=0)TOASTS.shift()}SURF.tick(dt);musVol(.25);SURF.draw();drawToast(150)}   // messages like MUSIC OFF fade after a moment
   else if(MODE==='story'){musVol(.25);drawStory(dt)}
   else if(MODE==='studio'){musVol(.6);drawStudio()}
   const show=MODE==='game',tshow=isTouch&&(MODE==='hub'||MODE==='arcade'),mshow=MODE==='hub',key=(show?1:0)+(tshow?2:0)+(mshow?4:0);if(key!==barShown){barShown=key;document.getElementById('bar').style.display='none';document.getElementById('touch').style.display=tshow?'flex':'none';document.getElementById('menu').style.display='none';fit()}
