@@ -3075,19 +3075,22 @@ function hud(){
 function ptIn(e){const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*VW,y=(e.clientY-r.top)/r.height*VH;return[x,y]}
 /* one joined d-pad: slide a thumb around it for left, right, up, down and the diagonals */
 const DPAD={x:3,y:116,w:84,h:82};
+/* on a big touch screen (an iPad) the pad is 40% smaller; on a phone it keeps its size */
+function dpadFit(){const big=(typeof innerWidth!=='undefined'&&Math.min(innerWidth,innerHeight)>=700),k=big?.6:1;DPAD.w=Math.round(84*k);DPAD.h=Math.round(82*k);DPAD.x=3;DPAD.y=198-DPAD.h}
 function drawDpad(){
-  const x=DPAD.x,y=DPAD.y,w=DPAD.w,h=DPAD.h,cx=x+w/2,cy=y+h/2,t=SURF.touch,arm=28;
+  dpadFit();
+  const x=DPAD.x,y=DPAD.y,w=DPAD.w,h=DPAD.h,cx=x+w/2,cy=y+h/2,t=SURF.touch,arm=Math.round(28*w/84);
   SURF.touchBtns.push({id:'dp',x,y,w,h});
   /* one solid plus shape: a single outline, nothing drawn across the middle */
   const a2=arm/2;ctx.beginPath();
   ctx.moveTo(cx-a2,y);ctx.lineTo(cx+a2,y);ctx.lineTo(cx+a2,cy-a2);ctx.lineTo(x+w,cy-a2);ctx.lineTo(x+w,cy+a2);ctx.lineTo(cx+a2,cy+a2);ctx.lineTo(cx+a2,y+h);ctx.lineTo(cx-a2,y+h);ctx.lineTo(cx-a2,cy+a2);ctx.lineTo(x,cy+a2);ctx.lineTo(x,cy-a2);ctx.lineTo(cx-a2,cy-a2);ctx.closePath();
   ctx.fillStyle='#000000777';ctx.fillStyle='#00000077';ctx.fill();ctx.strokeStyle='#ffffff66';ctx.lineWidth=1;ctx.stroke();
   const tri=(ax,ay,dx,dy,on)=>{ctx.fillStyle=on?'#ffffff':'#ffffff99';ctx.beginPath();ctx.moveTo(ax+dx*5,ay+dy*5);ctx.lineTo(ax-dy*5-dx*3,ay+dx*5-dy*3);ctx.lineTo(ax+dy*5-dx*3,ay-dx*5-dy*3);ctx.closePath();ctx.fill()};
-  tri(x+11,cy,-1,0,t.l);tri(x+w-11,cy,1,0,t.r);tri(cx,y+11,0,-1,t.u);tri(cx,y+h-11,0,1,t.d);
+  const m=Math.round(11*w/84);tri(x+m,cy,-1,0,t.l);tri(x+w-m,cy,1,0,t.r);tri(cx,y+m,0,-1,t.u);tri(cx,y+h-m,0,1,t.d);
   ctx.fillStyle='#ffffff2a';if(t.l)ctx.fillRect(x,cy-a2,a2+arm/2+4,arm);if(t.r)ctx.fillRect(x+w-arm-4,cy-a2,arm+4,arm);if(t.u)ctx.fillRect(cx-a2,y,arm,arm+4);if(t.d)ctx.fillRect(cx-a2,y+h-arm-4,arm,arm+4);
 }
 function setDpad(x,y){
-  const t=SURF.touch,cx=DPAD.x+DPAD.w/2,cy=DPAD.y+DPAD.h/2,dx=x-cx,dy=y-cy,dz=7;
+  const t=SURF.touch,cx=DPAD.x+DPAD.w/2,cy=DPAD.y+DPAD.h/2,dx=x-cx,dy=y-cy,dz=Math.max(4,Math.round(7*DPAD.w/84));
   t.l=t.r=t.u=t.d=0;
   const ax=Math.abs(dx),ay=Math.abs(dy);if(ax<dz&&ay<dz)return;
   if(ax>=ay*.55&&ax>=dz)dx<0?t.l=1:t.r=1;
